@@ -19,6 +19,7 @@
 #include "kxmodules_path.h"
 #include "kxcompile_utils.h"
 #include "kxlist.h"
+#include "kxglobals.h"
 
 
 // TODO: kx_verbose do globals.h
@@ -175,7 +176,7 @@ kxmodule_load(KxModule *self, KxMessage *message)
 			sprintf(data->path, "%s/%s/", path, param);
 		}
 		char *kx_path = utils_path_join(path, kx_filename);
-		KxObject *ret_object = kxcompile_do_file(kx_path, self, message->message_name);
+		KxObject *ret_object = kxcompile_do_file(kx_path, self, message->message_name, kx_doc_flag);
 		free(kx_path);
 		list_free(paths);
 		KXCHECK(ret_object);

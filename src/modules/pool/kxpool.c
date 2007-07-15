@@ -7,6 +7,7 @@
 #include "kxobject.h"
 #include "kxexception.h"
 #include "kxcompile_utils.h"
+#include "kxglobals.h"
 //#include "kxstack.h"
 
 KxObjectExtension kxpool_extension;
@@ -135,7 +136,7 @@ kxpool_message_hook(KxPool *self, KxMessage *message)
 
 	char *path_str = KXSTRING_VALUE(path);
 	KxObject *object = kxcompile_do_file(path_str,
-		KXCORE->lobby, message->message_name);
+		KXCORE->lobby, message->message_name, kx_doc_flag);
 	KXCHECK(object);
 
 	dictionary_add(data->objects, name, object);

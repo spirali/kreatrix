@@ -18,6 +18,7 @@
 #include "kxcodeblock.h"
 #include "kxcompiler.h"
 #include "kxcompile_utils.h"
+#include "kxglobals.h"
 
 //static KxObjectExtension ext;
 
@@ -29,49 +30,7 @@ static KxObject *
 kxlobby_do_file(KxObject *self, KxMessage *message) 
 {
 	KXPARAM_TO_CSTRING(param,0);
-	/*char *kxc_filename = create_kxc_filename(param);
-
-	//printf("out = %s\n", kxc_filename);
-	int size;
-	List *errors;
-	errors = kxc_compile_and_save_file(param,kxc_filename,0, &size);
-	if (errors) {
-		KxException *excp = kxexception_new_with_text(KXCORE,errors->items[0]);
-		kxc_reset_error_list();
-		free(kxc_filename);
-		KXTHROW(excp);
-	}
-	char *source_filename;
-	int bytecode_size;
-	char *bytecode = bytecode_load_from_file(kxc_filename, &bytecode_size,&source_filename);
-	if (bytecode == NULL) {
-		free(kxc_filename);
-		// TODO: Full error message
-		KxException *excp = kxexception_new_with_text(KXCORE,"Problem in loading bytecode");
-		KXTHROW(excp);
-	}
-	free(kxc_filename);
-	
-	KxCodeBlock *codeblock;
-	char *bytecode_pos = bytecode;
-	codeblock = kxcodeblock_new_from_bytecode(KXCORE, &bytecode_pos, source_filename);
-	//REF_ADD(codeblock);
-
-	free(source_filename);
-	free(bytecode);
-
-	//kxobject_mark(codeblock);
-	//kxgc_collect(core);
-	//KxSymbol *start_sym = kxcore_get_symbol(core,"init");
-
-	KxSymbol *init_message = kxcore_get_symbol(KXCORE,"start");
-	KxMessage *start_msg = kxmessage_new(init_message, KXCORE->lobby);
-	KxObject *retobj = kxcodeblock_run(codeblock,KXCORE->lobby, start_msg, KXCB_RUN_NORMAL);
-	kxmessage_free(start_msg);
-	REF_REMOVE(init_message);
-	REF_REMOVE(codeblock);
-	return retobj;*/
-	return kxcompile_do_file(param, KXCORE->lobby, message->message_name);
+	return kxcompile_do_file(param, KXCORE->lobby, message->message_name, kx_doc_flag);
 
 }
 

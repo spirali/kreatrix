@@ -15,11 +15,11 @@
 #include "kxglobals.h"
 
 KxObject *
-kxcompile_do_file(char *filename, KxObject *target, KxSymbol *message_name)
+kxcompile_do_file(char *filename, KxObject *target, KxSymbol *message_name, int doc_flag)
 {
 	char *bytecode;
 	int size;
-	List *errors = kxc_compile_file(filename,0,&bytecode, &size);
+	List *errors = kxc_compile_file(filename,doc_flag,&bytecode, &size);
 	
 	if (errors) {
 		KxException *excp = kxexception_new_with_text(KXCORE_FROM(target),errors->items[0]);
