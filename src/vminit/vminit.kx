@@ -265,12 +265,14 @@ List do: {
 	}.
 
 	allButFirst: = { :count | 
+		(size <= count) ifTrue: [ ^ #() ].
 		^copyFrom: count to: size.
 	}.
 
 	allButFirst = { ^allButFirst: 1 }.
 
 	allButLast: = { :count | 
+		(size <= count) ifTrue: [ ^ #() ].
 		^copyFrom: 0 to: (size - count)
 	}.
 
@@ -280,6 +282,13 @@ List do: {
 		list << #().
 		reverseForeach: [ :each | list add: each ].
 		^list.
+	}.
+
+	asStringDelimiter: = { :delimiter |  |str|
+		isEmpty ifTrue: [ ^"" ].
+		str << first asString.
+		allButFirst foreach: [ :each | str << str, delimiter, each ].
+		^str.
 	}.
 
 }.

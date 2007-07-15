@@ -346,7 +346,7 @@ kxbaseobject_has_slot(KxObject *self, KxMessage *message)
 	KxObject *param = message->params[0];
 	KXCHECK_SYMBOL(param);
 
-	KxObject *object = kxobject_get_slot(message->start_search, param);
+	KxObject *object = kxobject_get_slot(self, param);
 	KXRETURN_BOOLEAN(object != NULL);
 }
 

@@ -19,6 +19,7 @@ List *kxobject_slots_to_list(KxObject *self);
 
 void kxobject_slots_mark(KxObject *self);
 
+void kxobject_slots_dump(KxObject *self);
 
 
 #endif // __KXOBJECT_SLOTS_H

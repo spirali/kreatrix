@@ -157,6 +157,10 @@ kxobject_raw_clone(KxObject *self)
 void 
 kxobject_dump(KxObject *self)
 {
+	if (self == NULL) {
+		printf("<NULL>\n");
+		return;
+	}
 	char *proto_tail = "";
 
 	if (self->parent_slot.parent == KXCORE->base_object) {
@@ -870,8 +874,14 @@ kxobject_secured_clone_object_by_path(KxObject *self, char **path, int path_coun
 KxObject *
 kxobject_compare_exception(KxObject *self, KxObject *object)
 {
+	KxObject *obj1 = kxobject_type_name(self);
+	KxObject *obj2 = kxobject_type_name(object);
+
 	KxException *excp = kxexception_new_with_text(KXCORE,"%s is not comparable to %s",
-		kxobject_type_name(self)->data.ptr, kxobject_type_name(object)->data.ptr);
+		obj1->data.ptr, obj2->data.ptr);
+	
+	REF_REMOVE(obj1);
+	REF_REMOVE(obj2);
 	return excp;
 }
 

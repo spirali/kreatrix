@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "kxobject_slots.h"
 #include "kxobject.h"
@@ -57,20 +58,6 @@ kxobject_slots_clean(KxObject *self)
 void
 kxobject_slots_copy(KxObject *self, KxObject *copy) 
 {
-	/*List *list = hashtable_keys_to_list(self->slots);
-
-	HashTable *source = self->slots;
-	HashTable *out = copy->slots;
-
-	LIST_FOREACH(list) {
-		REF_ADD((KxObject*)LIST_EACH);
-		KxObject *obj = hashtable_get(source, LIST_EACH);
-		REF_ADD(obj);
-		hashtable_add(out, LIST_EACH, obj);
-	}
-
-	list_free(list);*/
-
 	KxSlot *source = self->slots;
 	int t;
 	for (t=0;t<self->slots_count;++t) {
@@ -87,6 +74,11 @@ kxobject_slot_find(KxObject *self, KxObject *key)
 	int t;
 	KxSlot *slots = self->slots;
 	for (t=0;t<self->slots_count;t++) {
+	/*	printf("check: ");
+		kxobject_dump(slots[t].key);
+		printf("test: ");
+		kxobject_dump(key);*/
+
 		if (slots[t].key == key)
 			return &slots[t];
 	}
@@ -96,7 +88,6 @@ kxobject_slot_find(KxObject *self, KxObject *key)
 void
 kxobject_slot_add(KxObject *self, KxObject *key, KxObject *value, int flags) 
 {
-	//KxSlot *slots = self->slots;
 	if (self->slots_capacity == self->slots_count) {
 		self->slots_capacity <<= 1;
 		self->slots = realloc(self->slots, self->slots_capacity * sizeof(KxSlot));
@@ -109,9 +100,7 @@ kxobject_slot_add(KxObject *self, KxObject *key, KxObject *value, int flags)
 
 List *
 kxobject_slots_to_list(KxObject *self) {
-	/*List *list = hashtable_keys_to_list(self->slots);
-	list_foreach(list, kxobject_ref_add);
-	return list;*/
+
 	List *list = list_new_size(self->slots_count);
 	int t;
 	for (t=0;t<self->slots_count;t++) {
@@ -131,5 +120,19 @@ kxobject_slots_mark(KxObject *self)
 	for (t=0;t<size;t++) {
 		kxobject_mark(slots[t].key);
 		kxobject_mark(slots[t].value);
+	}
+}
+
+void
+kxobject_slots_dump(KxObject *self) 
+{
+	printf("Slots for:");
+	kxobject_dump(self);
+	
+	int t;
+	for (t=0;t<self->slots_count;t++)
+	{
+		printf("%s -> ", (char*)(self->slots[t].key->data.ptr));
+		kxobject_dump(self->slots[t].value);
 	}
 }

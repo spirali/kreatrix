@@ -262,6 +262,9 @@ kxlist_set_size(KxList *self, KxMessage *message)
 	List *list = self->data.ptr;
 	int size = list->size;
 	KXPARAM_TO_LONG(param,0);
+	if (param < 0) {
+		KXTHROW_EXCEPTION("Size of list must be positive integer");
+	}
 
 	if (size > param) {
 		int t;
