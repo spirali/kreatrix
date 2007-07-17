@@ -1,478 +1,546 @@
+/** All reachable slots in this code has prefix __ to ignore in 
+    generated documentation 
+**/
 
-Lobby __Path = List clone do: {
-	type = "Path".
+String do: {
+	__substituteDict = #(
+		(':' => ".")
+		('/' => "slash")
+	) asDictionary.
 
-	cloneWithList: = { :aList |  |clone|
-		clone << self clone.
-		clone join: aList.
-		^clone.
+	__htmlSubstitue = #(
+		('&' => "&amp;")
+		('<' => "&lt;")
+		('>' => "&gt;")
+	) asDictionary.
+
+
+	__asFilename = { |str|
+		^(asList collect: [ :char |
+			__substituteDict at: char ifAbsent: [ char ].
+		]) asString.
 	}.
 
-	asFilename = { |clone|
-		str << "".
-		self foreach: [ :each | str << str,each,"_" ].
-		^str.
-	}.
-
-	parseDocPath: = { :aString | |pos|
-		pos << 0.
-		[
-			|p|
-			p << aString find: "#" from: pos.
-			p isNotNil ifTrue: [
-				add: (aString sliceFrom: pos to: p).
-				pos << p + 1.
-			] ifFalse: [
-				add:(aString sliceFrom: pos to: aString size).
-			].
-			p isNotNil.
-		] whileTrue.
-	}.
+	__asHtml = { |str|
+		^(asList collect: [ :char |
+			__htmlSubstitue at: char ifAbsent: [ char ].
+		]) asString.
+	}
 }.
 
-Lobby __DocPage = Object clone do: {
+Object do: {
 
-	type = "__DocPage".
+	__slots = {
+		^slots reject: [ :slot | slot asString beginsWith: "__" ].
+	}.
 
-	head = (File clone name: "head.html") openForReading contentAsString.
-	tail = (File clone name: "tail.html") openForReading contentAsString.
-	body = "".
-	outputPath = "../../../docs/html/".
-	object = nil.
-	objectName = "".
-	path <- List clone.
+	__test: = { :slot | 
+		^slots detect: [ :each | each == slot ].
+	}.
 
-
-	object: = { :anObject |
-		object = slot: #anObject.
-
-		path = __Path clone.
-		path parseDocPath: (slot: #anObject) __doc_path.
-		objectName = path last.
+	__createName:path: = { :aName :path|
+		(hasSlot: #__name) ifTrue: [ 
+			(__path size <= path size) ifTrue: [ ^self ].
+		].
+		__name = aName.
+		path add: self.
+		__path = path copy.
+		__slots foreach: [ :slot |
+			(slot: slot) __createName: slot asString path: path.
+		].
 		path pop.
 	}.
 
-	/*path: = { :aList | 
-		path = aList
-	}.*/
-
-
-	save = { |file|
-		file << File clone name: outputPath, (slot: #object) __doc_filename.
-		file openForWriting.
-		file write: head.
-		_writeBodyTo: file.
-		file write: tail.
-		file close.
-		"." print.
-		stdout flush.
-	}.
-
-	saveListTo: = { :aString | |file|
-		file << File clone name: outputPath, aString.
-		file openForWriting.
-		file write: head.
-		_writeListTo: file.
-		file write: tail.
-		file close.
-	}.
-
-	_writeBodyTo: = { :aFile | 
-		_writePathTo: aFile.
-		aFile write: "<hr/>".
-
-		_writeTitleTo: aFile.
-
-		_writeObjectShortDocTo: aFile.
-		_writeParametersTo: aFile.
-
-		_writeObjectDocTo: aFile.
-		_writeParentTo: aFile.
-		_writeSlotsTo: aFile.
-		_writeNotesTo: aFile.
-		aFile write: "<hr/>".
-		_writePathTo: aFile.
-	}.
-
-
-	_writePathTo: = { :aFile | |pathprefix|
-		"| " writeTo: aFile.
-		pathprefix << "".
-		path foreach: [ :each |
-			aFile write: "<a href='",pathprefix,(_slotNameAsFilename: each),".html'>".
-			each writeTo: aFile.
-			aFile write: "</a> > ".
-			pathprefix << pathprefix,each,"-".
+	__clean = {
+		(hasSlot: #__path) ifFalse: [ ^self ].
+		(__path isEmpty) ifTrue: [ ^self ].
+		__path = #().
+		__saved = #().
+		slots foreach: [ :slot |
+			(slot: slot) __clean.
 		].
+	}.
+
+	__savePage = { 
+		|page|
+		page << __ObjectPage clone.
+		page object: self.
+		page save.
+	}.
+
+	__filename = {
+		|str|
+		str << __path first __name.
+		__path allButFirst foreach: [ :each | str << str, "-", each __name ].
+		^str __asFilename,".html".
+	}.
 	
-		aFile write: "<a href='",pathprefix,(_slotNameAsFilename: objectName),".html'>".
-		objectName writeTo: aFile.
-		aFile write: "</a>".
-		" |" writeTo: aFile.
-
-	}.
-
-	_writeObjectDocTo: = { :aFile |
-		((slot: #object) hasSlot: #__doc) ifTrue: [ |docs list|
-
-			aFile writeln: "<h3>Decription</h3><p>".
-			docs << (slot: #object) __doc.
-			list << docs asListBy: "\n".
-			list add: "".
-			list removeAt: 0.
-			list foreach: [ :each | aFile writeln: each ].
-		] ifFalse: [
-			aFile writeln: "<p>".
+	__save = {
+		(self hasSlot: #__saved) ifTrue: [ ^self ].
+		__saved = true.
+		__savePage.
+		__slots foreach: [ :slot |
+			(slot: slot) __save.
 		].
-		aFile writeln: "</p>".
 	}.
 
-	_writeObjectShortDocTo: = { :aFile |
-		aFile writeln: "<p>".
-		((slot: #object) hasSlot: #__doc) ifTrue: [ |docs list|
-			docs << (slot: #object) __doc.
-			list << docs asListBy: "\n".
-			list add: "".
-			aFile writeln: list first.
-		] ifFalse: [
-			aFile writeln: "".
+	__objectsInSlots = {
+		^__slots collect: [ :each | slot: each ].
+	}.
+
+	__shortDescription = { |line cat|
+		(hasSlot: #__doc) ifFalse: [ ^"" ].
+		line << __firstLineOfDoc.
+		cat << line sliceBetween: "[" and: "]".
+		(cat isEmpty) ifFalse: [ line << line replace: "[",cat,"]" to: "" ].
+		^line.
+	}.
+
+	__parametersList = { 
+		(hasSlot: #__doc_params) ifTrue: [
+			^__doc_params asListBy: " ".
 		].
-		aFile writeln: "</p>".
+		(respondsTo: #params) ifTrue: [
+			^ params.
+		].
+		^#().
 	}.
 
+	__parametersString = {
+		|list str params|
+		params << __parametersList.
+		list << __name asListBy: ":".
 
-	_completeName:withParameters: = {	:aSlotName :aParametrList | 
-		|str index list|
+		(params size < list size) ifTrue: [ ^"" ].
 		str << "".
-		index << 0.
-
-		list << aSlotName asListBy: ":".
-
-		list foreach: [ :each | 
-			|z|
-			z << (each last) isAlphaNumeric 
-				ifTrue: [ ":" ] 
-				ifFalse: [ "" ].
-			str << str, " <b>", each, z, "</b> <i>", (aParametrList at: index) asString,"</i>".
-			index << index + 1.
+		0 to: (list size) do: [  :index |
+			|name|
+			name << list at: index.
+			(name last) isAlphaNumeric ifTrue: [ name << name,":" ].
+			str << str,"<b>",name,"</b> <i>", (params at: index),  "</i>".
 		].
 		^str.
 	}.
 
-	_writeParametersTo: = { :aFile | |params|
-		params << List clone.
-		((slot: #object) respondsTo: #params) ifTrue: [
-			params << (slot:#object) params.
-		].
-
-		((slot: #object) hasSlot: #__doc_params) ifTrue: [
-			params << (slot: #object) __doc_params asListBy:" ".
-		].
-
-		params size != 0  ifTrue: [
-			aFile writeln: "<h3>Parameter</h3>".
-			aFile write: (_completeName: objectName withParameters: params).
-			aFile writeln: "<br/>".
-		].
-
+	__hasDoc = {
+		^hasSlot: #__doc.
 	}.
 
-	_writeTitleTo: = { :aFile |
-		aFile writeln: "<h2>",objectName,"</h2>".
+	__longDescription = {
+		(hasSlot: #__doc) ifFalse: [ ^"" ].
+		^((__doc asListBy: "\n") allButFirst) asStringDelimiter: "\n".
 	}.
 
-	_writeNotesTo: = { :aFile | 
-		(slot: #object) isActivable ifTrue: [
-			aFile writeln: "<h3>Notes</h3>".
-			aFile writeln: "Object is activable.".
-
-		].
-
-	}.
-
-	_slotNameAsFilename: = { :aString |  |pos list|
-		pos << 0.
-		list << aString asList.
-		list foreach: [ :aChar | 
-			// TODO: !! change to character literal
-			
-			aChar asString == ":" ifTrue: [ list at: pos put: ("." at: 0). ].
-			aChar asString == "/" ifTrue: [ list at: pos put: ("slash" at: 0). ].
-
-			pos << pos + 1.
-		].
-
-		(list last == ("." at: 0)) ifTrue: [ list pop. ].
-
-		^list asString.
-		/*^aString.*/
-	}.
-
-	_firstLineOrEmptyLine: = { :aString | |list|
-		list << aString asListBy: "\n".
-		list add: "".
-		^list first.
-	}.
-
-	_writeForeachInObject:to: = { :anObject :aFile | 
-		(slot: #anObject) sort.
-
-		aFile writeln: "<table>".
-		(slot: #anObject) foreach: [ :each |
-			(each asString beginsWith: "__") ifFalse: [
-				|obj filename|
-				obj << (slot: #object) slot: each asSymbol.
-				filename << ((slot: #obj) __doc_filename).
-				aFile write: "<tr><td><a href='",filename,"'".
-				((slot: #obj) hasSlot: #__doc) ifFalse: [ aFile write: " class='nodoc'" ].//,(slot: #object) __doc size ].
-				aFile write: ">".
-				aFile write: each asString.
-				aFile writeln: "</a><td>".
-
-				((slot: #obj) hasSlot: #__doc) ifTrue: [ aFile writeln: (_firstLineOrEmptyLine: (slot:#obj) __doc)  ].//,(slot: #object) __doc size ].
-
-
-				aFile writeln: "<br/></a>".
-			]
-
-		].
-		
-		aFile writeln: "</table>".
-	}.
-
-	_writeForeachInList:to: = { :anObject :aFile | 
-		anObject sort.
-		anObject foreach: [ :each |
-			(each asString beginsWith: "__") ifFalse: [
-				|obj filename|
-				obj << (slot: #object) at: each.
-				filename << ((slot: #obj) __doc_filename).
-				aFile write: "<a href='",filename,"'>".
-				aFile write: each asString.
-				aFile writeln: "</a><br/>".
-			]
-		]
-
-
-	}.
-
-	_writeSlotsTo: = { :aFile | 
-		((slot: #object) slots size == 0) ifTrue: [ ^nil. ].
-		aFile writeln: "<h3>Slots</h3>".
-		aFile writeln: "".
-		_writeForeachInObject: (slot: #object) slots to: aFile.
-	}.
-
-	_writeLinkToObject:to: =  { :anObject :aFile |
-		 |filename path|
-		 filename << (slot:#anObject) __doc_filename.
-	 	 aFile writeln: "<a href='",filename,"'>".
-		 path << __Path clone.
-		 path parseDocPath: (slot: #anObject) __doc_path.
-		 aFile write: path last.
-		 aFile writeln: "</a>".
-	}.
-
-	_writeParentTo: = { :aFile |
-		|parent|
-		aFile writeln: "<h3>Parent</h3>".
-
-		parent << (slot: #object) parent.
-		((slot: #parent) hasSlot: #__doc_path) 
-			ifTrue: [ _writeLinkToObject: (slot: #parent) to: aFile. ]
-			ifFalse: [ aFile write: (slot: #parent) type. ]
-	}.
-
-	_writeListTo: = { :aFile | 
-		_writePathTo: aFile.
-		aFile write: "<hr/>".
-		_writeTitleTo: aFile.
-		
-	/*	pathprefix = objectName,"#".
-		object foreach: [ :each |
-			aFile write: "<a href='",pathprefix,each,".html'>",each,"</a><br/>".
-		].*/
-		_writeForeachInList: object keys to: aFile.
-		aFile write: "<hr/>".
-		_writePathTo: aFile.
+	__notes = {
+		|list|
+		list << #().
+		isActivable ifTrue: [ list add: "Object is activable " ].
+		^list.
 	}.
 	
-}.
+	__firstLineOfDoc = { |list|
+		(hasSlot: #__doc) ifFalse: [ ^"" ].
+		list << (__doc asListBy: "\n").
+		^(list isEmpty) ifTrue: [ "" ] ifFalse: [ list first ].
+	}.
 
-Object __saveDoc = { |page|
-		((slot: #self) hasSlot: #__doc_mark) ifTrue: [ ^nil ].
-		(slot: #self) __doc_mark = 1.
-
-		page << __DocPage clone.
-		page object: (slot: #self).
-		page save.
-		(slot: #self) slots foreach: [ :each | 
-			(each asString beginsWith: "__") ifFalse: [
-				((slot: #self) slot: each)__saveDoc	
-			]
+	__category = { |cat line list|
+		cat << (__firstLineOfDoc sliceBetween: "[" and: "]") trim.
+		(cat == "") ifFalse: [
+			^cat.
 		].
+		^"unsorted".
+	}.
 }.
 
-Object __buildFilename: = { :aString |  |pathprefix|
+__Link = Object clone do: {
+	type = "__Link".
 
+	href <- "file.html".
+	text <- "LINK".
+	attributes <- Dictionary clone.
 
-	((slot: #self) hasSlot: #__doc_path) ifTrue: [ 
-		((slot: #self) __doc_path size > aString size) ifFalse: [ ^nil. ].
-	].
-
-	(slot: #self) __doc_path = aString.
-	pathprefix << aString,"#".
-	(slot: #self) slots foreach: [ :each | 
-		(each asString beginsWith: "__") ifFalse: [
-			((slot: #self) slot: each)__buildFilename: pathprefix,each asString.
-		]
-	].
-	//(slot: #self) __doc_path println.
-}.
-
-Object __doc_filename = {
-	/*((slot: #self) hasSlot: #__doc_path) ifFalse: [ 
-		throw: (Exception cloneWithMessage: "__doc_path not found").
-	].*/
-	|list pos|
-	pos << 0.
-	list << (slot: #self) __doc_path asList.
-	list foreach: [ :aChar | 
-		// TODO: !! change to character literal
-		aChar asString == ":" ifTrue: [ list at: pos put: ("." at: 0). ].
-		aChar asString == "/" ifTrue: [ list at: pos put: ("slash" at: 0). ].
-		aChar asString == "#" ifTrue: [ list at: pos put: ("-" at: 0). ].
-		pos << pos + 1.
-	].
-	(list last == ("." at: 0)) ifTrue: [ list pop. ].
-	^list asString,".html".
-}.
-
-
-
-__ObjectMap = Dictionary clone do: {
-	type = "ObjectMap".
-
-	grabSlotsFromObject: = { :anObject |
-		anObject slots foreach: [ :each |
-			self at: each put: (anObject slot: each).
-		]
+	init = { 
+		attributes: Dictionary clone.
 	}.
 
-	savePagesWithPath: = { :aPath | 
-		self foreachKey: [ :each | 
-			(self at: each) __saveDoc.
+	attributesAsHtml = { |str|
+		str << "".
+		attributes foreachKeyValue: [ :key :value |
+			str << str," ", key asString, " = '", value, "'"
 		].
+		^str.
 	}.
 
-	saveAll = {	
-		self foreachKey: [ :each | 
-			(self at: each) __saveDoc.
+	asHtml = {
+		^"<a ",attributesAsHtml," href = '", href, "'>", text,"</a>".
+	}.
+}.
+
+__LinkToObject = __Link clone do: {
+	type = "__LinkToObject".
+	
+	object: = { :anObject |
+		anObject __hasDoc ifFalse: [ 
+			attributes at: "class" put: "nodoc".
 		].
-		stdout writeln.
+		href: anObject __filename __asHtml.
+		text: anObject __name __asHtml.
 	}.
 
+	object:name: = { :anObject :name |
+		anObject __hasDoc ifFalse: [ 
+			attributes at: "class" put: "nodoc".
+		].
+		href: anObject __filename __asHtml.
+		text: name __asHtml.
+	}.
+}.
 
-	buildFilenames = { 
-		|pathprefix|
-		pathprefix << "index#".//,aString,"#".
-		self foreachKey: [ :each |
 
-			(self at: each) __buildFilename: pathprefix, each asString.
-		]
+String __asText = {
+	^__Text clone string: self.
+}.
+
+__Text = Object clone do: {
+	type = "__Text".
+	string <- "".
+	asHtml = { ^string }.
+}.
+
+__TableRow = Object clone do: {
+	type = "__TableRow".
+
+	columns <- #().
+
+	asHtml = {
+		^(columns collect: [:each| "<td>",each asHtml,"</td>" ]) asString.
+	}.
+}.
+
+__Table = Object  clone do: {
+	type = "__Table".
+	rows <- #().
+
+	init = { rows: #() }.
+
+	addRow: = { :columns | 
+		rows add: (__TableRow clone columns: columns).
+	}.
+
+	asHtml = {
+		^"<table>",
+		(rows collect: [:each| "<tr>",each asHtml,"</tr>\n" ]) asString,
+		"</table>".
+	}.
+}.
+
+__Section = Object clone do: {
+	type = "__Section".
+
+	name <- "Section".
+
+	body <- "".
+
+	level <- 2.
+
+	asHtml = { 
+		^"<h",level,">",name,"</h",level,">\n<p>\n", body, "\n</p>\n".
+	}.
+}.
+
+__SectionContainer = __Section clone do: {
+	type = "__SectionContainer".
+
+	sections = #().
+
+
+	sections: = { :list | 
+		sections = list.
+		list foreach: [ :each | each level: level + 1 ].
+	}.
+
+	body = {
+		^(sections collect: [ :each | each asHtml ]) asString.
+	}
+}.
+
+__ListSection = __Section clone do: {
+	type = "__ListSection".
+	
+	list <- #().
+
+	body = {
+		^"<ul>",
+		 (list collect: [ :each | "<li>",each asHtml,"</li>\n" ]) asString, 
+		 "</ul>".
+	}.
+}.
+
+__LinkSection = __ListSection clone do: {
+	type = "__LinkSection".
+
+	objects: = { :objects | 
+		list: (objects collect: [ :each |
+			(__LinkToObject clone object: each)
+		])
 	}.
 
 }.
 
+__SlotSection = __Section clone do: {
+	type = "__SlotSection".
+	
+	name: "Slots".
+	objects <- #().
 
+	body = {
+		|table|
+		table << __Table clone.
 
-__Categories = Dictionary clone do: {
-	type = "Categories".
+		objects sort: [ :a :b | a __name < b __name ].
 
-	part: = { :anObjectMap |
-		self at: "Lobby" put: anObjectMap clone.
-	}.
-
-	put:asCategory: = { :anObjectMap :categoryName | 
-		self at: categoryName put: anObjectMap.
-	}.
-
-	buildFilenames = {
-		self foreachKey: [ :each |
-			self buildFilenamesForCategory: each.
+		objects foreach: [ :each |  |link|
+			link << __LinkToObject clone object: each.
+			table addRow: #(link (each __shortDescription __asText)).
 		].
-	}.
-
-	saveAll = {
-		self foreachKey: [ :each |
-			self saveCategory: each.
-		].
-	}.
-
-	buildFilenamesForCategory: = { :aString |
-		|objmap|
-		("category: ",aString) println.
-		objmap << self at: aString.
-		objmap buildFilenames: aString.
-	}.
-
-
-	saveCategory: = { :aString |
-		|objmap page|
-		("category: ",aString) println.
-		objmap << self at: aString.
-		objmap savePagesWithPath: (__Path cloneWithList: #(aString)).
-
-		page << __DocPage clone.
-		page object = objmap.
-		page path: (__Path cloneWithList: #()).
-		page objectName = aString.
-		page saveListTo: aString,".html".
-
+		^table asHtml.
 	}.
 
 }.
 
+__ParentSection = __LinkSection clone do: {
+	type = "__ParentSection".
+	name: "Parent".
+
+	object: = { :anObject |
+		resend objects: anObject parents.
+	}.
+}.
+
+__Page = Object clone do: {
+	type == "__Page".
+
+	file <- File.
+	headerText <- "".
+	sections <- #().
+
+	prefix = "../../../docs/html/".
+
+	openFile: = { :filename |
+		file: (File clone name: prefix,filename) openForWriting.
+	}.
+
+	writeHead = {
+		file write: headString.
+	}.
+
+	writeHeader = {
+		file writeln: "<h1>",headerText,"</h1>".
+	}.
+
+	writeTail = {
+		file write: tailString.
+	}.
+	
+	writeSections = {
+		file write:((sections collect: [ :each | each asHtml ]) asString).
+	}.
+
+
+	headString = 
+		(File clone name: "head.html") openForReading contentAsString.
+	tailString = 
+		(File clone name: "tail.html") openForReading contentAsString.
+}.
+
+__SlotCategoriesSection = __SectionContainer clone do: {
+	type = "__SlotCategoriesSection".
+
+	name: "Slots".
+
+	object: = { :anObject | |cats objs list sec dict|
+		dict << Dictionary clone.
+
+		objs << anObject __objectsInSlots.
+
+		cats << (objs collect: [ :object | 
+			object __category.
+		]) asSet.
+
+		cats foreach: [ :each | dict at: each put: #() ].
+		objs foreach: [ :each | (dict at: each __category) add: each ].
+		list << #().
+		dict foreachKeyValue: [ :key :value |  |sec|
+			sec << __SlotSection clone.
+			sec objects: value.
+			sec name: key.
+			list add: sec.
+		].
+
+		list sort: [ :a :b | a name < b name ].
+	/*	(anObject == Object) ifTrue: [ 
+			dict println.
+			list println.
+		].*/
+	//	sec <<  __SectionContainer clone name: "Slots".
+		sections: list.
+	}.
+}.
+
+__ObjectPage = __Page clone do: {
+	type = "__ObjectPage".
+
+	object <- nil.
+
+	pathLinks = { |str list|
+		list << (slot: #object) __path collect: [ :each | |link obj|
+			link << __LinkToObject clone.
+			link object: each.
+		].
+		str << "| <a href='index.html'>index</a> > ",list first asHtml.
+		list allButFirst foreach: [ :each |
+			str << str," > ",each asHtml.
+		].
+		^str," |".
+	}.
+
+	save = { |obj path sec notes slot|
+		obj << (slot: #object).
+		path << pathLinks.
+
+		sections: #().
+
+		(obj __parametersList isEmpty) ifFalse: [
+			sec << __Section clone name: "Parameters".
+			sec body: obj __parametersString.
+			sections add: sec.
+		].
+
+		sec << __Section clone name: "Description".
+		sec body: obj __longDescription.
+		sections add: sec.
+
+		sec << __ParentSection clone object: obj.
+		sections add: sec.
+
+		
+		sec << __SlotCategoriesSection clone object: obj.
+		sections add: sec.
+
+		notes << obj __notes.
+		notes isEmpty ifFalse: [ 
+			sec << __ListSection clone name: "Notes".
+			sec list:
+				(notes collect: [ :each | each __asText ]).
+			
+			sections add: sec.
+		].
+
+		openFile: obj __filename.	
+		headerText: obj __name.
+		writeHead.
+		file writeln: path,"<hr/>".
+		writeHeader.
+		file writeln: obj __shortDescription.
+		writeSections.
+
+		file writeln: "<hr/>",path.
+		writeTail.
+
+	/*	obj __name println.
+		stdout flush.*/
+	}.
+}.
+
+__IndexPage = __Page clone do: {
+	type = "__IndexPage".
+	
+	moduleNames <- #().
+
+	standardModules = #("system" "sockets" "cgi" "test" "xml" "pool") asSet.
+
+	create = { |sec mods stdmods extern|
+		openFile: "index.html".
+		headerText: "Index".
+		
+		writeHead.
+		writeHeader.
+		
+		sections: #().
+
+		mods << moduleNames reject: [ :each | each == "Lobby" ].
+
+		stdmods << mods select: [ :each | standardModules contains: each ].
+		extern << mods reject: [ :each | standardModules contains: each ].
+
+		sec << __ListSection clone name: "Core".
+		sec list: #( (__LinkToObject clone object: Lobby) ).
+		sections add: sec.
+
+		stdmods isEmpty ifFalse: [
+			sec << __ListSection clone name: "Standard modules".
+			sec list: (stdmods sort collect: [ :each | 
+				__LinkToObject clone object:  (Lobby slot: each asSymbol).
+			]).
+			sections add: sec.
+		].
+
+		extern isEmpty ifFalse: [
+			sec << __ListSection clone name: "External modules".
+			sec list: (extern sort collect: [ :each | 
+				__LinkToObject clone object:  (Lobby slot: each asSymbol).
+			]).
+			sections add: sec.
+		].
+
+
+		writeSections.
+
+		writeTail.
+	}
+}.
+
+/*Lobby __name = "Object".
+(Lobby hasSlot: #__name) println.*/
+
+(args isEmpty) ifTrue: [
+	"Usage: doc2html.kx <modules1> <module2> ..." println.
+	VM quit.
+].
+
+
+(args reject: [ :each | each == "Lobby" ]) foreach: [ :each | 
+	import: each.
+].
 
 VM docFlag ifFalse: 
 	[ throw: (Exception clone message: "Documentation mode must be enabled"). ].
 
-"Modules :" print.
-args foreach: [ :each | (" ",each) print. ].
-"" println.
 
-args foreach: [ :each | 
-	each != "Lobby" ifTrue: [ import: each.  ].
-].
-
-"Initing .. " println.
 
 doFile: "out.kx".
 // Need for documentation of std lib
 doFile: "../../vminit/vminit.kx".
 "Init finished" println.
 
-objmap = __ObjectMap clone.
-args foreach: [ :each | 
-	|obj|
-	obj << (each == "Lobby") ifTrue: [ Lobby ] ifFalse: [ Lobby slot: each asSymbol ].
-	objmap at: each put: obj
-].
-"BUILD FILENAMES ... " println.
-objmap buildFilenames.
-"BUILD FILES ... " println.
-objmap saveAll.
+modules = (args reject: [ :each | each == "Lobby" ])
+			collect: [ :each | each => (Lobby slot: each asSymbol) ].
 
-objmap = __ObjectMap clone.
-args foreach: [ :each |
-	|obj|
-	obj << (each == "Lobby") ifTrue: [ Lobby ] ifFalse: [ Lobby slot: each asSymbol ].
-	objmap at: each put:  obj.
+
+modules foreach: [ :each |
+	each value __createName: each key path: #().
 ].
 
-page = __DocPage clone.
-page object = objmap.
-page path: (__Path cloneWithList: #()).
-page objectName = "index".
-page saveListTo: "index.html".
+Lobby __createName: "Lobby" path: #().
 
+Lobby __save.
+/*modules foreach: [ :each | 
+(Lobby perform: each key asSymbol) __save.
+].*/
+
+index = __IndexPage clone.
+index moduleNames: args.
+index create.
+
+Lobby __clean.

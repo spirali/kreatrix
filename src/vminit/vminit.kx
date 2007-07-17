@@ -24,31 +24,39 @@ nil do: {
 
 
 Object do: {
-	/** Send message "print" and print end of line on stdout. */
+	/** [Output] Send message "print" and print end of line on stdout. */
 	println = { print. stdout writeln }.
 
-	/** Print self as string on stdout */
+	/** [Output] Print self as string on stdout */
 	print = { asString writeTo: stdout. }.
 
+	/** [Output] */
 	printString = { ^asString }.
 
-	/** Write receiver into aStream */
+	/** [Output] Write receiver into aStream */
 	writeTo: = { :aStream | aStream writeByteArray: self asByteArray }.
-
+	
+	/** [Testing] */
 	isNil = false. 
+
+	/** [Testing] */
 	isNotNil = true.
 
+	/** [Testing] */
 	ifNil: = nil slot: #ifNotNil:.
+
+	/** [Testing] */
 	ifNotNil: = nil slot: #ifNil:.
 	
-	/** Tests equivalention */
+	/** [Comparing] Tests equivalention */
 	== = { :anObject | ^self isSame: anObject }.
-	/** Tests not-equivalention */
+	/** [Comparing] Tests not-equivalention */
 	!= = { :anObject | ^(self == anObject) not }.
 
+	/** [Comparing] */
 	hash = { ^identityHash }.
 
-	/** Creates association.
+	/** [Associating] Creates association.
 		Returns association, between self and anObject. */
 	=> = { :anObject | |assoc|
 		assoc << Association clone.

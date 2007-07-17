@@ -40,7 +40,7 @@ kxbaseobject_new(KxCore *core)
 }
 
 /*KXdoc slot:set: aSymbol anObject
-  Creates new slot in the receiver.
+  [Slots] Creates new slot in the receiver.
   Method creates new slot with name aSymbol in receiver. anObject is placed into new slot.
   If slot already exists in receiver, slot is overriden.<br/>
   NOTE: Alias "=" use this message.
@@ -59,7 +59,7 @@ kxbaseobject_set_slot(KxObject *self, KxMessage *message)
 }
 
 /*KXdoc slot:update: aSymbol anObject
-  Update slot in the receiver.
+  [Slots] Update slot in the receiver.
   Looks for slot with name aSymbol in receiver and it's parents. 
   If slot is found, anObject is placed into slot.
   Exception is thrown if slot does't exist.
@@ -95,7 +95,7 @@ kxbaseobject_as_string(KxObject *self, KxMessage *message)
 }
 
 /*KXdoc parent
-  Returns first parent of receiver.
+  [Parents] Returns first parent of receiver.
   Returns first parent of receiver. Returns nil if receiver has no parents.
 */
 static KxObject *
@@ -107,7 +107,7 @@ kxbaseobject_parent(KxObject *self, KxMessage *message)
 }
 
 /*KXdoc parents
-  Returns list with receiver's parents.
+  [Parents] Returns list with receiver's parents.
 */
 static KxObject *
 kxbaseobject_parents(KxObject *self, KxMessage *message)
@@ -147,7 +147,7 @@ kxbaseobject_clone(KxObject *self, KxMessage *message)
 	return kxobject_clone(self);
 }
 
-/*KXdoc clone
+/*KXdoc copy
  Return shallow copy of receiver. Objects with internal data should redefine this message.
 */
 static KxObject *
@@ -172,7 +172,7 @@ kxbaseobject_type(KxObject *self, KxMessage *message)
 }
 
 /*KXdoc isKindOf: anObject
- Test of inheritance. 
+ [Comparing] Test of inheritance. 
  Returns true if anObject is receiver or one of receiver's ancestors. Otherwise returns false.
 */
 static KxObject *
@@ -214,7 +214,7 @@ kxbaseobject_do(KxObject *self, KxMessage *message)
 }
 
 /*KXdoc slots
-  Returns slot's names of receiver
+  [Slots] Returns slot's names of receiver
   Returns list with names (symbols) of all receiver's slots.
 */
 static KxObject *
@@ -235,12 +235,6 @@ kxbaseobject_perform(KxObject *self, KxMessage *message)
 	KXCHECK_SYMBOL(param);
 	KxMessage msg;
 	kxmessage_init(&msg, self, 0, param);
-/*	msg.message_name = param;
-	REF_ADD(param);
-	msg.params_count = 0;
-	REF_ADD(self);
-	msg.target = self;*/
-
 	return kxmessage_send(&msg);
 }
 
@@ -255,16 +249,9 @@ kxbaseobject_perform_with(KxObject *self, KxMessage *message)
 	KxObject *param = message->params[0];
 	KXCHECK_SYMBOL(param);
 	KxMessage msg;
-	//msg.stack = message->stack;
 	kxmessage_init(&msg, self, 1, param);
-	/*msg.message_name = param;
-	REF_ADD(param);*/
-//	msg.params_count = 1;
 	msg.params[0] = message->params[1];
 	REF_ADD(msg.params[0]);
-	/*REF_ADD(self);
-	msg.target = self;*/
-
 	return kxmessage_send(&msg);
 }
 
@@ -283,7 +270,6 @@ kxbaseobject_perform_with_list(KxObject *self, KxMessage *message)
 	KXCHECK_SYMBOL(param);
 
 	if (!IS_KXLIST(param1)) {
-		//KXTHROW_EXCEPTION("Parameter 2 must be List");
 		kxexception_type_error("List",param1);
 	}
 	
@@ -297,14 +283,13 @@ kxbaseobject_perform_with_list(KxObject *self, KxMessage *message)
 		msg.params[t] = list->items[t];
 		REF_ADD(msg.params[t]);
 	}
-	//msg.stack = message->stack;
 
 	return kxmessage_send(&msg);
 }
 
 
 /*KXdoc slot: aSlotName
-  Return receiver's slot.
+  [Slots] Return receiver's slot.
   Return object in receiver's slot with name aSlotName.
  */
 static KxObject * 
@@ -337,7 +322,7 @@ kxbaseobject_responds_to(KxObject *self, KxMessage *message)
 }
 
 /*KXdoc hasSlot: aMessageName
- Answer whether receiver has specific slot.
+ [Slots] Answer whether receiver has specific slot.
  Returns true if receiver has slot with name aMessageName. (Target's ancestors aren't searched).
 */
 static KxObject *
@@ -363,7 +348,7 @@ kxbaseobject_is_activable(KxObject *self, KxMessage *message)
 
 
 /*KXdoc addParent: anObject
- Add parent to receiver.
+ [Parents] Add parent to receiver.
  Add aObject at the end of receivers's list of parents.
 */
 static KxObject *
@@ -375,7 +360,7 @@ kxbaseobject_add_parent(KxObject *self, KxMessage *message)
 }
 
 /*KXdoc removeParent: anObject
- Remove receiver's parent.
+ [Parents] Remove receiver's parent.
  Remove anObject from receiver's list of parents.
 */
 static KxObject *
@@ -386,7 +371,7 @@ kxbaseobject_remove_parent(KxObject *self, KxMessage *message)
 }
 
 /*KXdoc insertParent: anObject
- Add parent at the beginning of receivers's list of parents.
+ [Parents] Add parent at the beginning of receivers's list of parents.
  Add anObject at the beginning of receiver's list of parents.
 */
 static KxObject *
@@ -410,7 +395,9 @@ kxbaseobject_slot_updater(KxObject *self, KxMessage *message)
 
 	KXRETURN(self);
 }
-
+/*Kxdoc slot:updater:set:
+ [Slots]
+*/
 static KxObject *
 kxbaseobject_slot_updater_set(KxObject *self, KxMessage *message)
 {
@@ -434,7 +421,7 @@ kxbaseobject_slot_updater_set(KxObject *self, KxMessage *message)
 }
 
 /*KXdoc isSame: anObject
-Identity test.
+[Comparing] Identity test.
 Tests if receiver is exactly same object as anObject.
 */
 static KxObject *
@@ -450,7 +437,7 @@ kxbaseobject_identity_hash(KxObject *self, KxMessage *message)
 }
 
 /*KXdoc freezeSlot: aSlotName
- Activable object is no longer evaluated in this slot.
+ [Slots] Activable object is no longer evaluated in this slot.
  If slot is "freezed" than slot returns directly it's content though
  this object is activable. For example CodeBlock or CFunction is no evaluated in
  this freezed slot. Note: Slot "self", local slots and parameter is freezed by default.
@@ -465,7 +452,7 @@ kxbaseobject_freeze_slot(KxObject *self, KxMessage *message)
 }
 
 /*KXdoc unfreezeSlot: aSlotName
-  Cancel effect of "freezed" slot. 
+  [Slots] Cancel effect of "freezed" slot. 
   Returns slot to normal behavior after freezing. See "freezeSlot:".
 */
 static KxObject *
