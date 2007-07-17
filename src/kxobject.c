@@ -106,7 +106,11 @@ kxobject_free(KxObject *self)
 
 	hashtable_free(self->slots);*/
 
-	KxParentSlot *pslot = self->parent_slot;
+	if (self->parent_slot.parent) {
+		REF_REMOVE(self->parent_slot.parent);
+	};
+
+	KxParentSlot *pslot = self->parent_slot.next;
 	while(pslot) {
 		KxParentSlot *next = pslot->next;
 		REF_REMOVE(pslot->parent);
@@ -155,11 +159,8 @@ kxobject_dump(KxObject *self)
 {
 	char *proto_tail = "";
 
-	if (self->parent_slot != NULL) {
-		KxParentSlot *p = self->parent_slot;
-		if (p->parent == KXCORE->base_object) {
+	if (self->parent_slot.parent == KXCORE->base_object) {
 			proto_tail = "(proto)";
-		}
 	}
 
 	if (IS_KXSYMBOL(self) || IS_KXSTRING(self)) {
@@ -180,14 +181,18 @@ kxobject_dump(KxObject *self)
 void 
 kxobject_remove_all_parents(KxObject *self)
 {
-	KxParentSlot *pslot = self->parent_slot;
+	if (self->parent_slot.parent) {
+		REF_REMOVE(self->parent_slot.parent);
+		self->parent_slot.parent = NULL;
+	};
+	KxParentSlot *pslot = self->parent_slot.next;
+	self->parent_slot.next = NULL;
 	while(pslot) {
 		KxParentSlot *next = pslot->next;
 		REF_REMOVE(pslot->parent);
 		free(pslot);
 		pslot = next;
 	}
-	self->parent_slot = NULL;
 }
 
 KxObject *
@@ -231,11 +236,17 @@ kxobject_clone(KxObject *self)
 void
 kxobject_copy_parents(KxObject *self, KxObject *copy) 
 {
-	KxParentSlot *ps = self->parent_slot;
+	if (self->parent_slot.parent) {
+		REF_ADD(self->parent_slot.parent);
+		copy->parent_slot.parent = self->parent_slot.parent;
+	}
+
+
+	KxParentSlot *ps = self->parent_slot.next;
 	if (ps == NULL)
 		return;
 
-	KxParentSlot *slot = copy->parent_slot;
+	KxParentSlot *slot = copy->parent_slot.next;
 	KxParentSlot *cs = NULL;
 	while(slot) {
 		cs = slot;
@@ -244,7 +255,7 @@ kxobject_copy_parents(KxObject *self, KxObject *copy)
 
 	if (cs == NULL) {
 		cs = kxparentslot_new(ps->parent);
-		copy->parent_slot = cs;
+		copy->parent_slot.next = cs;
 		ps = ps->next;
 	}
 	while(ps) {
@@ -270,18 +281,24 @@ kxobject_raw_copy(KxObject *self)
 void
 kxobject_set_parent(KxObject *self, KxObject *parent)
 {
-	if (self->parent_slot) {
+	if (self->parent_slot.parent) {
 		kxobject_remove_all_parents(self);
 	}
-
-	kxobject_insert_parent(self, parent);
+	self->parent_slot.parent = parent;
+	REF_ADD(parent);
+	//kxobject_insert_parent(self, parent);
 }
 
 
 void
 kxobject_add_parent(KxObject *self, KxObject *parent) 
 {
-	KxParentSlot *pslot = self->parent_slot;
+	if (self->parent_slot.parent == NULL) {
+		REF_ADD(parent);
+		self->parent_slot.parent = parent;
+		return;
+	}
+	KxParentSlot *pslot = &self->parent_slot;
 	
 	KxParentSlot *prev = NULL;
 	while (pslot) {
@@ -291,26 +308,31 @@ kxobject_add_parent(KxObject *self, KxObject *parent)
 
 	KxParentSlot *slot = kxparentslot_new(parent);
 
-
-	if (prev)
-		prev->next =  slot;
-	else
-		self->parent_slot = slot;
+	prev->next =  slot;
 }
 
 void
 kxobject_remove_parent(KxObject *self, KxObject *parent) 
 {
-	KxParentSlot *pslot = self->parent_slot;
+	if (self->parent_slot.parent == parent) {
+		REF_REMOVE(parent);
+		if (self->parent_slot.next == NULL) {
+			self->parent_slot.parent = NULL;
+			return;
+		}
+		KxParentSlot *p = self->parent_slot.next;
+		self->parent_slot.parent = p->parent;
+		self->parent_slot.next = p->next;
+		free(p);
+		return;
+	}
+
+	KxParentSlot *pslot = self->parent_slot.next;
 	
-	KxParentSlot *prev = NULL;
+	KxParentSlot *prev = &self->parent_slot;
 	while (pslot) {
 		if (pslot->parent == parent) {
-			if (prev) {
-				prev->next = pslot->next;
-			} else {
-				self->parent_slot = pslot->next;
-			}
+			prev->next = pslot->next;
 			REF_REMOVE(parent);
 			free(pslot);
 			return;
@@ -324,9 +346,12 @@ kxobject_remove_parent(KxObject *self, KxObject *parent)
 
 void kxobject_insert_parent(KxObject *self, KxObject *parent)
 {
-	KxParentSlot *pslot = kxparentslot_new(parent);
-	pslot->next = self->parent_slot;
-	self->parent_slot = pslot;
+	if (self->parent_slot.parent) {
+		KxParentSlot *pslot = kxparentslot_new(self->parent_slot.parent);
+		pslot->next = self->parent_slot.next;
+	}
+	REF_ADD(parent);
+	self->parent_slot.parent = parent;
 
 }
 
@@ -418,7 +443,7 @@ kxobject_update_slot(KxObject *self, KxSymbol *key, KxObject *value)
 
 	KXOBJECT_SET_SLOTSEARCH_MARK(self);
 	
-	KxParentSlot *pslot = self->parent_slot;
+	KxParentSlot *pslot = &self->parent_slot;
 
 	while(pslot) {
 
@@ -448,7 +473,7 @@ kxobject_update_slot_flags(KxObject *self, KxSymbol *key, int flags)
 
 	KXOBJECT_SET_SLOTSEARCH_MARK(self);
 	
-	KxParentSlot *pslot = self->parent_slot;
+	KxParentSlot *pslot = &self->parent_slot;
 
 	while(pslot) {
 
@@ -511,7 +536,7 @@ static KxObject
 
 	KXOBJECT_SET_SLOTSEARCH_MARK(self);
 	
-	KxParentSlot *pslot = self->parent_slot;
+	KxParentSlot *pslot = &self->parent_slot;
 
 	while(pslot) {
 
@@ -550,7 +575,7 @@ kxobject_find_slot_in_ancestors(KxObject *self, KxSymbol *key, KxObject **slot_h
 {
 	KXOBJECT_SET_SLOTSEARCH_MARK(self);
 	
-	KxParentSlot *pslot = self->parent_slot;
+	KxParentSlot *pslot = &self->parent_slot;
 	
 	while(pslot) {
 
@@ -579,7 +604,7 @@ kxobject_is_kind_of(KxObject *self, KxObject *test)
 
 	KXOBJECT_SET_SLOTSEARCH_MARK(self);
 	
-	KxParentSlot *pslot = self->parent_slot;
+	KxParentSlot *pslot = &self->parent_slot;
 
 	while(pslot) {
 		if (!(KXOBJECT_SLOTSEARCH_MARK(pslot->parent))) {
@@ -720,7 +745,7 @@ kxobject_mark(KxObject *self)
 
 	self->gc_mark = 1;
 	
-	KxParentSlot *pslot = self->parent_slot;
+	KxParentSlot *pslot = &self->parent_slot;
 	while(pslot) {
 		if (!pslot->parent->gc_mark)
 			kxobject_mark(pslot->parent);

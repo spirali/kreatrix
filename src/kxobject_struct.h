@@ -30,13 +30,19 @@ struct KxCore;
 #define KXSTACK KXCORE->stack
 #define KXSTACK_FROM(object) KXCORE_FROM(object)->stack
 
+struct KxParentSlot {
+	KxObject *parent;
+	KxParentSlot *next;
+};
+
 struct KxObject {
-	KxParentSlot *parent_slot; // Linked list with parent slots
-	//HashTable *slots;          // Hash table with slots
-	
 	KxSlot *slots;
 	int slots_capacity;
 	int slots_count;
+
+	KxParentSlot parent_slot; // Linked list with parent slots
+	//HashTable *slots;          // Hash table with slots
+	
 	
 	union {
 		void *ptr;
@@ -57,11 +63,6 @@ struct KxObject {
 	KxObjectExtension *extension;
 
 	struct KxCore *core;
-};
-
-struct KxParentSlot {
-	KxObject *parent;
-	KxParentSlot *next;
 };
 
 struct KxSlot {

@@ -66,13 +66,20 @@ testObject = test TestCase clone do: {
 		MyList z assertTrue.
 	}.
 
-	testCopy = { |ObjA obj s t|
+	testCopy = { |ObjA ObjB obj s t|
+		ObjB << Object clone do: {
+			type = "ObjB".
+		}.
+
 		ObjA << Object clone do: {
 			type = "ObjA".
 			run = { ^nil }.
+
 		}.
-		
+		ObjA addParent: ObjB.
+
 		obj << ObjA copy.
+
 		
 
 		(obj isSame: ObjA) assertFalse.
@@ -85,6 +92,7 @@ testObject = test TestCase clone do: {
 		
 		assert: s slots size equals: 0.
 		assert: s parent equals: obj.
+		assert: ObjA parents equals: #(Object ObjB).
 	}.
 
 	testLocals = { |x y z| 

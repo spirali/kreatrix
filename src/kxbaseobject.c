@@ -101,9 +101,9 @@ kxbaseobject_as_string(KxObject *self, KxMessage *message)
 static KxObject *
 kxbaseobject_parent(KxObject *self, KxMessage *message)
 {
-	if (self->parent_slot == NULL)
+	if (self->parent_slot.parent == NULL)
 		KXRETURN(KXCORE->object_nil);
-	KXRETURN(self->parent_slot->parent);
+	KXRETURN(self->parent_slot.parent);
 }
 
 /*KXdoc parents
@@ -113,7 +113,7 @@ static KxObject *
 kxbaseobject_parents(KxObject *self, KxMessage *message)
 {
 	List *list = list_new();
-	KxParentSlot *pslot = self->parent_slot;
+	KxParentSlot *pslot = &self->parent_slot;
 	while (pslot != NULL) {
 		KxObject *parent = pslot->parent;
 		REF_ADD(parent);

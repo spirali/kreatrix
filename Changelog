@@ -1,6 +1,7 @@
 0.9 
 	+ New compiler front-end
 	+ Module "xml" added (wrapper for libxml2)
+	+ Wrapgen added (tool for creating wrappers)
 
 
 0.8
