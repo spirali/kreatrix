@@ -298,11 +298,11 @@ __SlotSection = __Section clone do: {
 		|table|
 		table << __Table clone.
 
-		objects sort: [ :a :b | a __name < b __name ].
+		objects sort: [ :a :b | a key < b key ].
 
-		objects foreach: [ :each |  |link|
-			link << __LinkToObject clone object: each.
-			table addRow: #(link (each __shortDescription __asText)).
+		objects foreach: [ :assoc |  |link|
+			link << __LinkToObject clone object: assoc value name: assoc key.
+			table addRow: #(link (assoc value __shortDescription __asText)).
 		].
 		^table asHtml.
 	}.
@@ -369,7 +369,12 @@ __SlotCategoriesSection = __SectionContainer clone do: {
 		]) asSet.
 
 		cats foreach: [ :each | dict at: each put: #() ].
-		objs foreach: [ :each | (dict at: each __category) add: each ].
+		anObject __slots foreach: [ :slot | |obj assoc|
+			obj << anObject slot: slot.
+			assoc << slot asString => obj.
+			assoc freezeSlot: #value.
+			(dict at: obj __category) add: (assoc)
+		].
 		list << #().
 		dict foreachKeyValue: [ :key :value |  |sec|
 			sec << __SlotSection clone.
