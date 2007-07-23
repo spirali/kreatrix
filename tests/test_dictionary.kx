@@ -1,0 +1,179 @@
+
+import: "test".
+
+dictionaryTest = test TestCase clone do: {
+	testAdd = { | dict |
+		dict << Dictionary clone.
+		assert: dict size equals: 0.
+
+		dict at: "one" put: "hallo".
+		
+		(dict hasKey: "one") assertTrue.
+		(dict hasKey: "two") assertFalse.
+		assert: (dict at: "one") equals: "hallo".
+		assert: dict size equals: 1.
+
+		dict at: "two" put: "hi!!".
+		dict at: "two" put: "hi!".
+		(dict hasKey: "one") assertTrue.
+		(dict hasKey: "two") assertTrue.
+		(dict hasKey: "xy") assertFalse.
+		assert: (dict at: "one") equals: "hallo".
+		assert: (dict at: "two") equals: "hi!".
+		assert: dict size equals: 2.
+
+		dict addAll: #( 
+		   (1 => 3)
+		   (2 => 7)
+		   ("x" => "y")
+		   ("z" => "z")
+		   (#x => "z")
+		   (#y => #(1 2 3))
+		   (#(0 1) => #("a" "1"))
+		   (#(1 0) => #("a" "2"))
+		   (#(1 1) => #("a" "3"))
+		   (#(0 1) => #("a" "4"))
+		   (#(1 1) => #("a" "5"))
+		).
+
+		assert: dict size equals: 11.
+
+		assert: (dict at: 1) equals: 3.
+		assert: (dict at: #x) equals: "z".
+		assert: (dict at: #y) equals: #(1 2 3).
+		assert: (dict at: #(1 1)) equals: #("a" "5").
+		assert: (dict at: #(1 0)) equals: #("a" "2").
+		assert: (dict at: #(1 1)) equals: #("a" "5").
+		assert: (dict at: #(0 1)) equals: #("a" "4").
+		dict << Dictionary clone.
+		dict at: 4 put: "a".
+		dict at: 9 put: "b".
+		dict at: 14 put: "c".
+		
+		assert: dict size equals: 3.
+
+		assert: (dict at: 4) equals: "a".
+		assert: (dict at: 9) equals: "b".
+		assert: (dict at: 14) equals: "c".
+		
+		dict at: 19 put: "d".
+
+		assert: dict size equals: 4.
+
+		assert: (dict at: 4) equals: "a".
+		assert: (dict at: 9) equals: "b".
+		assert: (dict at: 14) equals: "c".
+		assert: (dict at: 19) equals: "d".
+
+		dict << Dictionary clone.
+		dict at: "sockets" put: "x".
+		dict at: "long string, longer than others" put: "x".
+		assert: dict size equals: 2.
+	}.
+	
+
+	testRemove = { |dict x|
+		dict << Dictionary clone.
+		dict at: "one" put: "1".
+
+		assert: dict size equals: 1.
+		
+		dict remove: "one".
+		assert: dict size equals: 0.
+		(dict hasKey: "one") assertFalse.
+
+		dict << #(("x"=>2) ("y"=>"z") 
+				(1=>"aaa") (2=>3) ("sockets"=>"") 
+				(""=>"")) asDictionary.
+
+		assert: dict size equals: 6.
+
+		dict remove: "x".
+		dict remove: "".
+
+		assert: dict size equals: 4.
+		(dict hasKey: "x") assertFalse.
+		(dict hasKey: "") assertFalse.
+		(dict hasKey: "y") assertTrue.
+		(dict hasKey: 1) assertTrue.
+		(dict hasKey: 2) assertTrue.
+		(dict hasKey: "sockets") assertTrue.
+
+		x << false.
+		dict remove: 1 ifAbsent: [ x << true ].
+		x assertFalse.
+		dict remove: 1 ifAbsent: [ x << true ].
+		x assertTrue.
+
+
+		dict << Dictionary clone.
+		dict at: 4 put: "a".
+		dict at: 9 put: "y".
+		dict at: 14 put: "z".
+		dict at: 14 put: "b".
+		assert: dict size equals: 3.
+
+		dict remove: 4.
+		assert: dict size equals: 2.
+		assert: (dict at: 14) equals: "b".
+		(dict hasKey: 9) assertTrue.
+		(dict hasKey: 4) assertFalse.
+	}.
+
+	testForeach = { |dict list list2 sum|
+		dict << #( ("x" => 2) 
+				  ("aaa" => 3) 
+				  ("b" => 5) 
+				  ("test" => 7) 
+				  ("z"=>8)) asDictionary.
+
+		list << List clone.
+		dict foreach: [ :each | list add: each ].
+
+		assert: list size equals: 5.
+
+		list2 << List clone.
+		dict foreachKey: [ :key | list2 add: key ].
+		assert: list2 sort equals: #("aaa" "b" "test" "x" "z").
+		assert: dict keys sort equals: #("aaa" "b" "test" "x" "z").
+
+		sum << 0.
+		dict foreachValue: [ :value | sum << sum + value ].
+		assert: sum equals: 25.
+	}.
+
+	testCopy = { |dict dict2|
+		dict << #( ("x" => 2) 
+				  ("aaa" => 3) 
+				  ("b" => 5) 
+				  ("test" => 7) 
+				  ("z"=>8)) asDictionary.
+		
+		dict2 << dict copy.
+		assert: dict equals: dict2.
+		(dict isSame: dict2) assertFalse.
+	}.
+
+	testEquals = { |dict1 dict2 dict3 dict4|
+		dict1 << #( ("x" => 3)
+		          ("z" => 4)
+				  ("m" => 7)) asDictionary.
+		dict2 << #( ("z" => 4)
+		          ("x" => 3)
+				  ("m" => 7)) asDictionary.
+		dict3 << #( ("z" => 4)
+		          ("x" => 4)
+				  ("m" => 7)) asDictionary.
+		dict4 << #( ("z" => 4)
+		          ("x" => 4)
+				  ("m" => 7) (0 => 1)) asDictionary.
+
+		(dict1 == dict2) assertTrue.
+		(dict2 == dict1) assertTrue.
+		(dict3 == dict1) assertFalse.
+		(dict4 == dict2) assertFalse.
+	}
+}.
+
+dictionaryTest run.
+

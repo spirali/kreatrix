@@ -1,0 +1,550 @@
+
+String slot: #__asDocTo: set: { :aObject |
+	self == "" ifFalse: [(slot: #aObject) slot:#__doc set: self].
+	^(slot: #aObject).
+}.
+
+Lobby type = "Lobby".
+true asString = "true".
+true type = true asString.
+
+false asString = "false".
+false type = false asString.
+
+nil do: {
+	asString = "nil".
+	type = asString.
+	isNil = true.
+	isNotNil = false.
+
+	ifNotNil: = { :aBlock | }.
+	ifNil: = { :aBlock | ^aBlock value }.
+
+}.
+
+
+Object do: {
+	/** Send message "print" and print end of line on stdout. */
+	println = { print. stdout writeln }.
+
+	/** Print self as string on stdout */
+	print = { asString writeTo: stdout. }.
+
+	printString = { ^asString }.
+
+	/** Write receiver into aStream */
+	writeTo: = { :aStream | aStream writeByteArray: self asByteArray }.
+
+	isNil = false. 
+	isNotNil = true.
+
+	ifNil: = nil slot: #ifNotNil:.
+	ifNotNil: = nil slot: #ifNil:.
+	
+	/** Tests equivalention */
+	== = { :anObject | ^self isSame: anObject }.
+	/** Tests not-equivalention */
+	!= = { :anObject | ^(self == anObject) not }.
+
+	hash = { ^identityHash }.
+
+	/** Creates association.
+		Returns association, between self and anObject. */
+	=> = { :anObject | |assoc|
+		assoc << Association clone.
+		assoc value: anObject.
+		^assoc key: self.
+	}.
+}.
+
+Integer do: {
+	to:do: = { :end :block |
+		^to: end by: 1 do: block.
+	}.
+
+	cos = { asFloat cos }.
+	sin = { asFloat sin }.
+
+	isNegative = { ^self < 0 }.
+	isPositive = { ^self > 0 }.
+}.
+
+File do: {
+	write: = { :aObject |  aObject writeTo: self }.
+	writeln = { writeByteArray: "\n" asByteArray }.
+	writeln: = { :aObject | aObject writeTo: self. writeln. }.
+
+	/*IOException = Exception clone do: {
+		type = "IOException".
+	}.*/
+}.
+
+String do: {
+	
+	sliceBetween:and:from: = { :aStartString :aEndString :index | 
+		|start end|
+		start << find: aStartString from: index.
+		start isNil ifTrue: [ ^"" ].
+
+		end << find: aEndString from: start.
+		end isNil ifTrue: [  ^"" ].
+
+		^sliceFrom: (start+aStartString size) to: end.
+	}.
+
+	sliceBetween:and: = { :aStartString :aEndString | 
+		^sliceBetween: aStartString and: aEndString from: 0.
+	}.
+
+	sliceFrom: = { :index | 
+		^sliceFrom: index to: size.
+	}.
+
+	sliceTo: = { :index | 
+		^sliceFrom: 0 to: index.
+	}.
+
+	printString = { ^"\"",self,"\""}.
+
+	/** Returns new string without leading and trailing white chars. */
+	trim = {
+		^trimBegin trimEnd.
+	}.
+
+	asUppercase = {
+		^(asList collect: [ :each | each asUppercase ]) asString.
+	}.
+
+	asLowercase = {
+		^(asList collect: [ :each | each asLowercase ]) asString.
+	}.
+
+	capitalized = { |list|
+		isEmpty ifTrue: [ ^self ].
+	    ^(asList at: 0 put: first asUppercase) asString.
+	}.
+
+	isEmpty = {
+		^size == 0.
+	}.
+
+	joinPath: = { :aString | 
+		(last == '/') 
+			ifTrue: [	^self,aString.	].
+		^self, "/", aString.
+	}.
+}.
+
+Symbol do: {
+	asByteArray = { ^asString asByteArray. }.
+
+	printString = { ^"#",self }.
+}.
+
+
+List do: {
+
+	isEmpty = {
+		^size == 0.
+	}.
+
+	addAll: = { :collection | 
+		collection foreach: [ :each | self add: each ].
+	}.
+
+	asString = { |str|
+		str << "".
+		foreach: [ :each | str << str,each asString ].
+		^str.
+	}.
+
+	select: = { :aBlock | |list|
+		list << List clone.
+		foreach: [ :each |
+			(aBlock value: each) ifTrue: [ list add: each. ].
+		].
+		^list.
+	}.
+
+	reject: = { :aBlock | |list|
+		list << List clone.
+		foreach: [ :each |
+			(aBlock value: each) ifFalse: [ list add: each. ].
+		].
+		^list.
+	}.
+
+	collect: = { :aBlock | |list|
+		list << List clone.
+		foreach: [ :each |
+			list add: (aBlock value: each).
+		].
+		^list.
+	}.
+
+	detect: = { :aBlock |
+		foreach: [ :each |
+			(aBlock value: each) ifTrue: [ ^each ] .
+		].
+		^nil.
+	}.
+
+	detect:ifAbsent: = { :aBlock1 :aBlock2 |
+		foreach: [ :each |
+			(aBlock1 value: each) ifTrue: [ ^each ] .
+		].
+		^aBlock2 value.
+	}.
+
+	inject:into: = { :value :binaryBlock |
+		foreach: [ :each | value << binaryBlock value: value value: each].
+		^value.
+	}.
+
+
+   print = {
+		printString print.
+   }.
+
+   printString = { |str|
+		str << "#(".
+		(size > 0) ifTrue: [
+			str << str, (at: 0) printString.
+			rest foreach: [ :each |	str << str," ", each printString. ]
+		].
+		^ str,")". 
+	}.
+
+	sort = {
+		sort: [ :a :b | a < b ].
+	}.
+
+	hash = { |hashNum|
+		hashNum << 1131.
+		foreach: [ :each | hashNum << (hashNum shiftLeft: 3) + hashNum + each hash ].
+		^hashNum.
+	}.
+
+	asSet = {
+		^Set clone addAll: self.
+	}.
+
+	asDictionary = {
+		^Dictionary clone addAll: self.
+	}.
+	
+	contains: = { :anObject |
+		foreach: [ :each | (each == anObject) ifTrue: [ ^true ] ].
+		^false.
+	}.
+
+	indexOf:ifAbsent: = { :anObject :aBlock | 
+		0 to: size do: [ :index | anObject == (at: index) ifTrue: [ ^index ] ].
+		^aBlock value.
+	}.
+
+	indexOf: = { :anObject |
+		^indexOf: anObject ifAbsent: [ 
+			throw: (Exception clone message: anObject printString," not found in list"). ]
+	}.
+
+	remove:ifAbsent: = { :aObject :aBlock| 
+		removeAt: (indexOf: aObject ifAbsent: aBlock).
+	}.
+
+	remove: = { :aObject | 
+		removeAt: (indexOf: aObject).
+	}.
+
+	copyFrom:to: = { :from :to |  |new|
+		new << List clone size: (to - from).
+		0 to: new size do: [ :index | 
+			new at: index put: (at: index + from).
+		].
+		^new.
+	}.
+
+	allButFirst: = { :count | 
+		^copyFrom: count to: size.
+	}.
+
+	allButFirst = { ^allButFirst: 1 }.
+
+	allButLast: = { :count | 
+		^copyFrom: 0 to: (size - count)
+	}.
+
+	allButLast = { ^allButLast: 1 }.
+
+	reversed = { |list|
+		list << #().
+		reverseForeach: [ :each | list add: each ].
+		^list.
+	}.
+
+}.
+
+Lobby Association = Object clone do: {
+	type = "Association".
+
+	asString = { ^key printString,"=>", value printString }.
+
+	key <- nil.
+	value <- nil.
+}.
+
+Dictionary do: {
+
+	addAll: = { :collection | 
+		collection foreach: [ :each | add: each ].
+	}.
+
+	at:ifAbsent: = { :key :aBlock | 
+		^((associationAt: key) ifNil: [ aBlock ]) value.
+	}.
+
+	at: = { :key | 
+		^at: key ifAbsent: [ throw: (Exception clone message:"Key ", key printString, " not found") ].
+	}.
+	
+	hasKey: = { :key |
+		^(associationAt: key) isNotNil.
+	}.
+
+	at:put: = {:key :value| add:(key => value)}.
+
+	asString = { ^printString }.
+
+	printString = { |str|
+		str << "#( ".
+		foreach: [ :each | str << str,"(", each printString, ") " ].
+		^str,")".
+	}.
+
+	foreachKey: = { :aBlock |
+		foreach: [ :each | aBlock value: each key ].
+	}.
+
+	foreachValue: = { :aBlock |
+		foreach: [ :each | aBlock value: each value ].
+	}.
+
+	foreachKeyValue: = { :aBlock |
+		foreach: [ :each | aBlock value: each key value: each value ].
+	}.
+
+	keys = { |list|
+		list << List clone.
+		foreach: [ :each | list add: each key ].
+		^list.
+	}.
+
+	values = { |list|
+		list << List clone.
+		foreach: [ :each | list add: each value ].
+		^list.
+	}.
+
+	copy = { |new|
+		new << Dictionary clone.
+		foreach: [ :each | 
+			new add: each copy.
+		].
+		^new.
+	}.
+
+	== = { :aDictionary |
+		(aDictionary isKindOf: Dictionary) ifFalse: [ ^false ]. 
+		(size == aDictionary size) ifFalse: [ ^false ].
+		aDictionary foreach: [ :each | 
+			(each value == (at: each key)) ifFalse: [ ^false ].
+		].
+		^true.
+	}.
+}. 
+
+
+Exception do: {
+
+	DoesNotUnderstand = VM inGroup: "vm" exception: "DoesNotUnderstand".
+	IOException = VM inGroup: "vm" exception: "IOException".
+
+	/** Sets message of exception */
+	message: = { :aString | 
+		message = aString.
+	}.
+
+	printException:on: =  { :aObject :aFile |
+		aFile writeln: "\nTrace :".
+
+		/* Trace */
+		(aObject hasSlot: #__trace) ifTrue: [
+			aObject __trace foreach: [ :each | 
+				aFile writeln: each.
+			].
+			aFile writeln.
+		] ifFalse: [
+			aFile writeln: "slot __trace not found\n".
+		].
+
+		/* Thrown obj type */
+		aFile writeln: ("Thrown object: ", aObject type).
+
+		/* Message */
+		(aObject hasSlot: #message) ifTrue: [
+			aFile writeln: "Message: ", aObject message.
+		] ifFalse: [
+			aFile writeln: "Message: message not found".
+		].
+		aFile writeln.
+}.
+
+	
+
+}.
+
+Module do: {
+	_loadedModules = Dictionary clone.
+	
+	registerAs: = { :aModuleName | 
+		Lobby slot: aModuleName set: self.
+		_loadedModules at: aModuleName put: self.
+	}.
+
+	isLoaded: = { :aModuleName | 
+		^ _loadedModules hasKey: aModuleName.
+	}.
+
+	getModule: = { :aModuleName | 
+		^ _loadedModules at: aModuleName
+	}
+}.
+
+/** Imports module */
+Lobby import: = { :aModuleName | 
+	/*slotName << aModuleName asSymbol.
+	(Lobby hasSlot: slotName) ifTrue: [ ^Lobby slot: slotName ].
+	module << Module clone load: aModuleName.
+	Lobby slot: slotName set: module.
+	^module.*/
+	^Module clone load: aModuleName.
+}.
+
+/** Import local file */
+Lobby localImport: = { :aFilename |
+	^doFile: (localImportPath joinPath: aFilename).
+}.
+
+Compiler do: {
+	
+	compileFileToBytecode: = { :aFilename |  |array|
+		array << _compileToByteArray: aFilename.
+		bytecode = Bytecode clone.
+		bytecode bytearray: array.
+		bytecode sourceFilename: aFilename.
+		^bytecode.
+	}.
+
+	compileString:withSourceFilename: = { :aCodeString :aFilename | 
+		|array|
+		array << _compileStringToByteArray: aCodeString 
+				 withSourceFilename: aFilename.
+		bytecode = Bytecode clone.
+		bytecode bytearray: array.
+		bytecode sourceFilename: aFilename.
+		^bytecode.
+	}.
+
+
+	Bytecode = Object clone do: { 
+		type = "Bytecode".
+
+	/*	bytearray <- Compiler _compileStringToByteArray: ""
+				 	withSourceFilename: "<vm_init>".*/
+		bytearray <- nil.
+
+
+		sourceFilename <- "".
+
+		writeTo: = { :aFile | 
+			writeTo: aFile.
+		}.
+		
+		run = {
+			//^Compiler _runDirectlyBytecode: bytearray sourceFilename: sourceFilename self: Lobby.
+			^Lobby do: (Compiler _bytecodeToCodeBlock: bytearray sourceFilename: sourceFilename).
+		}
+	}.
+}.
+
+VM do: {
+
+	quit = { quit: 0. }.
+
+	halt = {
+		"Halt!" println.
+		runShellReadFrom: stdin writeOn: stdout.
+	}.
+
+	runShellReadFrom:writeOn: = { :inputStream :outputStream | |line bytecode|
+		[
+			outputStream write: "> ".
+			outputStream flush.
+
+			line << inputStream readLine.
+			line isNil ifTrue: [ ^self.	].
+
+			bytecode << nil.
+			[	bytecode << Compiler compileString: line
+     								withSourceFilename: inputStream name.
+			] catch: Exception do: [  :excp |
+				outputStream writeln: "Compile error: ", excp message.
+			].
+			
+			bytecode isNotNil ifTrue: [
+				_runBytecode: bytecode printOn: outputStream.
+			]
+		] loop.
+	}.
+
+	_runBytecode:printOn: = { :aBytecode :aFile | |result|
+		[
+			result << aBytecode run.
+			aFile writeln: "\n==> ",result printString.
+		] catchAll: [ :excp |
+			Exception printException: excp on: aFile.
+		]
+	}.
+}.
+
+Set do: {
+	addAll: =  { :list | 
+		list foreach: [ :each | add: each ].
+	}.
+
+	asList = {  
+		^List clone addAll: self.
+	}.
+
+	asString = { |str|
+		str << "SET( ".
+		foreach: [ :each | str << str, each printString, " " ].
+		^ str,")"
+	}.
+
+	== = { :aSet | 
+		(aSet isKindOf: Set) ifFalse: [ ^false ].
+		(size == aSet size) ifFalse: [ ^false ].
+		aSet foreach: [ :each | 
+			(contains: each) ifFalse: [ ^false ].
+		].
+		^true.
+	}.
+}.
+
+EmptyScopedBlock = Object clone do: {
+	type = "EmptyScopedBlock".
+	value = { ^nil }.
+	value: = { :x | ^nil }.
+	value:value: = { :x :y | ^nil }.
+}

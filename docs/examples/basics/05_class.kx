@@ -1,0 +1,57 @@
+
+/**
+	Kreatrix doesn't know anything about classes. 
+	All objects are standing alone. 
+
+	But we can "emulate" classes.
+*/
+
+Car = Object clone.
+Car type = "Car".
+Car wheels <- "4". 
+Car asString = { ^ "Car with ", wheels asString, " wheels" }.
+
+"My car:" println.
+myCar = Car clone.
+myCar println.
+
+
+"Your car:" println.
+yourCar = Car clone.
+yourCar println.
+yourCar wheels: 8 .
+yourCar println.
+
+"Your second car:" println.
+yourSecondCar = yourCar clone.
+yourSecondCar println.
+yourSecondCar wheels: 10.
+yourSecondCar println.
+
+
+
+// For short writing we can define car this way (it is recomended way): 
+Car = Object clone do: {
+	type = "Car".
+	wheels <- "4". 
+	asString = { ^ "Car with ", wheels asString, " wheels" }.
+}.
+
+/* Message do: aMethod
+   Process parameter as method where self is target of message "do:".
+   Activation isn't target of local-messages as ussualy but "self" is 
+   target for local-messages.
+*/
+
+
+// We can extends basic protypes of object, it is object as all others.
+
+// Create new binary message for all integers
+Integer *** = { :aParameter | ^ self * aParameter * 2 }.
+"2 *** 3 = " print.
+(2 *** 3) println.
+
+String getSecondCharacter = { ^self at: 1. }.
+
+"Second character of \"Hi all!\" is : " print.
+"Hi all!" getSecondCharacter println.

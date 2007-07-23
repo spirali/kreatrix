@@ -1,0 +1,60 @@
+
+
+Attribute = ModuleItem clone do: {
+	type = "Attribute".
+
+	name <- "".
+	type <- "integer".
+
+	loadFromElement: = { :anElement |
+		resend loadFromElement: anElement.
+		name: (anElement attribute: "name").
+		type: (anElement attribute: "type").
+	}.
+
+	_cfunction_name = {
+		^"kx",parent name asLowercase, "_", slot.
+	}.
+
+	getFunctionCode = { |str|
+		^"static KxObject *\n",_cfunction_name, 
+		"(KxObject *self, KxMessage *message)\n{\n\treturn KX",
+		  type asUppercase,"(KX", parent name asUppercase,"_DATA(self)->", name, ");\n}\n".
+	}.
+
+	getFunctionTableCode = {
+		^"\t\t{\"",slot,"\",0,",_cfunction_name,"},\n"
+	}.
+
+}.
+
+AttributeRW = Attribute clone do: {
+	type = "AttributeRW".
+
+	ctype <- "int".
+	name2 <- "".
+	slot2 <- "".
+
+	loadFromElement: = { :anElement |
+		ctype: (anElement attribute: "ctype").
+		resend loadFromElement: anElement.
+		slot2: slot,":".
+	}.
+	
+	_cfunction_name2 = {
+		^"kx",parent name asLowercase, "_", slot,"_write".
+	}.
+
+	getFunctionCode = { |str|
+		str << "static KxObject *\n",_cfunction_name2, 
+		"(KxObject *self, KxMessage *message)\n{\n\t",
+		  "KXPARAM_TO_",ctype asUppercase,"(param, 0);\n\t",
+		  "KX", parent name asUppercase,"_DATA(self)->", name, " = param;\n\t KXRETURN(self);\n}\n".
+		^resend getFunctionCode, str.
+	}.
+
+	getFunctionTableCode = {
+		^resend getFunctionTableCode, "\t\t{\"",slot2,"\",1,",_cfunction_name2,"},\n"
+	}.
+
+}.

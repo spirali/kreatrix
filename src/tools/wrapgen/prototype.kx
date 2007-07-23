@@ -1,0 +1,142 @@
+
+Extension = ModuleItem clone do: {
+	type = "Extension".
+	
+	action <- "".
+	code <- "".
+
+	actionTypes = { ^actionReturns keys }.
+
+	actionReturns = #(
+		("free" => "void")
+		("clean" => "void")
+		("mark" => "void")
+		("clone" => "KxObject*")
+	) asDictionary.
+
+	loadFromElement: = { :anElement |
+		action: (anElement attribute: "action").
+		code: (anElement child: "text") text.
+
+		(actionTypes contains: action) ifFalse: [
+			throw: (Exception clone message: 
+				"Unknown extension's action '", action,"'")
+		].
+	}.
+
+	getFunctionCode = { 
+		^(actionReturns at: action), "\nkx",parent name asLowercase,"_",action,
+		"(KxObject *self)\n{\n", code, "\n}\n".
+	}.
+
+	getInitExtensionCode = { 
+		^"\tkx",parent name asLowercase,"_extension.",action," = kx",parent name asLowercase,"_", action,";\n".
+	}.
+}.
+
+Prototype = ModuleObject clone do: {
+	type = "Prototype".
+	
+	dataName <- "".
+	initCode <- "// Default init code".
+	header <- "".
+
+	loadFromElement: = { :anElement | |list|
+	 //	name: (anElement attribute: "name").
+		dataName: (anElement attribute: "data").
+		(anElement hasAttribute: "include") ifTrue: [
+			include: (anElement attribute: "include").
+		].
+
+	 	resend loadFromElement: anElement.
+		
+		(anElement hasChild: "init-code") ifTrue: [
+			initCode: ((anElement child: "init-code") child: "text") text.
+		].
+
+		(anElement hasChild: "header") ifTrue: [
+			header: ((anElement child: "header") child: "text") text.
+		].
+	}.
+
+	elementsTable add: #("extension" #Extension).
+
+	create = { 
+		|dict filename file| 
+
+		dict << replaceDictionary.
+
+		filename << name asLowercase.
+		file << LocalFile clone name: "object.c".
+		file loadAndreplace: dict saveTo: (filename,".c").
+
+		file << LocalFile clone name: "object.h".
+		file loadAndreplace: dict saveTo: (filename,".h").
+	}.
+
+	replaceDictionary = {
+		|dict|
+		dict << resend replaceDictionary.
+		dict at: "%data%" put: dataName.
+		dict at: "%init_prototype%" 
+			put: (dict at: "%init_prototype%"), initCode.
+		dict at: "%header%" 
+			put: (dict at: "%header%"), header.
+
+		^dict.
+	}.
+
+	getCallInitExtensionCode = {
+		^"\tkx", name asLowercase,"_extension_init();\n".
+	}.
+
+	getAddPrototypeCode = { |varname|
+		varname << name asLowercase.
+	    ^"\tKxObject *",varname," = kx",varname,
+		"_new_prototype(KXCORE);\n\tkxcore_add_prototype(KXCORE, ",varname,");\n".
+	}.
+
+	getRemovePrototypeCode = { |varname|
+		^"\tkxcore_remove_prototype(KXCORE, &kx",name asLowercase,"_extension);\n".
+	}.
+
+	getInitPrototypeCode = {
+		|lname|
+		lname << name asLowercase.
+		^"\tkxobject_set_slot_no_ref2(self, KXSYMBOL(\"",slot,"\")\n\t\t,", 
+		"kxcore_get_prototype(KXCORE, &kx",name asLowercase,"_extension));\n".
+	}.
+
+	getHeaders = {
+		^resend getHeaders add: name asLowercase,".h".
+	}.
+
+	include: = { :includeName |
+		// TODO real code
+ 		|dataType ext|
+		// cheap little hack:)
+		dataType << dataName replace: "*" to: "".
+		initCode: "\tself->data.ptr = malloc(sizeof(",dataType,"));\n",
+		"\tmemset(self->data.ptr, 0, sizeof(",dataType,"));\n",
+		"\tALLOCTEST(self->data.ptr);".
+
+		ext << Extension clone.
+		ext config: config.
+		ext parent: self.
+		ext action: "free".
+		ext code: "\tfree(self->data.ptr);".
+		childrens add: ext.
+
+		ext << Extension clone.
+		ext config: config.
+		ext parent: self.
+		ext action: "clone".
+		ext code: "\tKxObject *clone = kxobject_raw_clone(self);\n",
+		"\tclone->data.ptr = malloc(sizeof(",dataType,"));\n",
+		"\tmemcpy(clone->data.ptr, self->data.ptr, sizeof(",dataType,"));\n",
+		"\tALLOCTEST(self->data.ptr);".
+		childrens add: ext.
+
+	}.
+
+}.

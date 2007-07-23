@@ -1,0 +1,8 @@
+
+
+* Bytecode which is created on big endian machine is not compatible 
+  with little endian bytecode, and vice versa.
+
+* There is some memory leaks in compiler in special case 
+  when syntax error occurs. 
+  This will be fixed in new compiler (version 0.9).

@@ -1,0 +1,143 @@
+
+import: "test".
+
+testObject = test TestCase clone do: {
+	
+	testDoesNotUnderstand = { |parent obj|
+		parent << Object clone.
+
+		parent msgSymbols = List clone.
+		parent msgParamsList = List clone.
+
+		obj << parent clone.
+		obj doesNotUnderstand:parameters: = { :msgName :params | 
+			msgSymbols add: msgName.
+			msgParamsList add: params.
+		}.
+
+		obj + 25.
+		obj unknownMessage.
+		obj get: 10 from: String.
+		
+		assert: #(#+ #unknownMessage #get:from:) equals: parent msgSymbols.
+		assert: #(#(25) #() #(10 String)) equals: parent msgParamsList.
+
+
+	}.
+
+	testPerform = { |obj res|
+
+		obj << Object clone.
+		obj msg = { ^ "test" }.
+		obj msg: = { :x | ^x * 2 }.
+		
+		res << obj perform: #msg.
+		assert: res equals: "test".
+
+		res << obj perform: #msg: with: 10.
+		assert: res equals: 20.
+
+		res << obj perform: #msg: withList: #(20).
+		assert: res equals: 40.
+
+	}.
+
+	testResend = { |Obj o MyList l|
+		Obj << Object clone do: {
+			type = "test42".
+			clone = {
+				^resend clone.
+			}
+		}.
+		o << Obj clone.
+		assert: o type equals: "test42".
+	
+		MyList << List clone do: {
+			z = false.
+			at: = { :index | 
+				z << true.
+				^ [ resend at: index ] value.
+			}
+		}.
+		l << MyList clone.
+		l add: 10.
+
+		assert: (l at: 0) equals: 10.
+		MyList z assertTrue.
+	}.
+
+	testCopy = { |ObjA obj s t|
+		ObjA << Object clone do: {
+			type = "ObjA".
+			run = { ^nil }.
+		}.
+		
+		obj << ObjA copy.
+		
+
+		(obj isSame: ObjA) assertFalse.
+		(obj hasSlot: #type) assertTrue.
+		(obj hasSlot: #run) assertTrue.
+		assert: obj type equals: ObjA type.
+
+		t << obj clone.
+		s << t copy.
+		
+		assert: s slots size equals: 0.
+		assert: s parent equals: obj.
+	}.
+
+	testLocals = { |x y z| 
+
+		[ |x z| 
+		  x << 10. 
+		  assert: x equals: 10.
+		  assert: y equals: nil.
+		  assert: z equals: nil.
+		] value.
+	  
+		assert: x equals: nil.
+		assert: y equals: nil.
+		assert: z equals: nil.
+	}.
+
+	testSlotUpdate = { |TestObject t|
+
+		TestObject << self clone do: {
+			init = { a = 0. }.
+
+			run = { |b| 
+				a << 10.
+				b << 20.
+				assert: a equals: 10.
+				assert: b equals: 20.
+			}
+		}.
+		t << TestObject clone.
+
+		(t slots size == 1) assertTrue.
+		t run.
+		(t slots size == 1) assertTrue.
+		assert: t a equals: 10.
+	}.
+
+	testInit = { |obj o|
+		obj << Object clone do: {
+			init = { test = "ok" }.
+		}.
+		o << obj clone.
+		assert: o test equals: "ok".
+	}.
+	
+	testFreeze = { |method|
+		method << { ^"str" }.
+		(method != "str") assertTrue.
+		unfreezeSlot: #method.
+		(method == "str") assertTrue.
+		freezeSlot: #method.
+		(method != "str") assertTrue.
+
+	}
+}.
+
+testObject run.

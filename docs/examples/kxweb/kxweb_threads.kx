@@ -1,0 +1,93 @@
+import: "system".
+import: "sockets".
+import: "threads".
+
+Request = Object clone do: {
+	type = "Request".
+	socket <- nil.
+	serve = {}.
+}.
+
+Server = Object clone do: {
+	type = "Server".
+	
+	listenSocket <- nil.
+	listenPort <- 80.
+	requestPrototype <- Request.
+
+	startListen = { |port|
+		port << listenPort.
+		listenSocket: sockets Socket clone initTCP.
+		(listenSocket bindPort: port) listen.
+	}.
+
+	processConnection = { |client|
+	 	client << listenSocket accept.
+		[ |request|
+			request << requestPrototype clone.
+			request socket: client.
+			request serve.
+		] runInDetachedThread.
+	}.
+
+	run = {
+		startListen.
+		[ 
+			(listenSocket waitForReading) canRead.
+		  	processConnection
+		] loop.
+	}.
+}.
+
+mime = #(
+	("html" => "text/html")
+	("htm" => "text/html")
+	("png" => "images/png")
+) asDictionary.
+
+HttpRequest = Request clone do: {
+	type = "HttpRequest".
+
+	getFilename = { |line filename|
+		line << socket receiveLineIfClose: [ VM quit ].
+		filename << (line sliceBetween: "GET" and: "HTTP") trim.
+		(filename == "/") ifTrue: [ ^"index.html" ].
+		^filename sliceFrom: 1.
+	}.
+
+	serve = {
+		sendFile: getFilename.
+		socket clone.
+	}.
+
+	sendFile: = { :filename | |file size type|
+		file << File clone name: filename.
+		file exists ifFalse: [ sendFileNotFound: filename. ^self ].
+
+		file openForReading.
+
+		type << (filename asListBy: ".") last.
+		size << file size.
+		socket send: "HTTP 200 Ok\n".
+		socket send: (mime at: type ifAbsent:["text/html"]),"\n".
+		socket send:"Content-size: ", size, "\n\n".
+		socket send: (file readByteArraySize: size).
+
+	}.
+
+	sendFileNotFound: = { :filename |
+		socket send: "HTTP 404 File not found\n\n".
+		socket send: "File ",filename,"' not found\n".
+
+	}.
+}.
+
+(args size == 0) ifTrue: [
+	"usage: kxweb.kx <listen port>" println.
+	system exit: 1.
+].
+
+server = Server clone.
+server requestPrototype: HttpRequest.
+server listenPort: (args at: 0) asInteger.
+server run.

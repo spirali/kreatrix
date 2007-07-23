@@ -1,0 +1,35 @@
+<statement> := <exp> "." <statement>  | <exp>
+
+<exp> := <messages>
+      |  "^" <messages>
+      |  <messages> <message_name> ( "=" | "<-" )  <messages>
+
+<messages> := <begin_msg> [ <keyword_msg> | <binary_msg> ]
+
+<binary_msg> := ( <binary_msg_name> <begin_msg> )+
+
+<keyword_msg> := ( <keyword_msg_name> <begin_msg> [<binary_msg>] )+
+
+<begin_msg> := <target> { <unary_msg_name> }.
+
+<target> := <unary_msg_name> | <literal> | <method> | <block> | <list> | "(" <messages> ")"
+
+
+
+<literal> := STRING | SYMBOL | INTEGER | FLOAT | LONG_STRING
+
+<method> := "{" [<params>] <statement> "}"
+
+<block> := "[" [<params>] <statement> "]"
+
+<params> := (<param_name>)+ "|".
+
+<list> := "#(" <target>  ")"
+
+<message_name> := <unary_msg_name> | <binary_msg_name> | (<keyword_msg_name>)+
+
+<unary_msg_name> := (ALPHA) { (ALPHANUM) }
+
+<binary_msg_name> := [ "-" "+" "*" "/" "," "&" "\" "|" "!" "<" ">" "=" ]+
+
+<keyword_msg_name> := <unary_msg_name> ":"

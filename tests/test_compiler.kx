@@ -1,0 +1,18 @@
+
+import: "test".
+
+compilerTest = test TestCase clone do: {
+
+	testCompileAndRun = { |bytecode|
+		bytecode << Compiler compileString: """
+			
+			m: = { :p | ^ p + #abc asString size }.
+			m: 20.
+		""" withSourceFilename: "<test>".
+
+		assert: bytecode run equals: 23.
+	}
+}.
+
+compilerTest run.
+

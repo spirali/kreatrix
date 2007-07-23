@@ -1,0 +1,22 @@
+
+import: "test".
+
+floatTest = test TestCase clone do: {
+	testCompare = {
+		(1.0 == 1.0) assertTrue.
+		(1.0 == 2.0) assertFalse.
+
+		(1.0 != 1.0) assertFalse.
+		(1.0 != 2.0) assertTrue.
+
+	}.
+	
+	testCopy = {
+		assert: 3.1415 copy equals: 3.1415.
+	}.
+
+
+}.
+
+floatTest run.
+

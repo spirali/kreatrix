@@ -1,0 +1,18 @@
+
+(isLoaded: #system) ifTrue: [ ^getModule: #system ].
+registerAs: #system.
+
+loadCLibrary: "system".
+
+getenv:ifAbsent: = { :aString :aBlock | |env|
+	env << system getenv: aString.
+	env isNil ifTrue: [ ^ aBlock value. ].
+	^ env.
+}.
+
+fork: = { :aBlock | |pid|
+	pid << fork.
+	pid isZero ifTrue: [ ^aBlock value ].
+	^pid.
+}.
+

@@ -1,0 +1,162 @@
+
+import: "test".
+
+listTest = test TestCase clone do: {
+
+	testInsert = { |list|
+		list << #().
+		list insert: "A".
+		list add: "C".
+		list insert: "B".
+
+		assert: list equals: #("B" "A" "C").
+		
+		list insert: 10 at: 0.
+		list insert: 11 at: 4.
+		list insert: 12 at: 2.
+
+		assert: list equals: #(10 "B" 12 "A" "C" 11).
+
+
+	}.
+
+	testCopy = {  |list list2|
+
+		list << #("a" 1 2 3 "c").
+		list2 << list copy.
+		assert: list equals: list2.
+		assert: list parent equals: list2 parent.
+	}.
+
+	testForeach = { |list str out|
+		list << #("a" "b" "c" "d").
+
+		str << "".
+
+		out << list foreach: [ :each | str << str,each ].
+		
+		assert: out equals: "abcd".
+		assert: str equals: "abcd".
+	}.
+
+
+	testRemoveAt = { |list|
+		list << #(4 3 2 1).
+		
+		list removeAt: 1.
+
+		assert: list equals: #( 4 2 1 ).
+
+		list add: "a".
+		list add: "b".
+		list removeAt: 4.
+
+		list removeAt: 0.
+		assert: list equals: #(2 1 "a").
+
+		list clean.
+
+		assert: list equals: #().
+	}.
+
+	testSelectReject = { |list out1 out2|
+
+		list << #(7 8 9 1 2 3 40 30 (-1) 2 (-10) 21 33 0).
+
+		out1 << list select: [ :each | each isEven ].
+		out2 << list reject: [ :each | each isEven ].
+	
+		assert: out1 equals: #( 8 2 40 30 2 (-10) 0).
+		assert: out2 equals: #( 7 9 1 3 (-1) 21 33).
+
+		out1 << list select: [ :each | each > 10 ].
+		out2 << list reject: [ :each | each > 0 ].
+
+		assert: out1 equals: #(40 30 21 33).
+		assert: out2 equals: #((-1) (-10) 0).
+
+		out1 << list select: [ :each | each > 1000].
+		out2 << list reject: [ :each | each < 1000].
+
+		assert: out1 equals: #().
+		assert: out2 equals: #().
+	}.
+
+	testSort = { |list|
+		list << #(2 1 0 22 11 5 2 3 (-4) 0 5).
+		assert: list sort equals: #((-4) 0 0 1 2 2 3 5 5 11 22).
+
+		list << #(4 0 3 5 1 1 1 8 8).
+		assert: list sort equals: #(0 1 1 1 3 4 5 8 8).
+
+		assert: #(1 2 3 4 5) sort equals: #(1 2 3 4 5).
+		assert: #(1) sort equals: #(1).
+		assert: #("z" "a") sort equals: #("a" "z").
+		assert: #() sort equals: #().
+	}.
+
+	testInjectInto = { |sum|
+
+		sum << #(2 5 1 22 0 0 1) inject: 0 into: [ :v :each | v+each ].
+		assert: sum equals: 31.
+	}.
+	
+	testIndexOf = { |list x|
+		list << #("a" "b" 1 3 4 55 "c").
+		
+		assert: (list indexOf: "a") equals: 0.
+		assert: (list indexOf: "c") equals: 6.
+		assert: (list indexOf: 1) equals: 2.
+		assert: (list indexOf: 3) equals: 3.
+
+		x << false.
+		
+		list indexOf: 55 ifAbsent: [ x << true ].
+		x assertFalse.
+		list indexOf: 65 ifAbsent: [ x << true ].
+		x assertTrue.
+		#() indexOf: "" ifAbsent: [ x << false ].
+		x assertFalse.
+	}.
+
+	testRemove = { |list x|
+		list << #(22 11 "x" "y" "y" "00" "z" "z").
+	
+		list remove: 22.
+		assert: list size equals: 7.
+
+		list remove: "x".
+		assert: list size equals: 6.
+	
+		list remove: "z".
+		list remove: "z".
+		assert: list size equals: 4.
+
+		assert: list equals: #(11 "y" "y" "00").
+
+		x << false.
+		
+		list remove: "00" ifAbsent: [ x << true ].
+		x assertFalse.
+		list indexOf: "00" ifAbsent: [ x << true ].
+		x assertTrue.
+	}.
+
+	testReversed = { |list|
+		list << #(24 12 55 2 "a" 3).
+		assert: list reversed equals: #(3 "a" 2 55 12 24).
+	}.
+
+	testAllBut = {
+		|list|
+
+		list << #("a" "b" "c" "d").
+
+		(list allButFirst == #("b" "c" "d")) assertTrue.
+		(list allButLast == #("a" "b" "c")) assertTrue.
+	}
+
+}.
+
+listTest run.
+

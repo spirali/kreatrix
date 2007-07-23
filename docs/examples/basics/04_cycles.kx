@@ -1,0 +1,30 @@
+
+// All integers has slot "repeat:"
+4 repeat: [ "Message!" println. ].
+// Block can have one parameter:
+5 repeat: [ :index | index println ].
+
+// Last result of last call of block is returned
+z = 1.
+r = 3 repeat: [ z << z * 2 ].
+r println.
+
+
+// while cycles:
+
+r = 0.
+"whileTrue " println.
+[ r << r + 1. r println. r < 4 ] whileTrue.
+"whileFalse " println.
+[ r << r - 1. println. r == 0 ] whileFalse.
+
+
+// Target block is condition
+"whileTrue: aBlock" println.
+r = 0 .
+[ r < 4 ] whileTrue: [ r << r + 1. println ].
+"whileFalse: aBlock" println.
+[ r == 0 ] whileFalse: [ r << r - 1.  println ].
+
+
+

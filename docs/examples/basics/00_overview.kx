@@ -1,0 +1,125 @@
+
+// Literals: 
+number = 10 .
+strings = "string".
+longstring = """this
+is long string""".
+symbol = #thisIsSymbol.
+list = #( "a" 1 2 ).
+
+// Create slot
+z = 10 .
+z = "z".
+a = 30 .
+
+
+// Update slot
+Lobby b = "b".
+b << "bb".
+
+// A = B is alias for slot:set: message
+slot: #a set: 30.
+
+// A << B is alias for slot:update: message
+slot: #a update: 40.
+
+/* unary message\
+   <target> MESSAGE
+*/
+101 println.
+10 asString println.
+// Self unary message.
+println.
+
+/* Binary message
+   <target> MESSAGE <parameter>
+*/
+("Bin","ary ","message") println.
+a = 1 + 3 + 4.
+b = (2 * 3) / (10 + 2).
+
+/* Keyword message
+   <target> MESSAGE_PART1: <parameter> MESSAGE_PART2: <parameter> ...
+*/
+position = "This is my string" find: "my".
+position println.
+
+z = "Hallo world!".
+z sliceFrom: 5 to: 10 .
+
+/* Priority list:
+1) unary messages
+2) bianry messages
+3) keyword messages
+*/
+
+// A = B is alias for slot: #A set: B
+a = 30 .
+// is same as:
+slot: #a set: 30 .
+
+// A << B is alias for slot: #A update: B
+a << 30 .
+// is same as:
+slot: #a update: 30 .
+
+/* Because slot:set: and slot:update: is ordinary message
+we can write something like this: */
+
+// Create new object and save it to slot "a"
+a = Object clone.
+// save string in new slot "b" in object in slot "a"
+a b = "a".
+// this line can be written as:
+a slot: #b set: "a".
+// first "a" is sending unary message
+
+/* Blocks */
+
+(1 == 1) ifTrue: [ "It is true!" println. ].
+
+block = [ "Hi there!" println. ].
+4 repeat: block.
+
+/* Methods */
+
+// Create new method and save it into slot runMe.
+runMe = { "Method test!" println. }.
+
+// send message runMe.
+runMe.
+
+
+/* Parameters */
+list = #( 1 2 3 4 5 ).
+
+"Block parameters test: " println.
+list foreach: [ :each | each println ].
+
+
+"Method parameters test: " println.
+// "^" has same function as "return" in C.
+plus3: = { :aNumber | ^ aNumber + 3 }.
+
+(plus3: 10) println.
+
+/* if no return value is explicitely setted throught "^"
+   "self" value is returened.	
+*/
+test = Object clone.
+test type = "test".
+test printKreatrix = { "Kreatrix" println. }.
+
+/* Local slots */
+method: = { :param| |local x y|
+    local << param.
+	x << local * 2.
+
+	s = 50. // This create slot in receiver!
+
+	^x.
+}.
+
+z = test printKreatrix.
+z println.
+

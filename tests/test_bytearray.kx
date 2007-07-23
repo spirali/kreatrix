@@ -1,0 +1,19 @@
+import: "test".
+
+bytearrayTest = test TestCase clone do: {
+	testSetSize = {
+		/** TODO: Improve this test */
+		|b|
+		b << ByteArray clone size: 4.
+		b at: 2 put: 1.
+		(b asInt32 == 65536) assertTrue.
+
+		b << ByteArray clone size: 4.
+		b at: 2 put: 1.
+		b at: 0 put: 5.
+		(b asInt32 == 65541) assertTrue.
+	}.
+
+}.
+
+bytearrayTest run.

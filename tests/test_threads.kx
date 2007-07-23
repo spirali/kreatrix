@@ -1,0 +1,87 @@
+
+(VM hasSupport: "threads") ifFalse: [ 
+	"Threads not supported ... SKIPPED" println.
+	VM quit: 0.
+].
+
+import: "test".
+import: "threads".
+
+threadsTest = test TestCase clone do: {
+	testBasic = {
+		|MyThread t1 t2|
+
+		MyThread << threads Thread clone do: {
+			limit <- 0.
+
+			run = { |x|
+				x << limit.
+				limit repeat: [ 
+					x << x isEven 
+						ifTrue: [ x bitXor: (x shiftLeft: 4)+1 ] 
+						ifFalse: [ x bitXor: (x shiftRight: 5)+1 ]
+					].
+				^x.
+			}			
+		}.
+
+		
+
+		t1 << MyThread clone.
+		t1 limit: 300.
+		t1 start.
+
+		t2 << MyThread clone.
+		t2 limit: 200.
+		t2 start.
+
+		assert: t2 join equals: (-1234829931).
+		assert: t1 join equals: (1102646500).
+		
+	}.
+
+
+	testBlockRun = {
+		|x t1|
+		x << 10.
+
+		t1 << [ x + 5 ] runInThread.
+		assert: t1 join == 15.
+	}.
+
+	testMutex = {
+		|mutex x t|
+		x << 5.
+		mutex << threads Mutex clone.
+
+		mutex lock.
+		t << [ mutex lock. x << x + 20. mutex unlock ] runInThread.
+
+		threads yield.
+		x << 10.
+		mutex unlock.
+
+		t join.
+		assert: x == 30.
+	}.
+
+	testMutexProtect = {
+		|mutex x t|
+		x << 5.
+		mutex << threads Mutex clone.
+
+		mutex lock.
+		t << [ mutex protect: [ x << x + 20 ] ] runInThread.
+
+		threads yield.
+		x << 10.
+		mutex unlock.
+
+		t join.
+		assert: x == 30.
+	}
+
+}.
+
+threadsTest run.
+

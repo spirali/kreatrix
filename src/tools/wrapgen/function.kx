@@ -1,0 +1,224 @@
+
+Parameter = Object clone do: {
+	type = "Parameter".
+
+	position <- 0.
+	callPosition <- 0.
+	paramType <- #normal.
+	ctype <- "int".
+	name <- "".
+	function <- nil.
+
+	asString = { ^type,"_",ctype,":", position }.
+
+	fromElement:defaultPosition: = { :element :position |
+		position: (element attribute: "pos" ifAbsent: [ position ]).
+		callPosition: (element attribute: "callpos" ifAbsent: [ position ]).
+
+		(element name == "param-self") ifTrue: [
+			paramType: #const.
+			name <- "self".
+			^self.
+		].
+
+		(element name == "param-data") ifTrue: [
+			paramType: #const.
+			name <- "((",function prototypeDataName,") self->data.ptr)".
+			^self.
+		].
+
+
+		(element hasAttribute: "const") ifTrue: [ 
+			name: (element attribute: "const").
+			paramType: #const.
+			^self.
+		].
+		ctype: (element attribute: "ctype").
+		name: "param",position.
+	}.
+
+	asCode = { 
+		(paramType == #normal) ifFalse: [ ^"" ].
+
+		^"KXPARAM_TO_",ctype asUppercase,
+			"(param", callPosition,",",position,")\n".
+	}.
+}.
+
+FunctionReturn = Object clone do: {
+	type = "FunctionReturn".
+
+	action <- #returnSelf.
+	value <- "".
+
+	_messagesDict = #(
+		(#returnSelf => #asCodeReturnSelf)
+		(#returnType => #asCodeReturnType)
+		(#returnCall => #asCodeReturnCall)
+	) asDictionary.
+
+	codeMessageName = {
+		^ _messagesDict at: action.
+	}.
+}.
+
+
+
+BasicFunction = ModuleItem clone do: {
+	type = "BasicFunction".
+
+	prefix <- "".
+
+	parent: = { :aModuleObject |
+		parent = aModuleObject.
+		prefix: aModuleObject name asLowercase.
+	}.
+
+
+	getFunctionCode = { |str|
+		^"static KxObject *\n", 
+		  codeName, "(KxObject *self, KxMessage *message)\n{\n",
+		  getBodyCode,"\n}\n".
+	}.
+
+	getFunctionTableCode = {
+		^"\t\t{\"",slot,"\",",kxparamCount,",",codeName,"},\n"
+	}.
+
+	prototypeDataName = {
+		^parent dataName.
+	}.
+	
+	/* Private */
+
+	codeName = { |str|
+		str << (slot asLowercase asList collect: [ :char | 
+		(char == ':') ifTrue: [ '_' ]
+					  ifFalse: [ char ]
+		]) asString.
+
+		^"kx",prefix,"_", str.
+	}.
+
+
+	getBodyCode = {
+		^"".
+	}.
+
+	kxparamCount = { |count|
+		count << 0.
+		slot foreach: [ :char | 
+			(char == ':') ifTrue: [ count << count +1 ] 
+		].
+		^count.
+	}.
+
+}.
+
+WrapFunction = BasicFunction clone do: {
+	type = "WrapFunction".
+
+
+	loadFromElement: = { :element | 	
+		resend loadFromElement: element.
+		call: (element attribute: "call").
+		params: (paramsFromElement: element).
+
+		returnFromElement: element.
+	}.
+
+
+	call <- "".
+	params <- "".
+	return <- FunctionReturn clone.
+
+	paramsFromElement: = { :element |
+		|list pos names|
+		names << #("param" "param-data" "param-self").
+		list << element childrens select: [ :each |
+			names contains: each name
+		].
+		pos << -1.
+		^list collect: [ :each | |param|
+			pos << pos + 1. 
+			param << Parameter clone.
+			param function: self.
+			param fromElement: each defaultPosition: pos.
+			param.
+		].
+	}.
+
+	returnFromElement: = { :element |
+		|returnElement|
+		returnElement << element childrens detect: [ :each |
+			each name == "return" or: [ each name == "return-call" ]
+		].
+		returnElement ifNotNil: [
+			(returnElement name == "return") ifTrue: [
+				return: FunctionReturn clone.
+				return action: #returnType.
+				return value: (returnElement attribute: "type").
+			].
+			(returnElement name == "return-call") ifTrue: [
+				return: FunctionReturn clone.
+				return action: #returnCall.
+				return value: (returnElement attribute: "call").
+			].
+		].
+	}.
+
+    callParamsCode = {
+		|str|
+		(params isEmpty) ifTrue: [ ^ "" ].
+		str << params first name.
+		params allButFirst foreach: [ :each | 
+			str << str,",",each name.
+		].
+		^str.
+	}.
+
+	paramsCode = {
+	 	^params inject: "" into: [ :str :param |
+			str,"\t",param asCode.
+		].
+	}.
+
+	asCodeReturnSelf = {
+		^ "\t",call,"(",callParamsCode,
+		  ");\n\tKXRETURN(self);".
+	}.
+
+	asCodeReturnCall = {
+		^ "\treturn ",return value,"(self,",call,"(",callParamsCode,
+		  "));".
+	}.
+
+	asCodeReturnType = {
+		^ "\treturn KX",return value asUppercase,"(",call,"(",callParamsCode,
+		  "));".
+	}.
+
+	asBodyCode = {
+		^(perform: return codeMessageName)
+	}.
+
+	getBodyCode = {
+		^paramsCode,"\n",asBodyCode.
+	}.
+}.
+
+
+FunctionWithCode = BasicFunction clone do: {
+	type = "FunctionWithCode".
+	
+	text <- "".
+
+	loadFromElement: = { :anElement | 
+		text: anElement text.
+		resend loadFromElement: anElement.
+	}.
+
+	getBodyCode = {
+		^text.
+	}.
+}.

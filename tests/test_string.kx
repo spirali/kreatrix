@@ -1,0 +1,115 @@
+
+import: "test".
+
+stringTest = test TestCase clone do: {
+	
+	testCompare = {
+		("xx" != 10) assertTrue.
+		("yy" == 10) assertFalse.
+
+		("xx" == "xx") assertTrue.
+		("yy" == "zz") assertFalse.
+
+		("xx" != "xx") assertFalse.
+		("yy" != "zz") assertTrue.
+
+
+		("aaaz" > "aaaa") assertTrue.
+		("aaaz" < "aaaa") assertFalse.
+	}.
+
+	testReplace = { |str|
+		str << "my happy little string.".
+		str << (str replace: "my" to: "your").
+		str << (str replace: "string." to: "dog.").
+		str << (str replace: "little" to: "tiny").
+		assert: str equals: "your happy tiny dog.".
+
+		str << "123412341234123412341234" replace: "23" to: "244".
+		assert: str equals: "124441244412444124441244412444".
+		str << str replace: "44" to: "0".
+		assert: str equals: "120412041204120412041204".
+
+		str << "55555" replace: "5" to: "AA".
+		assert: str equals: "AAAAAAAAAA".
+
+		str << "111" replace: "1" to: "123456789ABCDEF123456789ABCDEF".
+		assert: str equals: 
+			"123456789ABCDEF123456789ABCDEF123456789ABCDEF123456789ABCDEF123456789ABCDEF123456789ABCDEF".
+		// TODO: long
+	}.
+
+	testConcat = { |str z|
+		str << "1".
+		str << "0",str,"2".
+		z << str,1,#a,3.2.
+		assert: z equals: "0121a3.2".
+	}.
+
+	testForeach = { |list|
+		list << List clone.
+		"bcde" foreach: [ :char | 
+			list add: char.
+		].
+		assert: (list at: 2) equals: 'd'.
+	}.
+
+	testSlice = { |str index res|
+		index << 1.
+		str << "123 KX Test XK 1234".
+		res << str sliceBetween: " KX " and: " XK " from: index.
+		assert: res equals: "Test".
+
+		res << str sliceBetween: " XK " and: " KX " from: index.
+		res print.
+		assert: res equals: "".
+	}.
+
+	testTrim = { |x y|
+		x << "  abc".
+		y << "".
+
+		assert: x trimBegin equals: "abc".
+		assert: y trimBegin equals: "".
+		
+		x << " abc   ".
+		y << "".
+
+		assert: x trimEnd equals: " abc".
+		assert: y trimEnd equals: "".
+
+		assert: "  f  " trim equals: "f".
+
+	}.
+
+	testFirstLast = { |a|
+		a << "abcdef".
+		assert: a first equals: 'a'.
+		assert: a last equals: 'f'.
+	}.
+
+	testCopy = { |a b|
+		a << "abcEfg".
+		b << a copy.
+
+		assert: "abcEfg" equals: b.
+	}.
+
+	testChangecase = {
+		|a b|
+		a << "aBCdEfG".
+		b << "*..a..bC".
+
+		(a asLowercase == "abcdefg") assertTrue.
+		(a asUppercase == "ABCDEFG") assertTrue.
+		(b asLowercase == "*..a..bc") assertTrue.
+		(b asUppercase == "*..A..BC") assertTrue.
+	
+		("" capitalized == "") assertTrue.
+		(a capitalized == "ABCdEfG") assertTrue.
+		(b capitalized == "*..a..bC") assertTrue.
+	}.
+}.
+
+stringTest run.
+

@@ -1,0 +1,38 @@
+
+/* Concatenate strings  */
+z = "String1 " , "String2 " , "10".
+z println.
+
+/* Concatenate strings and other objects as strings
+   NOTE: message ',' sends message 'asString' to parameter
+*/
+z = "StringA=", 20.
+z println.
+
+str = "Hallo world!".
+
+// This:
+"length is = " print.
+str size println.
+
+// has same output as this:
+("length is = ", str size) println.
+
+"Find = " print.
+(str find: "world") println.
+
+("Slice = ", (str sliceFrom: 0 to: 5)) println.
+
+"Last character is: " print. 
+str last println.
+
+"First character is: " print. 
+str first println.
+
+"ABCDE" foreach: [ :aChar | (aChar asString, "*") println. ].
+
+"""Long string 
+can have more 
+lines""" println.
+
+

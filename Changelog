@@ -1,0 +1,48 @@
+0.9 
+	+ New compiler front-end
+	+ Module "xml" added (wrapper for libxml2)
+
+
+0.8
+	+ New syntax and semantics of "locals" slots
+	+ Threads support added
+	+ Importing of modules improved
+	+ Freezing/Unfreezing slots
+	+ New way of calling GC
+	+ Exceptions can be registered in core for easier acces from C code.
+	+ Some minor bugs fixed
+
+0.7
+    + Parametr -c renamed to -C. "-c cmd" now evaluate command
+	+ Equality tests for Set and Dictionary
+	+ Shallow copy added
+	+ Modules in now installed into own directories
+	+ Fixed memory leak in compiler
+	+ Fixed bug in kxbaseset
+
+0.6
+	+ Added read-write pair operator (<-)
+    + New syntax for slot:update:
+	+ Resend added
+    + path for modules can be set by enviroment variable 
+	  KREATRIX_MODULES_PATH
+	+ Comparation completly rewritten
+	+ Hash for objects
+	+ Dictionary rewritten
+	+ New basic object "Set"
+	+ Literal character
+	+ Added compilers parameter -c
+	+ List message inject:into: added
+	+ ScopedBlock message valueWith: renamed to value:
+	+ Added feature for long return in closures
+
+0.5.1
+	+ bug fix in loading modules
+
+0.5 
+	+ string compile 
+	+ VM halt added
+	+ new return style of functions
+	+ new reference model (new object has reference at 1)
+	+ global data stack replaced inner stack in activation
+	+ memory leaks in compiler fixed

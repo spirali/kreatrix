@@ -1,0 +1,106 @@
+
+import: "test".
+
+integerTest = test TestCase clone do: {
+
+	testPlus = { 
+		assert: (4 + 8) equals: 12.
+		assert: ((-5) + 8) equals: 3.
+		assert: ((-2) + (-20)) equals: (-22).
+	}.
+
+	testMinus = { 
+		assert: (2 - 1) equals: 1.
+		assert: (5 - 8) equals: (-3).
+		assert: ((-22) - (-20)) equals: (-2).
+	}.
+
+	testEvenAndOdd = {
+		10 isEven assertTrue.
+		12 isEven assertTrue.
+		11 isEven assertFalse.
+		(-13) isEven assertFalse.
+
+		0 isOdd assertFalse.
+		2 isOdd assertFalse.
+		1 isOdd assertTrue.
+		(-13) isOdd assertTrue.
+
+	}.
+
+	testConvert = {
+		assert: 123456 asString equals: "123456".
+		assert: 123456 asFloat equals: 123456.00.
+	}.
+
+	testRepeat = { | x m z |
+		x << 0.
+		m << 17.
+		z << 17 repeat: [ m << m - 1. x << (2*x)+1. ].
+		assert: m equals: 0.
+		assert: z equals: 131071.
+
+		x << 9.
+		7 repeat: [ :index | x << x - index ].
+		assert: x equals: (-12).
+	}.
+
+	testToDoBy = { |x y|
+		x << 0.
+		y << 3 to: 6 do: [ :i | x << x + i ].
+		assert: x equals: 12.
+		assert: y equals: 12.
+
+		x << 0.
+		y << 8 to: 2 by: (-2) do: [ :i | x << x + i ].
+		assert: x equals: 18.
+		assert: y equals: 18.
+
+		x << 3 to: 3 do: [ :i | i ].
+		assert: x equals: nil.
+
+		x << 2 to: 10 by: (-1) do: [ :i | i ].
+		assert: x equals: nil.
+
+	}.
+
+	testPositiveNegative = {
+		(-5) isNegative assertTrue.
+		(-5) isPositive assertFalse.
+		10 isNegative assertFalse.
+		10 isPositive assertTrue.
+		0 isNegative assertFalse.
+		0 isPositive assertFalse.
+
+		assert: 0 negated equals: 0.
+		assert: (-5) negated equals: 5.
+		assert: 2 negated equals: (-2).
+
+	}.
+
+	testCompare = {
+		(1 != "a") assertTrue.
+		(5 == "b") assertFalse.
+
+		(1 == 1) assertTrue.
+		(0 == 0) assertTrue.
+		((-10) == (-10)) assertTrue.
+
+		(1 != 1) assertFalse.
+		(0 != 0) assertFalse.
+		((-10) != (-10)) assertFalse.
+
+		(10 < 20) assertTrue.
+		(10 > 20) assertFalse.
+		(20 > 20) assertFalse.
+
+	}.
+
+	testCopy = {
+		assert: 10 copy equals: 10 copy.
+	}.
+
+}.
+
+integerTest run.
+

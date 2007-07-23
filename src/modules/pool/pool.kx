@@ -1,0 +1,5 @@
+
+(isLoaded: #pool) ifTrue: [ ^getModule: #pool ].
+registerAs: #pool.
+
+loadCLibrary: "pool".

@@ -1,0 +1,34 @@
+
+
+String replaceByDictionary: = { :aDictionary |
+	|str|
+	str << self.
+	aDictionary foreachKeyValue: [ :key :value | 
+		str << str replace: key to: value.
+	].
+	^str.	
+}.
+
+String safeTypeName = {
+	^replace: "*" to: "".
+}.
+
+String printlnIndent: = { :indent |
+	indent repeat: [ " " print ].
+	println.
+}.
+
+File loadAndreplace:saveTo: = { :aDictionary :aFilename |
+	|file str|
+	str << (openForReading contentAsString) 
+				replaceByDictionary: aDictionary.
+	file << File name: aFilename.
+	file openForWriting write: str.
+	file close.
+}.
+
+LocalFile = File clone do: {
+	name: = { :aFilename | 
+		^resend name: (localImportPath joinPath: aFilename).
+	}.
+}.

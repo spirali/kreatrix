@@ -1,0 +1,28 @@
+
+/**
+ *    xml example1
+ */
+
+import: "xml".
+
+page = "http://kreatrix.org".
+
+doc = xml Document clone readFile: page.
+
+root = doc rootElement.
+
+/**
+ *    Print root's childrens
+ */
+root childrens foreach: [ :each | each println ].
+
+/**
+ *    Find all links in page
+ */
+links = ((root descendants 
+   select: [ :node | (node name == "a") and: [ node hasAttribute: "href"] ])
+   collect: [ :node | node attribute: "href" ]).
+
+("Links from: ",page) println.
+links foreach: [ :each | each println ].
+

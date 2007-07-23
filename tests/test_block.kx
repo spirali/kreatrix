@@ -1,0 +1,79 @@
+
+import: "test".
+
+blockTest = test TestCase clone do: {
+
+	testWhile = { |x y|
+		
+		x << 0. y << 0.
+		[ y << y + 1. x << x + 1. x < 5 ] whileTrue.
+		assert: x equals: 5.
+		assert: y equals: 5.
+
+
+		x << 0. y << 0.
+		[ y << y + 1. x << x + 1. x == 5 ] whileFalse.
+		assert: x equals: 5.
+		assert: y equals: 5.
+
+		x << 0. y << 0.
+		[ x == 6 ] whileFalse: [ y << y + 2. x << x + 1].
+		assert: x equals: 6.
+		assert: y equals: 12.
+
+		x << 0. y << 0.
+		[ x < 6 ] whileTrue: [ y << y + 2. x << x + 1].
+		assert: x equals: 6.
+		assert: y equals: 12.
+
+	}.
+
+	testValue = { | x y z r |
+		x << 0.
+		y << 1.
+		z << 2.
+		
+		r << ([ :c | x << x+y+z+c ] value: 20).
+		assert: r equals: 23.
+
+	}.
+	
+	testLongReturn = { |obj x|
+		obj << Object clone.
+		obj valueBlock: = { :aBlock | aBlock value. }.
+		obj run = {  valueBlock: [^"ok"]. ^"error"  }.
+		obj run2 = { [^"ok"] value. }.
+		
+		assert: obj run equals: "ok".
+		assert: obj run2 equals: "ok".
+
+		unfreezeSlot: #x.
+		x << { [ [ [ ^"ok2" ] value. ] value. ] value. }.
+		assert: x equals:  "ok2".
+	}.
+
+	testSnadAloneBlock = { |method block|
+		unfreezeSlot: #method.
+		method << { ^[ 5 + 2 ] }.
+	//	perform: #method.
+		block << method.
+		assert: block value equals: 7.
+		 
+		// Destroy cycle
+		method << nil. block << nil.
+	}.
+
+	testOwnBlock = { |myblock result|
+		myblock << Object clone do: {
+			value = { ^"ok1" }.
+			value: = { :param | ^param + 1}.
+		}.
+
+		assert: (true ifTrue: myblock) equals: "ok1".
+		result << #(1 2 3 4) collect: myblock.
+		assert: result equals: #(2 3 4 5).
+	}
+}.
+
+blockTest run.
+

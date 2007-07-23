@@ -1,0 +1,54 @@
+
+a = 3.
+b = 5.
+
+
+// Message ifTrue:
+(a<b) ifTrue: [ "Is it TRUE!" println. ].
+
+// Message ifFalse:
+(b<a) ifFalse: [ "Is it FALSE!" println. ].
+
+// Message ifTrue:ifFalse:
+(a<b) 
+	ifTrue: [ "Is it TRUE!" println. ]
+	ifFalse: [ "Is it FALSE!" println. ].
+
+// Message ifFalse:ifTrue:
+false ifFalse: [ "Is it FALSE!" println. ]
+	  ifTrue: [ "Is it TRUE!" println. ].
+
+z = "Ahoj".
+x = z isNil ifFalse: [ "z isn't nil" ] ifTrue: [ "z is nil" ].
+x println.
+
+
+// Negation
+"Negations:" println.
+true not println.
+false not println.
+
+/**
+	Eager AND and OR. (Pascal like).
+*/
+"Eager And:" println.
+(true && false) println.
+(true && true) println.
+
+"Eager Or:" println.
+(true || false) println.
+(true || true) println.
+
+/**
+	Lazy AND and OR. (C like).
+*/
+"Lazy And:" println.
+(true and: [ true ]) println.
+(false and: [ true ]) println.
+
+"Lazy Or:" println.
+(true or: [ true ]) println.
+(false or: [ true ]) println.
+
+
+((true || false) && false && (true || false)) println

@@ -1,0 +1,73 @@
+(isLoaded: #sockets) ifTrue: [ ^getModule: #sockets ].
+registerAs: #sockets.
+
+loadCLibrary: "sockets".
+
+
+Socket do: {
+	
+	send: = { :anObject | sendByteArray: anObject asByteArray. }.
+
+	receiveLineIfClose: = { :aBlock | |line|
+		line << receiveLine.
+		line isNil ifTrue: [ ^aBlock value ].
+		^line
+	}.
+
+	waitForReading = { ^waitForReadingWithTimeout: (-1) }.
+	waitForWriting = { ^waitForWritingWithTimeout: (-1) }.
+	waitForReadingWriting = { ^waitForReadingWritingWithTimeout: (-1) }.
+
+}.
+
+Poll do: {
+
+	PollResult = Integer clone do: {
+		type = "PollResult".
+
+		canRead = {
+			^ (self bitAnd: sockets Poll POLLIN) isNotZero.
+		}.
+
+		canWrite = {
+			^ (self bitAnd: sockets Poll POLLOUT) isNotZero.
+		}.
+
+		hasEvent = {
+			^ self isNotZero.
+		}.
+	}.
+
+	waitForWriting: = { :anObject |
+		add: anObject withFlags: POLLOUT.
+	}.
+
+	waitForReading: = { :anObject |
+		add: anObject withFlags: POLLIN.
+	}.
+
+
+	foreachEvent: = { :aBlock | 
+		foreach: [ :each :status |
+			status hasEvent ifTrue: 
+				[ aBlock valueWithList: #(each status). ].
+		].
+	}.
+
+	foreachWriteEvent: = { :aBlock | 
+		foreach: [ :each :status |
+			status canWrite ifTrue: 
+				[ aBlock valueWithList: #(each status). ].
+		].
+	}.
+
+	foreachReadEvent: = { :aBlock | 
+		foreach: [ :each :status |
+			status canRead ifTrue: 
+				[ aBlock valueWithList: #(each status). ].
+		].
+	}.
+
+
+}.
+

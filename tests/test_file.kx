@@ -1,0 +1,60 @@
+
+import: "test".
+
+testObject = test TestCase clone do: {
+
+	fileName = "test_file.data".
+
+	initFile = { |outfile|
+		outfile << (File clone name: fileName) openForWriting.
+		outfile writeln: "My line".
+		outfile writeln.
+		outfile writeln: "3rd line.".
+		outfile write: "ln".
+		outfile close.
+
+	}.
+
+	initFile.
+
+	testReadLine = { |file l|
+
+		file << (File clone name: fileName) openForReading.
+		
+		l << file readLine.
+		assert: l equals: "My line\n".
+
+		l << file readLine.
+		assert: l equals: "\n".
+
+		l << file readLine.
+		assert: l equals: "3rd line.\n".
+
+		l << file readLine.
+		assert: l equals: "ln".
+
+		l << file readLine.
+		assert: l equals: nil.
+
+
+		file close.
+	}.
+
+	testForeachLine = { |file count|
+		file << (File clone name: fileName) openForReading.
+		count << 0.
+		file foreachLine: [ :line | 
+			count << line size + count.
+		].
+		//count println.
+		assert: count equals: 21.
+	}.
+
+	testContentAsString = { |file|
+		file << (File clone name: fileName) openForReading.
+
+		assert: file contentAsString size equals: 21.
+	}
+}.
+
+testObject run.

@@ -1,0 +1,18 @@
+
+Constant = ModuleItem clone do: {
+	type = "Constant".
+
+    value <- "".
+
+	loadFromElement: = { :anElement | 
+		resend loadFromElement: anElement.
+		value: (anElement attribute: "value").
+	}.
+
+	getInitPrototypeCode = {
+			^"\tkxobject_set_slot_no_ref2(self, KXSYMBOL(\"",
+				slot,"\"),KXINTEGER(",value,"));\n".
+	}
+}.
+
+

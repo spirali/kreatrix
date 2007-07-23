@@ -1,0 +1,178 @@
+
+ModuleItem = Object clone do: {
+	type = "ModuleItem".
+
+	slot <- "".
+	parent <- clone.
+	config <- nil.
+
+	loadFromElement: = { :anElement | 
+		slot: (anElement attribute: "slot").
+	}.
+	
+	create = {}.
+
+	getCallInitExtensionCode = {^""}.
+	getAddPrototypeCode = {^""}.
+	getRemovePrototypeCode = {^""}.
+
+	getInitPrototypeCode = {^""}.
+	getInitExtensionCode = {^""}.
+
+	getFunctionCode = {^""}.
+	getFunctionTableCode = {^""}.
+
+	getHeaderCode = {^""}.
+
+	getDataName = {^""}.
+
+	getHeaders = { ^#() }.
+
+}.
+
+ModuleObject = ModuleItem clone do: {
+	type = "ModuleObject".
+
+	/* Public */
+
+	name <- "".
+
+	loadFromElement: = { :anElement | 
+		name: (anElement attribute: "name").
+		resend loadFromElement: anElement.
+		loadContentFromElement: anElement.
+	}.
+
+	init = { 
+		childrens = #().
+	}.
+
+	/* Private */
+
+	replaceDictionary = { |dict|
+		  dict << #(
+			  ("%Name%" => name)
+			  ("%NAME%" => name asUppercase)
+			  ("%name%" => name asLowercase)
+			  ("%include%" => (config codeAt: "include"))
+		   ) asDictionary.
+
+		   replaceTable foreachKeyValue: [ :name :message | |str|
+				str << (childrens collect: [ :each | 
+					each perform: message.
+				]) asString.
+				
+				dict at: name put: str.
+		   ].
+		   ^dict.
+	}.
+	loadContentFromElement: = { :anElement |
+
+		elementsTable foreach: [ :tableItem | 
+			|elementName proto obj protoName|
+			elementName << tableItem at: 0.
+			protoName << tableItem at: 1.
+			proto << perform: protoName.
+			
+			( anElement childrens: elementName) foreach: [ :anElement |
+				|obj|
+				obj << proto clone.
+				obj config: config.
+				obj parent: self.
+				obj  loadFromElement: anElement.
+				childrens add: obj.
+			].
+		].
+	}.
+
+	elementsTable = #(
+		#( "const" #Constant )
+		#( "cfunction" #WrapFunction )
+		#( "cfunction-code" #FunctionWithCode )
+		#( "prototype" #Prototype )
+		#( "attribute" #Attribute )
+		#( "attribute-rw" #AttributeRW )
+		#( "container" #ContainerObject )
+	//	( #childrens "prototype" ModuleObject )
+	).
+
+	replaceTable = #(
+		("%init_prototype%" => #getInitPrototypeCode)
+		("%cfunctions%" => #getFunctionCode)
+		("%cfunctions_table%" => #getFunctionTableCode)
+		("%init_extension%" => #getInitExtensionCode)
+		("%data%" => #getDataName)
+		("%header%" => #getHeaderCode)
+	) asDictionary.
+
+	createChildrens = {
+		childrens foreach: [ :each | each create ].
+	}.
+
+	getHeaders = {
+		|list|
+		list << #().
+		childrens foreach: [ :each | list addAll: each getHeaders ].
+		^list.
+	}.
+}.
+
+
+RootObject = ModuleObject clone do: {
+	type = "RootObject".
+
+	loadFromElement: = { :anElement | 
+		loadContentFromElement: anElement.
+	}.
+
+	config: = { :value |
+		resend config: value.
+		name: config moduleName.
+	}.
+
+	replaceTable at: "%call_init_extensions%" put: #getCallInitExtensionCode.
+	replaceTable at: "%add_prototypes%" put: #getAddPrototypeCode.
+	replaceTable at: "%remove_prototypes%" put: #getRemovePrototypeCode.
+
+	create = {
+		|dict file|
+		dict << replaceDictionary.
+		dict at: "%modname%" put: name.
+		file << LocalFile clone name: "module.c".
+		file loadAndreplace: dict saveTo: (config moduleName,".c").
+
+		createChildrens.
+	}.
+}.
+
+
+ContainerObject = ModuleObject clone do: {
+	type = "ContainerObject".
+
+	create = {
+		|dict file filename|
+		filename << name asLowercase.
+		dict << replaceDictionary.
+		file << LocalFile clone name: "container.c".
+		file loadAndreplace: dict saveTo: (filename,".c").
+
+		file << LocalFile clone name: "container.h".
+		file loadAndreplace: dict saveTo: (filename,".h").
+
+		createChildrens.
+
+	}.
+
+	getHeaders = {
+		^resend getHeaders add: name asLowercase,".h".
+	}.
+
+	getInitPrototypeCode = {
+		|lname|
+		lname << name asLowercase.
+		^"\tkxobject_set_slot_no_ref2(self, KXSYMBOL(\"",slot,"\")\n\t\t,", 
+		"kx",lname,"_new(KXCORE));\n".
+	}.
+
+
+}.

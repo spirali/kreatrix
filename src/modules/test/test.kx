@@ -1,0 +1,62 @@
+
+(isLoaded: #test) ifTrue: [ ^getModule: #test ].
+registerAs: #test.
+
+TestCase = Object clone do: {
+	
+	type = "TestCase".
+
+	_findTestSlots = {
+		|list|
+		list << List clone.
+		self slots foreach: [ :eachSlot |
+			(eachSlot asString beginsWith: "test") ifTrue: [
+				list add: eachSlot.
+			]
+		].
+		^list.
+	}.
+
+	run = {
+		|list|
+		list << self _findTestSlots.
+		list foreach: [ :eachSlot | |slotCount|
+			("Running '", eachSlot asString,"' ... ") print.
+			stdout flush.
+			slotCount << self slots size.
+			
+			self perform: eachSlot.
+
+			(slotCount != self slots size) ifTrue: [
+				throw: (Exception clone 
+					message: "Slot modification in test object").
+			].
+			"OK" println.
+		].
+		("All tests (", list size asString,") passed") println.
+	}.
+
+	assertFailed = {
+			throw: (Exception clone message: "Assert failed!").
+	}. //here
+
+	assert:equals: = { :aObject1 :aObject2 | 
+		(aObject1 == aObject2) ifFalse: [ assertFailed ]
+	}.
+
+	assert: = { :aBoolean |
+		aBoolean ifFalse: [ assertFailed ]
+	}
+}.
+
+/** From module "test" */
+true assertTrue = {}.
+/** From module "test" */
+false assertFalse = true slot: #assertTrue.
+
+/** From module "test" */
+true assertFalse = { throw: (Exception clone message: "Assert failed!")}.
+
+/** From module "test" */
+false assertTrue = true slot: #assertFalse.
+

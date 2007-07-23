@@ -1,0 +1,61 @@
+(isLoaded: #cgi) ifTrue: [ ^getModule: #cgi ].
+registerAs: #cgi.
+
+import: "system".
+
+
+metavariable: = { :aStringName |
+	^ system getenv: aStringName.
+}.
+
+queryString = { |string len|
+	string << metavariable: "QUERY_STRING".
+	
+	len << metavariable: "CONTENT_LENGTH".
+	(len isNotNil) ifTrue: [
+		(string != "") ifTrue: [ string << string,"&" ].
+		string << string, 
+			(stdin readByteArraySize: len asInteger) asString.
+	].
+
+	^string.
+}.
+
+
+decodeUrl: = { :aUrlString |  |aUrlString pos out start|
+	aUrlString << aUrlString replace: "+" to: " ".
+	pos << 0.
+	out << "".
+	start << 0.
+	[ pos << aUrlString find: "%" from: pos. pos isNotNil. ] whileTrue:
+		[   |num|
+			num << (aUrlString sliceFrom: (pos+1) to: (pos + 3)) 
+				asIntegerInBase: 16.
+
+			 out << out, (aUrlString sliceFrom: start to: pos), 
+				num asCharacter.
+			 pos << pos + 3.
+			 start << pos.
+		].
+	 ^ out, (aUrlString sliceFrom: start).
+}.
+
+parseInput = { |form|
+	form << Dictionary clone.
+	(queryString asListBy: "&") foreach: [ :each | 
+		|list|
+		list << each asListBy: "=".
+		(list size == 2) ifTrue: [ |key value|
+			key << list at: 0.
+			value << list at: 1.
+			form at: key put: (decodeUrl: value).
+		].
+		(list size == 1) ifTrue: [
+			form at: (list at: 0) put: "".
+		].
+	].
+	^form.
+}.
+
+
+

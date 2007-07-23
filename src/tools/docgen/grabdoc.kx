@@ -1,0 +1,101 @@
+
+
+
+GrabDoc = Object clone do: {
+	type = "GrabDoc".
+	
+	init = { 
+		_file = File clone.
+		_fileout = File clone.
+		_objectOpen = false.
+	}.
+
+	inFilename: = { :aString | (_file close name: aString) openForReading. }.
+	outFilename: = { :aString | (_fileout close name: aString) openForWriting }.
+	
+	run = { 
+		content = _file contentAsString.
+
+		_objectOpen = false.
+		
+		index = 0.
+		[   |doc|
+			doc << content sliceBetween: "/*KX" and: "*/" from: index.
+			(doc != "") ifTrue: [ 
+				index << doc size + (content find: "/*KX" from: index).
+				processDoc: doc. true 
+			].
+		] whileTrue.
+		_objectOpen ifTrue: [ write: "}.\n" ].
+
+	}.
+
+	
+	processDoc: = { :aString |  |lines params msg|
+		lines << aString asListBy: "\n".
+
+		params << (lines at: 0) asListBy: " ".
+		params << params collect: [ :each | each trim ].
+		
+		lines removeAt: 0.
+		msg << ("msg_",(params at: 0)) asSymbol.
+		params removeAt: 0.
+		perform: msg withList: #(params lines).
+
+	}.
+
+	writeSlot:with: = { :aSlotString :aString | 
+		write: "\t",aSlotString, " = \"\"\"", aString,"\"\"\".\n". }.
+
+	write: = { :aString | aString writeTo: _fileout }.
+	
+	msg_object = { :params :lines | |category objpath text|
+		category << params at: 0.
+		params removeAt: 0.
+		objpath << "". 
+		params foreach: [ :each | objpath << objpath," ",each ].
+		
+		write: "(slot: #", objpath trim,") do: {\n".
+		writeSlot: "__doc_category" with: category.
+
+		text << "".
+		lines foreach: [ :each | text << text, each, "\n". ].
+		writeSlot: "__doc" with: text asString trim.
+		_objectOpen << true.
+	}.
+
+
+	msg_doc = { :params :lines | |name p text|
+		_objectOpen ifFalse: [ 
+			throw: Exception cloneWithMessage: "/*KXdoc isn't in block" ].
+
+		name << params at: 0.
+		params removeAt: 0.
+		p << "".
+		params foreach: [ :each | p << p," ",each ].
+		p trim == "" ifFalse: [
+			writeSlot: "(slot: #",name,") __doc_params" with: p trim.
+		].
+		text << "".
+		lines foreach: [ :each | text << text, each, "\n". ].
+		writeSlot: "(slot: #",name,") __doc" with: text.
+	}.
+	
+
+	
+	
+}.
+
+"Starting ... " println.
+gdoc = GrabDoc clone.
+gdoc outFilename: "out.kx".
+
+args foreach: [ :each | 
+	(each," ...") println.
+	gdoc inFilename: each.
+	gdoc run.
+]
+
+
+
+

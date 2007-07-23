@@ -1,0 +1,48 @@
+(isLoaded: #threads) ifTrue: [ ^getModule: #threads ].
+//--- module init ---
+
+(VM hasSupport: "threads") ifFalse: [
+	throw: (Exception clone 
+		message: "VM is not compiled with threads support")
+].
+
+
+loadCLibrary: "threads".
+
+Thread do: {
+	run = { ^nil }.
+}.
+
+ThreadWithBlock = Thread clone do: {
+		block <- EmptyScopedBlock.
+		run = { ^block value}.
+		join = { |result|
+			result << resend join.
+			/**
+				Prevent cycle references.
+				For cleaner memory debugging.
+				This can be removed.
+			*/
+			block: EmptyScopedBlock.
+			^result.
+		}.
+}.
+
+
+ScopedBlock do: {
+	runInThread = { |thread|
+		thread << threads ThreadWithBlock clone.
+		thread block: self.
+		^thread start.
+	}.
+	
+	runInDetachedThread = { |thread|
+		thread << threads ThreadWithBlock clone.
+		thread block: self.
+		^thread startDetached.
+	}.
+
+}.
+
+//--- end of module init  ---
+registerAs: #threads.

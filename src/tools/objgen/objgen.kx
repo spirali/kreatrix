@@ -1,0 +1,47 @@
+
+(args size < 2) ifTrue: [
+	"Usage: objgen <objname> <struct>" println.
+	VM quit.
+].
+
+//objectName = args at: 0.
+
+createReplaceDictFromName:data: = { :aName :aDataName | 
+   ^#(
+		("%%name%%" => aName asLowercase)
+		("%%NAME%%" => aName asUppercase)
+		("%%Name%%" => aName capitalized)
+		("%%data%%" => aDataName)
+    ) asDictionary.
+
+
+}.
+
+
+String replaceByDictionary: = { :dict | 
+	|str|
+	str << self.
+	dict foreachKeyValue: [ :key :value | 
+		str << str replace: key to: value.
+	].
+	^str.
+}.
+
+String saveAsFile: = { :filename | 	
+	((File clone name: filename) openForWriting write: self) close.
+}.
+
+
+dict = createReplaceDictFromName: (args at: 0) data: (args at: 1).
+
+//objectStruct = args at: 1.
+
+templateHeader = (File clone name: "template.h") 
+	openForReading contentAsString.
+
+templateSource = (File clone name: "template.c")
+	openForReading contentAsString.
+
+name = "kx",(args at: 0) asLowercase.
+(templateHeader replaceByDictionary: dict) saveAsFile: name,".h".
+(templateSource replaceByDictionary: dict) saveAsFile: name,".c".

@@ -1,0 +1,105 @@
+
+(args size isZero) ifTrue: [
+	"Usage: wrapgen <wrapper_config>" println.
+	VM quit.
+].
+
+import: "xml".
+
+localImport: "wrapgen_utils.kx".
+localImport: "moduleobject.kx".
+localImport: "function.kx".
+localImport: "constant.kx".
+localImport: "attribute.kx".
+localImport: "prototype.kx".
+
+WrapperConfig = Object clone do: {
+	type = "WrapperConfig".
+	
+	rootElement <- nil.
+
+	rawCodes <- Dictionary clone.
+
+	loadFromElement: = { :aRootElement | 
+		rootElement: aRootElement.
+		
+		rawCodes: _rawCodes.
+	}.
+
+	_rawCodes = {
+		|codes dict| 
+		dict << Dictionary clone.
+		codes << rootElement childrens: "code". 
+		codes foreach: [ :each |
+			|pos|
+			pos << each attribute: "position".
+			dict at: pos put: each children text.
+		].
+		^dict.
+	}.
+
+	moduleName = {
+		^rootElement attribute: "name".
+	}.
+
+	codeAt: = { :pos | 
+		^(rawCodes at: pos ifAbsent: [ "" ]).
+	}.
+
+	headers = #().
+
+	headers: = { :list |
+		headers = list.
+		at: "include" putCode: 
+			(list collect: [ :each | 
+				"#include \"",each,"\"\n"
+			]) asString.
+	}.
+
+	at:putCode: = { :pos :code |
+		(rawCodes hasKey: pos) ifFalse: [
+			rawCodes at: pos put: code.
+			^self.
+		].
+		rawCodes at: pos put: (rawCodes at: pos),code.
+	}.
+}.
+
+Wrapper = Object clone do: {
+	type = "Wrapper".
+
+	document <- xml Document clone.
+	root <- nil.
+	config <- WrapperConfig clone.
+
+	loadConfig: = { :aConfigFilename | 
+		config: WrapperConfig clone.
+
+		document: (xml Document clone readFile: aConfigFilename).
+		config loadFromElement: document rootElement.
+
+		root: RootObject clone.
+		root config: config.
+		root loadFromElement: (document rootElement child: "root").
+
+	}.
+
+	create = {
+		config headers: root getHeaders.
+		root create.
+	}.
+
+
+	dump = {
+		("Modul name: ", config moduleName) println.
+	}.
+
+}.
+
+
+
+
+wrap = Wrapper clone.
+wrap loadConfig: (args at: 0).
+wrap dump.
+wrap create.
