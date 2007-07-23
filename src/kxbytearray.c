@@ -11,6 +11,7 @@
 #include "kxobject.h"
 #include "kxinteger.h"
 #include "kxexception.h"
+#include "kxcharacter.h"
 
 KxObjectExtension kxbytearray_extension;
 
@@ -103,6 +104,9 @@ static KxObject *
 kxbytearray_as_string(KxByteArray *self, KxMessage *message)
 {
 	ByteArray *data = self->data.ptr;
+	if (data->size > 0 && data->array[data->size-1] == 0) {
+		return KXSTRING(data->array);
+	}
 	char str[data->size+1];
 	str[data->size] = 0;
 	memcpy(str,data->array, data->size);
@@ -131,6 +135,59 @@ kxbytearray_set_size(KxByteArray *self, KxMessage *message)
 	KXRETURN(self);
 }
 
+static KxObject *
+kxbytearray_cut_line(KxByteArray *self, KxMessage *message)
+{
+	ByteArray *data = KXBYTEARRAY_DATA(self);
+	char *array = data->array;
+	int size = data->size;
+	int t;
+	for (t=0;t<size;t++) {
+		if (array[t] == '\n') {
+			break;
+		}
+	}
+	if (t == data->size) {
+		KXRETURN(KXCORE->object_nil);
+	}
+	ByteArray *ba = bytearray_new_from_data(array+t+1, size - t -1);
+	self->data.ptr = ba;
+
+	data->array = NULL;
+	bytearray_free(data);
+
+	char *str = realloc(array, t + 2);
+	ALLOCTEST(str);
+	str[t+1] = 0;
+
+
+	return kxstring_from_cstring(KXCORE,str);
+}
+
+static KxObject *
+kxbytearray_contains_byte(KxObject *self, KxMessage *message) 
+{
+	KXPARAM_TO_CHAR(c, 0);
+	ByteArray *data = KXBYTEARRAY_DATA(self);
+	char *array = data->array;
+	int t;
+	for (t=0;t<data->size;t++) {
+		if (array[t] == c) {
+			KXRETURN(KXCORE->object_true);	
+		}
+	}
+	KXRETURN(KXCORE->object_false);	
+}
+
+static KxObject * 
+kxbytearray_add(KxObject *self, KxMessage *message) 
+{
+	KXPARAM_TO_BYTEARRAY(param, 0);
+	ByteArray *data = KXBYTEARRAY_DATA(self);
+	bytearray_append(data, param->array, param->size);
+	KXRETURN(self);
+}
+
 static void kxbytearray_add_methods_table(KxByteArray *self) 
 {
 	KxMethodTable table[] = {
@@ -139,8 +196,11 @@ static void kxbytearray_add_methods_table(KxByteArray *self)
 		{"at:put:", 2, kxbytearray_at_put },
 		{"asString", 0, kxbytearray_as_string },
 		{"asInt32", 0, kxbytearray_as_int32},
+		{"add:", 1,  kxbytearray_add },
 		{"asByteArray", 0, kxcfunction_returnself},
 		{"size:",1,kxbytearray_set_size},
+		{"cutLine",0,kxbytearray_cut_line},
+		{"containsByte:",1,kxbytearray_contains_byte},
 		{NULL,0, NULL}
 	};
 	kxobject_add_methods(self, table);

@@ -3,7 +3,7 @@
 	+ Module "xml" added (wrapper for libxml2)
 	+ Wrapgen added (tool for creating wrappers)
 	+ Generator of documentation completely rewritten
-
+	+ Module "socket" improved
 
 0.8
 	+ New syntax and semantics of "locals" slots

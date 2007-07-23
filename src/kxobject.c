@@ -670,7 +670,7 @@ kxobject_send_unary_message(KxObject *self, KxSymbol *message_name)
 KxString *
 kxobject_type_name(KxObject *self)
 {
-	KxObject * obj = kxobject_find_slot(self, KXCORE->dictionary[KXDICT_TYPE]);
+	/*KxObject * obj = kxobject_find_slot(self, KXCORE->dictionary[KXDICT_TYPE]);
 	if (obj == NULL) {
 		return KXSTRING(kxobject_raw_type_name(self));
 	}
@@ -680,8 +680,16 @@ kxobject_type_name(KxObject *self)
 		return type;
 	}
 
-	KxReturn ret = kxstack_get_return_state(KXSTACK);
+	KxReturn ret = kxstack_get_return_state(KXSTACK);*/
 
+	KxObject * obj = kxobject_send_unary_message(self, KXCORE->dictionary[KXDICT_TYPE]);
+
+	if (obj) {
+		if (IS_KXSTRING(obj)) 
+			return obj;
+		return KXSTRING("(type_is_not_string)");
+	}
+	KxReturn ret = kxstack_get_return_state(KXSTACK);
 	switch(ret) {
 		case RET_THROW: {
 			KxObject *obj = kxstack_catch_thrown_object(KXSTACK);
@@ -691,11 +699,8 @@ kxobject_type_name(KxObject *self)
 		default:
 			fprintf(stderr,"kxobject_type_name: unexpected return");
 			exit(-1);
-			break;
 	}
-	return type;
 }
-
 
 KxObject * 
 kxobject_activate(KxObject *self, KxObject *target, List *params_list)
@@ -914,8 +919,12 @@ KxObject *
 kxobject_type_error(
 	KxObject *self, KxObjectExtension *extension)
 {
+	KxString *type_name = kxobject_type_name(self);
+
 	KxException *excp = kxexception_new_with_text(
 		KXCORE,"'%s' expected as parameter, not '%s'", extension->type_name, 
-		kxobject_type_name(self));
+		KXSTRING_VALUE(type_name));
+	
+	REF_REMOVE(type_name);
 	KXTHROW(excp);
 }

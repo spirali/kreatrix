@@ -24,6 +24,7 @@ Server = Object clone do: {
 	processConnection = { |client|
 	 	client << listenSocket accept.
 		[ |request|
+			client startBuffering.
 			request << requestPrototype clone.
 			request socket: client.
 			request serve.
@@ -49,7 +50,7 @@ HttpRequest = Request clone do: {
 	type = "HttpRequest".
 
 	getFilename = { |line filename|
-		line << socket receiveLineIfClose: [ VM quit ].
+		line << socket readLineIfClose: [ VM quit ].
 		filename << (line sliceBetween: "GET" and: "HTTP") trim.
 		(filename == "/") ifTrue: [ ^"index.html" ].
 		^filename sliceFrom: 1.

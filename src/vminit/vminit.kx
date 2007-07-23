@@ -102,6 +102,10 @@ File do: {
 	}.*/
 }.
 
+ByteArray do: {
+	isEmpty = { ^size == 0 }.
+}.
+
 String do: {
 	
 	sliceBetween:and:from: = { :aStartString :aEndString :index | 

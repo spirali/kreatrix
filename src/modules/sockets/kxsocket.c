@@ -38,25 +38,21 @@ void kxsocket_extension_init() {
 }
 
 static void kxsocket_free(KxSocket *self) {
-	KxSocketData *data = KXSOCKET_DATA(self);
-	if (data->socket != -1)
-		close(data->socket);
-	free(data);
+	if (self->data.intval != -1)
+		close(self->data.intval);
 }
 
 static KxObject *
 kxsocket_clone(KxSocket *self)
 {
-	KxSocketData *old_data = KXSOCKET_DATA(self);
-
 	KxSocket *clone = kxobject_raw_clone(self);
 	
-	KxSocketData *data = calloc(sizeof(KxSocketData),1);
+	/*KxSocketData *data = calloc(sizeof(KxSocketData),1);
 	ALLOCTEST(data);
 	
-	data->socket = -1;
-
-	clone->data.ptr = data;
+	self->data.intval = -1;
+	clone->data.ptr = data; */
+	clone->data.intval = -1;
 	return clone;
 }
 
@@ -66,15 +62,17 @@ kxsocket_new_prototype(KxCore *core)
 	KxObject *self = kxcore_clone_base_object(core);
 	self->extension = &kxsocket_extension;
 
-	KxSocketData *data = malloc(sizeof(KxSocketData));
+/*	KxSocketData *data = malloc(sizeof(KxSocketData));
 	ALLOCTEST(data);
 	
-	data->socket = -1;
+	self->data.intval = -1;
 
 	data->readbuffer_pos = 0;
 	data->readbuffer_size = 0;
 
-	self->data.ptr = data;
+	self->data.ptr = data;*/
+
+	self->data.intval = -1;
 	kxsocket_add_method_table(self);
 	return self;
 }
@@ -85,34 +83,33 @@ kxsocket_new_with_socket(KxCore *core, int socket)
 	KxSocket *proto = kxcore_get_prototype(core, &kxsocket_extension);
 	KxObject *clone = kxobject_raw_clone(proto);
 
-	KxSocketData *data = calloc(sizeof(KxSocketData),1);
+/*	KxSocketData *data = calloc(sizeof(KxSocketData),1);
 	ALLOCTEST(data);
 	
-	data->socket = socket;
+	self->data.intval = socket;*/
 	/*data->readbuffer_pos = 0;
 	data->readbuffer_size = 0;*/
 
 
-	clone->data.ptr = data;
+/*	clone->data.ptr = data;*/
+	clone->data.intval = socket;
 	return clone;
 }
 
 static KxObject *
 kxsocket_as_integer(KxSocket *self, KxMessage *message)
 {
-	KxSocketData *data = KXSOCKET_DATA(self);
-	return KXINTEGER(data->socket);
+	/*KxSocketData *data = KXSOCKET_DATA(self);
+	return KXINTEGER(self->data.intval);*/
+	return KXINTEGER(self->data.intval);
 }
 
 
 static KxObject *
 kxsocket_as_string(KxSocket *self, KxMessage *message)
 {
-	KxSocketData *data = KXSOCKET_DATA(self);
-	char tmp[150];
-	snprintf(tmp,150,"%i",data->socket);
-	/*KxString *string = KXSTRING(tmp);
-	RETURN(string);*/
+	char tmp[50];
+	snprintf(tmp,50,"%i",self->data.intval);
 	return KXSTRING(tmp);
 }
 
@@ -121,9 +118,7 @@ kxsocket_as_string(KxSocket *self, KxMessage *message)
 static KxObject *
 kxsocket_init_tcp(KxSocket *self, KxMessage *message)
 {
-	KxSocketData *data = KXSOCKET_DATA(self);
-	
-	if (data->socket != -1) {
+	if (self->data.intval != -1) {
 		KXTHROW_EXCEPTION("Socket is already inicialized");
 	}
 	
@@ -134,17 +129,16 @@ kxsocket_init_tcp(KxSocket *self, KxMessage *message)
 		KXTHROW(excp);
 	}
 	
-	data->socket = sock;
+	self->data.intval = sock;
 	KXRETURN(self);
 }
 
 static KxObject * 
 kxsocket_close(KxSocket *self, KxMessage *message)
 {
-	KxSocketData *data = KXSOCKET_DATA(self);
-	if (data->socket != -1) {
-		close(data->socket);
-		data->socket = -1;
+	if (self->data.intval != -1) {
+		close(self->data.intval);
+		self->data.intval = -1;
 	}
 	KXRETURN(self);
 }
@@ -154,8 +148,7 @@ kxsocket_bind(KxSocket *self, KxMessage *message)
 {
 	KXPARAM_TO_LONG(port, 0);
 
-	KxSocketData *data = KXSOCKET_DATA(self);
-	if (data->socket == -1) {
+	if (self->data.intval == -1) {
 		KXTHROW_EXCEPTION("Socket isn't inicialized");
 	}
 	
@@ -163,7 +156,7 @@ kxsocket_bind(KxSocket *self, KxMessage *message)
     sockname.sin_family = AF_INET;
     sockname.sin_port = htons(port);
     sockname.sin_addr.s_addr = INADDR_ANY;
-    if (bind(data->socket, (struct sockaddr *)&sockname, 
+    if (bind(self->data.intval, (struct sockaddr *)&sockname, 
 		sizeof(sockname)) == -1) {
 		KxException *excp = kxexception_new_with_text(KXCORE,
 			"Bind failed (port %i): %s", port,strerror(errno));
@@ -175,12 +168,11 @@ kxsocket_bind(KxSocket *self, KxMessage *message)
 static KxObject *
 kxsocket_listen(KxSocket *self, KxMessage *message)
 {
-	KxSocketData *data = KXSOCKET_DATA(self);
-	if (data->socket == -1) {
+	if (self->data.intval == -1) {
 		KXTHROW_EXCEPTION("Socket isn't inicialized");
 	}
 	
-    if (listen(data->socket, KXLISTEN_QUEUE) == -1)	{
+    if (listen(self->data.intval, KXLISTEN_QUEUE) == -1)	{
 		KxException *excp = kxexception_new_with_text(KXCORE,
 			"Listen failed: %s", strerror(errno));
 		KXTHROW(excp);
@@ -191,8 +183,7 @@ kxsocket_listen(KxSocket *self, KxMessage *message)
 static KxObject *
 kxsocket_accept(KxSocket *self, KxMessage *message)
 {
-	KxSocketData *data = KXSOCKET_DATA(self);
-	if (data->socket == -1) {
+	if (self->data.intval == -1) {
 		KXTHROW_EXCEPTION("Socket isn't inicialized");
 	}
 
@@ -202,7 +193,7 @@ kxsocket_accept(KxSocket *self, KxMessage *message)
 	int client;
 	
 	KX_THREADS_BEGIN
-	client = accept(data->socket, (struct sockaddr*)&clientaddr, &addrlen);
+	client = accept(self->data.intval, (struct sockaddr*)&clientaddr, &addrlen);
 	KX_THREADS_END
 
 	if (client == -1) {
@@ -217,8 +208,7 @@ kxsocket_accept(KxSocket *self, KxMessage *message)
 static KxObject *
 kxsocket_peer_address(KxSocket *self, KxMessage *message)
 {
-	KxSocketData *data = KXSOCKET_DATA(self);
-	if (data->socket == -1) {
+	if (self->data.intval == -1) {
 		KXTHROW_EXCEPTION("Socket isn't inicialized");
 	}
 
@@ -226,7 +216,7 @@ kxsocket_peer_address(KxSocket *self, KxMessage *message)
 	int addr_len = sizeof(struct sockaddr_in);
 	bzero(&peeraddr, sizeof(struct sockaddr_in));
 	
-	if (getpeername(data->socket, (struct sockaddr*)&peeraddr, 
+	if (getpeername(self->data.intval, (struct sockaddr*)&peeraddr, 
 		&addr_len) == -1) {
 		KxException *excp = kxexception_new_with_text(KXCORE,
 			"getpeername failed: %s", strerror(errno));
@@ -241,8 +231,7 @@ kxsocket_send_bytearray(KxSocket *self, KxMessage *message)
 {
 	KXPARAM_TO_BYTEARRAY(param,0);
 
-	KxSocketData *data = KXSOCKET_DATA(self);
-	if (data->socket == -1) {
+	if (self->data.intval == -1) {
 		KXTHROW_EXCEPTION("Socket isn't inicialized");
 	}
 	if (param->size == 0)
@@ -252,7 +241,7 @@ kxsocket_send_bytearray(KxSocket *self, KxMessage *message)
 	int sended;
 
 	KX_THREADS_BEGIN
-	sended = send(data->socket,param->array, param->size, 0);
+	sended = send(self->data.intval,param->array, param->size, 0);
 	KX_THREADS_END
 
 	if (sended == -1) {
@@ -268,11 +257,11 @@ kxsocket_connect_to(KxSocket *self, KxMessage *message)
 {
 	KxObject *param = message->params[0];
 	if (!IS_KXIPADDRESS(param)) {
-		KXTHROW_EXCEPTION("Parameter must be IPAddress");
+	//	KXTHROW_EXCEPTION("Parameter must be IPAddress");
+		return kxobject_type_error(param, &kxipaddress_extension);
 	}
 
-	KxSocketData *data = KXSOCKET_DATA(self);
-	if (data->socket == -1) {
+	if (self->data.intval == -1) {
 		KXTHROW_EXCEPTION("Socket isn't inicialized");
 	}
 
@@ -285,7 +274,7 @@ kxsocket_connect_to(KxSocket *self, KxMessage *message)
 	int ret;
 	
 	KX_THREADS_BEGIN
-	ret = connect(data->socket, (struct sockaddr*) &addr, sizeof(addr));
+	ret = connect(self->data.intval, (struct sockaddr*) &addr, sizeof(addr));
 	KX_THREADS_END
 
 	if (ret == -1) {
@@ -297,11 +286,10 @@ kxsocket_connect_to(KxSocket *self, KxMessage *message)
 	KXRETURN(self);
 }
 
-static KxObject *
+/*static KxObject *
 kxsocket_recv_line(KxSocket *self, KxMessage *message) 
 {
-	KxSocketData *data = KXSOCKET_DATA(self);
-	if (data->socket == -1) {
+	if (self->data.intval == -1) {
 		KXTHROW_EXCEPTION("Socket isn't inicialized");
 	}
 	char line[4096];
@@ -322,44 +310,42 @@ kxsocket_recv_line(KxSocket *self, KxMessage *message)
 	KxException *excp = kxexception_new_with_text(KXCORE,
 			"%s", strerror(errno));
 	KXTHROW(excp);
-}
+}*/
 
 static KxObject *
 kxsocket_recv_bytearray_with_size(KxSocket *self, KxMessage *message) 
 {
 
-	KXPARAM_TO_LONG(param_size, 0);
+	KXPARAM_TO_LONG(size, 0);
 
-	KxSocketData *data = KXSOCKET_DATA(self);
-	if (data->socket == -1) {
+	if (self->data.intval == -1) {
 		KXTHROW_EXCEPTION("Socket isn't inicialized");
 	}
 	
 	ByteArray *ba;
 
-	int ret;
+	int readed;
+	char *buffer = malloc(size);
+	ALLOCTEST(buffer);
 	KX_THREADS_BEGIN
-	ret = sock_readbytearray(data, param_size,&ba);
+	//ret = sock_readbytearray(data, param_size,&ba);
+	readed = recv(self->data.intval,buffer,size, 0);
 	KX_THREADS_END
-	switch(ret) {
-		case 1: {
-			return KXBYTEARRAY(ba);
-		}
-		case 0: { 
-			KXRETURN(KXCORE->object_nil);
-		}
-		default: {
-			KxException *excp = kxexception_new_with_text(KXCORE,"%s", strerror(errno));
-			KXTHROW(excp);
-		}
+	if(readed>0) {
+		return KXBYTEARRAY(bytearray_new_set(buffer, readed));
 	}
+	free(buffer);
+	if (readed == 0) {
+		KXRETURN(KXCORE->object_nil);
+	}
+	KxException *excp = kxexception_new_with_text(KXCORE,"%s", strerror(errno));
+	KXTHROW(excp);
 }
 
 static KxObject *
 kxsocket_as_file_descriptor(KxSocket *self, KxMessage *message) 
 {
-	KxSocketData *data = KXSOCKET_DATA(self);
-	return KXINTEGER(data->socket);
+	return KXINTEGER(self->data.intval);
 }
 
 KxObject *
@@ -377,16 +363,11 @@ static KxObject *
 kxsocket_wait_for_reading_with_timeout(KxSocket *self, KxMessage *message)
 {
 	KXPARAM_TO_LONG(param,0);
-	KxSocketData *data = KXSOCKET_DATA(self);
-
-	if (data->readbuffer_pos != data->readbuffer_size) {
-		return kxsocket_new_pollresult(self,POLLIN);
-	}
 
 	int revents = 0;
 	int r;
 	KX_THREADS_BEGIN
-	r = sock_poll_single(data->socket, 1, 0, param, &revents);
+	r = sock_poll_single(self->data.intval, 1, 0, param, &revents);
 	KX_THREADS_END
 	if (!r) {
 			KxException *excp = kxexception_new_with_text(KXCORE,
@@ -401,12 +382,11 @@ static KxObject *
 kxsocket_wait_for_writing_with_timeout(KxSocket *self, KxMessage *message)
 {
 	KXPARAM_TO_LONG(param,0);
-	KxSocketData *data = KXSOCKET_DATA(self);
 	int revents = 0;
 
 	int r;
 	KX_THREADS_BEGIN
-	r = sock_poll_single(data->socket, 0, 1, param, &revents);
+	r = sock_poll_single(self->data.intval, 0, 1, param, &revents);
 	KX_THREADS_END
 	if (!r) {
 			KxException *excp = kxexception_new_with_text(KXCORE,
@@ -421,16 +401,15 @@ static KxObject *
 kxsocket_wait_for_reading_writing_with_timeout(KxSocket *self, KxMessage *message)
 {
 	KXPARAM_TO_LONG(param,0);
-	KxSocketData *data = KXSOCKET_DATA(self);
 
-	if (data->readbuffer_pos != data->readbuffer_size) {
+	/*if (data->readbuffer_pos != data->readbuffer_size) {
 		return kxsocket_new_pollresult(self,POLLIN);
-	}
+	}*/
 	int revents = 0;
 	int r;
 
 	KX_THREADS_BEGIN
-	r = sock_poll_single(data->socket, 1, 1, param, &revents);
+	r = sock_poll_single(self->data.intval, 1, 1, param, &revents);
 	KX_THREADS_END
 	if (!r) {
 			KxException *excp = kxexception_new_with_text(KXCORE,
@@ -444,8 +423,7 @@ kxsocket_wait_for_reading_writing_with_timeout(KxSocket *self, KxMessage *messag
 static KxObject *
 kxsocket_is_error(KxSocket *self, KxMessage *message) 
 {
-	KxSocketData *data = KXSOCKET_DATA(self);
-	if (data->socket == -1) {
+	if (self->data.intval == -1) {
 		KXTHROW_EXCEPTION("Socket isn't inicialized");
 	}
 
@@ -453,7 +431,7 @@ kxsocket_is_error(KxSocket *self, KxMessage *message)
 	socklen_t sz;
 	int error = 0;
 
-	getsockopt(data->socket,SOL_SOCKET,SO_ERROR,&error,&sz);
+	getsockopt(self->data.intval,SOL_SOCKET,SO_ERROR,&error,&sz);
 	
 	KXRETURN_BOOLEAN(error);
 }
@@ -469,14 +447,13 @@ kxsocket_add_method_table(KxObject *self) {
 		{"accept",0, kxsocket_accept},
 		{"peerAddress",0, kxsocket_peer_address},
 		{"sendByteArray:",1, kxsocket_send_bytearray},
-		{"receiveLine",0, kxsocket_recv_line},
-		{"receiveByteArrayWithSize:",1, kxsocket_recv_bytearray_with_size},
+		{"receiveByteArraySize:",1, kxsocket_recv_bytearray_with_size},
 		{"connectTo:",1, kxsocket_connect_to},
 		{"isError",0, kxsocket_is_error},
 		{"asFileDescriptor",0,kxsocket_as_file_descriptor},
-		{"waitForReadingWithTimeout:",1, kxsocket_wait_for_reading_with_timeout},
-		{"waitForWritingWithTimeout:",1, kxsocket_wait_for_writing_with_timeout},
-		{"waitForReadingWritingWithTimeout:",1, kxsocket_wait_for_reading_writing_with_timeout},
+		{"waitForReadingTimeout:",1, kxsocket_wait_for_reading_with_timeout},
+		{"waitForWritingTimeout:",1, kxsocket_wait_for_writing_with_timeout},
+		{"waitForReadingWritingTimeout:",1, kxsocket_wait_for_reading_writing_with_timeout},
 		{NULL,0, NULL}
 	};
 	kxobject_add_methods(self, table);

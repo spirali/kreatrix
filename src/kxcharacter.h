@@ -18,6 +18,11 @@ typedef struct KxObject KxCharacter;
 
 #define KXCHARACTER(chr) kxcharacter_new_with(KXCORE, chr)
 
+#define KXPARAM_TO_CHAR(c, param_id) \
+	char c; { KxObject *tmp = message->params[param_id]; if (IS_KXCHARACTER(tmp)) \
+	{ c = KXINTEGER_VALUE(tmp); } else { kxobject_type_error(tmp, &kxcharacter_extension); return NULL; }} 
+
+
 void kxcharacter_init_extension();
 
 KxObject *kxcharacter_new_prototype(KxCore *core);

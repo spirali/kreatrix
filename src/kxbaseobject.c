@@ -380,6 +380,18 @@ kxbaseobject_insert_parent(KxObject *self, KxMessage *message)
 	KXRETURN(self);
 }
 
+/*KXdoc parent: anObject
+ [Parents] Set new parent
+ Remove all existing parents and set new parent
+ */
+static KxObject *
+kxbaseobject_set_parent(KxObject *self, KxMessage *message)
+{
+	kxobject_set_parent(self, message->params[0]);
+	KXRETURN(self);
+}
+
+
 /**
  *   Not directly called, use help function for baseobject_slot_update_pair_set
  *   Update slot with name symbol_frame[0]
@@ -489,6 +501,7 @@ kxbaseobject_add_method_table(KxObject *self)
 		{"addParent:", 1, kxbaseobject_add_parent},
 		{"removeParent:", 1, kxbaseobject_remove_parent},
 		{"insertParent:", 1, kxbaseobject_insert_parent},
+		{"parent:", 1, kxbaseobject_set_parent},
 
 		{"perform:",1, kxbaseobject_perform},
 		{"perform:with:",2, kxbaseobject_perform_with},

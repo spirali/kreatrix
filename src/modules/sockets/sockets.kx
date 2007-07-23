@@ -8,15 +8,54 @@ Socket do: {
 	
 	send: = { :anObject | sendByteArray: anObject asByteArray. }.
 
-	receiveLineIfClose: = { :aBlock | |line|
-		line << receiveLine.
-		line isNil ifTrue: [ ^aBlock value ].
-		^line
+
+	waitForReading = { ^waitForReadingTimeout: (-1) }.
+	waitForWriting = { ^waitForWritingTimeout: (-1) }.
+	waitForReadingWriting = { ^waitForReadingWritingTimeout: (-1) }.
+
+    startBuffering = {
+		(parent == sockets BufferedSocket) ifTrue: [ ^self ].
+		parent: sockets BufferedSocket.
+		init.
+	}.
+}.
+
+BufferedSocket = Socket clone do: {
+	type = "BufferedSocket".
+	
+	buffer = ByteArray clone.
+
+	init = { buffer = ByteArray clone }.
+
+	readLineIfClose: = { :aBlock | |line|
+		line << readLine.
+		^line isNil ifTrue: aBlock ifFalse: [ line ].
 	}.
 
-	waitForReading = { ^waitForReadingWithTimeout: (-1) }.
-	waitForWriting = { ^waitForWritingWithTimeout: (-1) }.
-	waitForReadingWriting = { ^waitForReadingWritingWithTimeout: (-1) }.
+	readLine = {
+		(buffer isEmpty not and: [ (buffer containsByte: '\n') ]) ifTrue: [
+			^buffer cutLine.
+		].
+		^_readUntilLine.
+	}.
+
+	_readUntilLine = {
+		|buf|
+		[
+			buf << receiveByteArraySize: 4096.
+			buf ifNil: [
+				buffer isEmpty ifTrue: [
+					^nil.
+				].
+				buf << buffer. 
+				buffer = ByteArray clone.
+				^buf asString.
+			].
+		    buffer add: buf.
+		    buf containsByte: '\n'.
+		] whileFalse.
+		^buffer cutLine.
+	}
 
 }.
 
@@ -70,4 +109,10 @@ Poll do: {
 
 
 }.
+
+IPAddress do: { 
+	fromHostName:port: = { :aString :aNumber |
+		^(fromHostName: aString) port: aNumber.
+	}.
+}
 
