@@ -11,7 +11,8 @@ TESTS=	test_integer.kx \
 	test_block.kx \
 	test_float.kx \
 	test_compiler.kx \
-	test_bytearray.kx
+	test_bytearray.kx \
+	test_array2d.kx
 
 MOSTLYCLEANFILES=test_file.data
 
@@ -28,5 +29,6 @@ EXTRA_DIST= \
 	test_float.kx \
 	test_compiler.kx \
 	test_threads.kx \
-	test_bytearray.kx
+	test_bytearray.kx \
+	test_array2d.kx
 

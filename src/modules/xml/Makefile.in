@@ -161,6 +161,7 @@ target_alias = @target_alias@
 xml_pkglibdir = ${pkglibdir}/xml
 xml_so_SOURCES = \
 	xml.c \
+	xml.h \
 	kxxmldocument.c \
 	kxxmldocument.h \
 	kxxmlnode.c \

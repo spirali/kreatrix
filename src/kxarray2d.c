@@ -78,12 +78,43 @@ kxarray2d_free(KxArray2d *self)
 	free(data);
 }
 
+static void
+kxarray2d_mark(KxArray2d *self)
+{
+	KxArray2dData *data = KXARRAY2D_DATA(self);
+	int size = data->sizex * data->sizey;
+	int t;
+	for (t=0; t<size; ++t) {
+		kxobject_mark(data->array[t]);
+	}
+}
+
+static void
+kxarray2d_clean(KxArray2d *self)
+{
+	KxArray2dData *data = KXARRAY2D_DATA(self);
+	int size = data->sizex * data->sizey;
+	int t;
+	for (t=0; t<size; ++t) {
+		REF_REMOVE(data->array[t]);
+	}
+	free(data->array);
+	data->array = malloc(0);
+	data->sizex = 0;
+	data->sizey = 0;
+}
+
+
+
+
 void kxarray2d_init_extension() {
 	kxobjectext_init(&kxarray2d_extension);
 	kxarray2d_extension.type_name = "Array2d";
 
 	kxarray2d_extension.clone = kxarray2d_clone;
 	kxarray2d_extension.free = kxarray2d_free;
+	kxarray2d_extension.clean = kxarray2d_clean;
+	kxarray2d_extension.mark = kxarray2d_mark;
 }
 
 KxObject *

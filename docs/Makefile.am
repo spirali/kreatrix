@@ -1,5 +1,6 @@
 
 EXTRA_DIST= \
-    bnf.txt
+    bnf.txt \
+	html/docs.css
 
 SUBDIRS = examples

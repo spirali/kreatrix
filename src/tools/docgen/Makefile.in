@@ -130,7 +130,7 @@ sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
-EXTRA_DIST = doc2html.kx grabdoc.kx head.html tail.html
+EXTRA_DIST = doc2html.kx grabdoc.kx head.html tail.html generate.sh
 MOSTLYCLEANFILES = *.kxc
 all: all-am
 

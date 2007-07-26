@@ -2,6 +2,7 @@
 EXTRA_DIST=\
 	kxweb/kx.png\
 	kxweb/kxweb.kx\
+	kxweb/kxweb_threads.kx\
 	kxweb/index.html\
 	basics/00_overview.kx\
 	basics/01_math.kx\

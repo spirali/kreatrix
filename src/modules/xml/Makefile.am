@@ -4,6 +4,7 @@ xml_pkglib_PROGRAMS = xml.so
 
 xml_so_SOURCES = \
 	xml.c \
+	xml.h \
 	kxxmldocument.c \
 	kxxmldocument.h \
 	kxxmlnode.c \

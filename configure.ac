@@ -1,4 +1,4 @@
-AC_INIT([Kreatrix],[0.8.2],[spirali@spiralia.org])
+AC_INIT([Kreatrix],[0.9.0],[spirali@spiralia.org])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 
 AC_PROG_CC
