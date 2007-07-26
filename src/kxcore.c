@@ -41,6 +41,7 @@
 #include "kxmodule.h"
 #include "kxfloat.h"
 #include "kxset.h"
+#include "kxarray2d.h"
 
 
 /*#ifdef KX_DEBUG_GC
@@ -160,6 +161,9 @@ kxcore_new()
 	for(t=0;t<KXDICTIONARY_SIZE;t++) {
 		core->dictionary[t] = kxcore_get_symbol(core,core_dictionary[t]);
 	}
+
+	/** Must be after nil is inited */
+	kxcore_add_basic_prototype(core, KXPROTO_ARRAY2D, kxarray2d_new_prototype(core));
 
 	/* Lobby */
 	core->lobby = kxlobby_new(core);

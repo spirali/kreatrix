@@ -4,6 +4,7 @@
 	+ Wrapgen added (tool for creating wrappers)
 	+ Generator of documentation completely rewritten
 	+ Module "socket" improved
+	+ Prototypes Array2d and Point added
 
 0.8
 	+ New syntax and semantics of "locals" slots

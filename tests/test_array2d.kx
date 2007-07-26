@@ -1,0 +1,73 @@
+
+import: "test".
+
+testArray2d = test TestCase clone do: {
+	testAtPut = {
+		|array list|
+
+		array << Array2d clone size: 3@5.
+
+		list << #().
+		array forRow: 1 do: [ :obj | list add: obj ].
+		(list == #(nil nil nil)) assertTrue.
+
+		list << #().
+		array forColumn: 1 do: [ :obj | list add: obj ].
+		(list == #(nil nil nil nil nil)) assertTrue.
+
+		array fillWith: 0.
+
+		array at: 0@0 put: 1.
+		array at: 2@1 put: 2.
+
+		list << #().
+		array forRow: 0 do: [ :obj | list add: obj ].
+		(list == #(1 0 0)) assertTrue.
+
+		list << #().
+		array forRow: 1 do: [ :obj | list add: obj ].
+		(list == #(0 0 2)) assertTrue.
+
+		list << #().
+		array forColumn: 2 do: [ :obj | list add: obj ].
+		(list == #(0 2 0 0 0)) assertTrue.
+
+		((array at: 0@0) == 1) assertTrue.
+		((array at: 1@1) == 0) assertTrue.
+		((array at: 2@1) == 2) assertTrue.
+
+	}.
+
+	testForeach = {
+		|array sum|
+
+		array << Array2d clone size: 4@3.
+		array fillWith: 0.
+		array at: 1@2 put: 5.
+		array at: 2@2 put: 7.
+		array at: 0@0 put: (-1).
+		array at: 3@2 put: 10.
+
+		sum << 0.
+		array foreach: [ :each | sum << sum + each ].
+		(sum == 21) assertTrue.
+	}.
+
+	testResize = {
+		|array sum|
+
+		array << Array2d clone size: 4@3.
+		array fillWith: 0.
+		array at: 1@2 put: 5.
+		array at: 2@2 put: 7.
+		array at: 0@0 put: (-1).
+		array at: 3@2 put: 10.
+		
+		array size: 2@1.
+		((array at: 0@0) == (-1)) assertTrue.
+		((array at: 1@0) == 0) assertTrue.
+		(array size == (2@1)) assertTrue.
+	}
+}.
+
+testArray2d run.

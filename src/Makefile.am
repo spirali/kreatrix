@@ -88,7 +88,9 @@ kreatrix_SOURCES = \
 	kxobject_slots.c \
 	kxobject_slots.h \
 	kxglobals.h \
-	kxglobals.c
+	kxglobals.c \
+	kxarray2d.c \
+	kxarray2d.h
 
 
 pkginclude_HEADERS=\
@@ -130,7 +132,8 @@ pkginclude_HEADERS=\
 	kxset.h \
 	kxdictionary_utils.h \
 	kxobject_slots.h \
-	kxglobals.h
+	kxglobals.h \
+	kxarray2d.h 
 
 EXTRA_DIST=vminit/update.sh
 

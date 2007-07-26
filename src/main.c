@@ -41,6 +41,7 @@
 #include "kxset.h"
 #include "kxglobals.h"
 #include "kxmodules_path.h"
+#include "kxarray2d.h"
 
 int kx_doc_flag = 0;
 int kx_interactive = 0;
@@ -87,6 +88,7 @@ extensions_init()
 	kxfloat_init_extension();
 	kxmodule_init_extension();
 	kxset_init_extension();
+	kxarray2d_init_extension();
 }
 
 static char *

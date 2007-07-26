@@ -63,7 +63,8 @@ am_kreatrix_OBJECTS = main.$(OBJEXT) kxobject.$(OBJEXT) \
 	kxmodules_path.$(OBJEXT) kxcompiler.$(OBJEXT) \
 	kxcompile_utils.$(OBJEXT) kxset_utils.$(OBJEXT) \
 	kxset.$(OBJEXT) kxdictionary_utils.$(OBJEXT) \
-	kxobject_slots.$(OBJEXT) kxglobals.$(OBJEXT)
+	kxobject_slots.$(OBJEXT) kxglobals.$(OBJEXT) \
+	kxarray2d.$(OBJEXT)
 kreatrix_OBJECTS = $(am_kreatrix_OBJECTS)
 kreatrix_DEPENDENCIES = compiler/libkxcompiler.a utils/libkxutils.a
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)
@@ -257,7 +258,9 @@ kreatrix_SOURCES = \
 	kxobject_slots.c \
 	kxobject_slots.h \
 	kxglobals.h \
-	kxglobals.c
+	kxglobals.c \
+	kxarray2d.c \
+	kxarray2d.h
 
 pkginclude_HEADERS = \
 	kxtypes.h \
@@ -298,7 +301,8 @@ pkginclude_HEADERS = \
 	kxset.h \
 	kxdictionary_utils.h \
 	kxobject_slots.h \
-	kxglobals.h
+	kxglobals.h \
+	kxarray2d.h 
 
 EXTRA_DIST = vminit/update.sh
 all: all-recursive
@@ -368,6 +372,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/kxactivation.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/kxarray2d.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/kxbaseobject.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/kxboolean.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/kxbytearray.Po@am__quote@

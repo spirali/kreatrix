@@ -90,6 +90,17 @@ Integer do: {
 
 	isNegative = { ^self < 0 }.
 	isPositive = { ^self > 0 }.
+
+	@ = { :y | 	
+		^(Point clone x: self) y: y.
+	}.
+}.
+
+Float do: {
+	@ = { :y | 	
+		^(Point clone x: self) y: y.
+	}.
+
 }.
 
 File do: {
@@ -580,4 +591,60 @@ EmptyScopedBlock = Object clone do: {
 	value = { ^nil }.
 	value: = { :x | ^nil }.
 	value:value: = { :x :y | ^nil }.
-}
+}.
+
+Point = Object clone do: {
+	type = "Point".
+
+	x <- 0.
+	y <- 0.
+
+	x:y: = { :x :y | x: x. y: y }.
+
+	== = { :aPoint |
+		(aPoint isKindOf: Point) ifTrue: [
+			^(aPoint x == aPoint x) && (aPoint y == aPoint y).
+		].
+		^false.
+	}.
+
+	asString = { ^x asString,"@",y }.
+
+	* = { :aNumber | |p| 
+		 ^(x * aNumber)@(y * aNumber).
+	}.
+
+	+ = { :aPoint | |p| 
+		 ^(x + aPoint x)@(y + aPoint y).
+	}.
+
+	- = { :aPoint | |p| 
+		 ^(x - aPoint x)@(y - aPoint y).
+	}.
+
+	asIntegerPoint = {
+		^x asInteger @ y asInteger.
+	}.
+	
+	asFloatPoint = {
+		^x asFloatPoint @ y asFloatPoint.
+	}.
+}.
+
+Array2d do: {
+	size: = { :aPoint | 
+		width: aPoint x height: aPoint y.
+	}.
+
+	at: = { :aPoint | 
+		^atX: aPoint x y: aPoint y.
+	}.
+
+	at:put: = { :aPoint :anObject | 
+		atX: aPoint x y: aPoint y put: anObject.
+	}.
+
+	size = {
+		^width@height.
+	}
+}.
