@@ -154,6 +154,12 @@ listTest = test TestCase clone do: {
 
 		(list allButFirst == #("b" "c" "d")) assertTrue.
 		(list allButLast == #("a" "b" "c")) assertTrue.
+	}.
+
+	testAsString = {
+		|list|
+		list << #("ab" "ab" "ac" 12 'a' 'b' 'c').
+		(list asString == "ababac12abc") assertTrue.
 	}
 
 }.

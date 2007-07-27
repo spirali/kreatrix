@@ -175,12 +175,6 @@ List do: {
 		collection foreach: [ :each | self add: each ].
 	}.
 
-	asString = { |str|
-		str << "".
-		foreach: [ :each | str << str,each asString ].
-		^str.
-	}.
-
 	select: = { :aBlock | |list|
 		list << List clone.
 		foreach: [ :each |

@@ -35,7 +35,11 @@ KxObject *kxstring_new_prototype(KxCore *core);
 
 KxString *kxstring_clone_with(KxString *self, char * value);
 
+// Copy string into object
 KxString *kxstring_new_with(KxCore *core, char *value);
+
+// Use string in object, no coping of value
+KxString *kxstring_from_cstring(KxCore *core, char *value);
 
 void kxstring_type_error(KxCore *core);
 

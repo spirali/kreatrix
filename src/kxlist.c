@@ -6,6 +6,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "kxlist.h"
 #include "kxobject.h"
@@ -547,6 +548,62 @@ kxlist_eq(KxList *self, KxMessage *message)
 
 }
 
+static KxObject *
+kxlist_as_string(KxList *self, KxMessage *message)
+{
+	List *list = self->data.ptr;
+	char *strings[list->size];
+	KxObject *tmp[list->size];
+
+	int len = 0;
+	int t;
+	for (t=0;t<list->size;t++) {
+		KxObject *obj = (KxObject *) list->items[t];
+		if (IS_KXSTRING(obj)) {
+			strings[t] = KXSTRING_VALUE(obj);
+			tmp[t] = NULL;
+		} else {
+			KxObject *str = kxobject_send_unary_message(obj, KXCORE->dictionary[KXDICT_AS_STRING]);
+
+			if (str == NULL) {
+				// Send failed, free all objects and return NULL
+				int s;
+				for (s=0;s<t;s++) {
+					if (tmp[s])
+						REF_REMOVE(tmp[s]);
+				}
+				return NULL;
+			}
+			tmp[t] = str;
+			if (IS_KXSTRING(str)) {
+				strings[t] = KXSTRING_VALUE(str);
+			} else {
+				strings[t] = "";
+			}
+		}
+		len += strlen(strings[t]);
+	};
+
+	char *string = malloc(len+1);
+	char *pos = string;
+	ALLOCTEST(string);
+	for (t=0;t<list->size;t++) {
+		char *src = strings[t];
+		while( *src != 0 ) {
+			*pos = *src;
+			++src;
+			++pos;
+		}
+	}
+	*pos = 0;
+	for (t=0;t<list->size;t++) {
+		if (tmp[t])
+			REF_REMOVE(tmp[t]);
+	}
+	return kxstring_from_cstring(KXCORE,string);
+
+}
+
 static void
 kxlist_add_methods_table(KxList *self) 
 {
@@ -559,9 +616,10 @@ kxlist_add_methods_table(KxList *self)
 		{"==", 1, kxlist_eq },
 		{"removeAt:",1, kxlist_remove_at},
 		{"size",0, kxlist_size},
+		{"foreach:", 1, kxlist_foreach },
+		{"asString",0, kxlist_as_string},
 		{"copy",0, kxlist_copy},
 		{"size:",1, kxlist_set_size},
-		{"foreach:", 1, kxlist_foreach },
 		{"reverseForeach:", 1, kxlist_reverse_foreach },
 		{"join:", 1, kxlist_join },
 		{"pop", 0, kxlist_pop },

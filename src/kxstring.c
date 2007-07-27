@@ -113,12 +113,24 @@ kxstring_clone_with(KxString *self, char *str)
 	return string;
 }
 
-
+// With strdup of value
 KxString *
 kxstring_new_with(KxCore *core, char *str) 
 {
 	KxObject *prototype = kxcore_get_basic_prototype(core, KXPROTO_STRING);
-	return kxstring_clone_with(prototype, str);
+	KxString *string = kxobject_raw_clone(prototype);
+	string->data.ptr = strdup(str);
+	return string;
+}
+
+// Without strdup of value
+KxString *
+kxstring_from_cstring(KxCore *core, char *str) 
+{
+	KxObject *prototype = kxcore_get_basic_prototype(core, KXPROTO_STRING);
+	KxString *string = kxobject_raw_clone(prototype);
+	string->data.ptr = str;
+	return string;
 }
 
 static KxObject *
