@@ -12,6 +12,12 @@
 #include "kxobject.h"
 #include "kxexception.h"
 
+/*KXobject Base true
+   [Singletons]
+*/
+
+
+
 static void kxboolean_true_add_methods(KxObject *self);
 
 
@@ -21,21 +27,6 @@ KxObject *kxboolean_new_true(KxCore *core)
 	kxboolean_true_add_methods(self);
 	return self;
 }
-
-/*static KxObject *
-kxtrue_print(KxObject *self, KxMessage *message)
-{
-	printf("true");
-	RETURN(self);
-}*/
-
-
-/*static KxObject *
-kxtrue_iffalse(KxObject *self, KxMessage *message)
-{
-	KXRETURN(self);
-}*/
-
 
 static KxObject *
 kxtrue_iftrue(KxObject *self, KxMessage *message)
@@ -55,7 +46,7 @@ kxtrue_iffalse_iftrue(KxObject *self, KxMessage *message)
 	return kxobject_evaluate_block_simple(message->params[1]);
 }
 
-// Replace with slot with "false", not cfunction
+// Replace with slot with "false", no cfunction
 static KxObject *
 kxtrue_not(KxObject *self, KxMessage *message)
 {
@@ -128,6 +119,9 @@ kxboolean_true_add_methods(KxObject *self)
 	kxobject_add_methods(self, table);
 }
 
+/*KXobject Base false
+   [Singletons]
+*/
 
 
 static void kxboolean_false_add_methods(KxObject *self);
@@ -138,21 +132,6 @@ KxObject *kxboolean_new_false(KxCore *core)
 	kxboolean_false_add_methods(self);
 	return self;
 }
-
-/*static KxObject *
-kxfalse_print(KxObject *self, KxMessage *message)
-{
-	printf("false");
-	RETURN(self);
-}*/
-
-
-/*static KxObject *
-kxfalse_iftrue(KxObject *self, KxMessage *message)
-{
-	KXRETURN(self);
-}*/
-
 
 static KxObject *
 kxfalse_iffalse(KxObject *self, KxMessage *message)

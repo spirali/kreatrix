@@ -2,6 +2,7 @@
 	+ New compiler front-end
 	+ Module "xml" added (wrapper for libxml2)
 	+ Wrapgen added (tool for creating wrappers)
+	+ Generator of documentation completely rewritten
 
 
 0.8

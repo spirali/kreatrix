@@ -5,7 +5,7 @@
  **********************************************************************/
 
 /*KXobject Base Integer
-  Prototype of integer.
+ [Basic prototypes] Prototype of integer.
   Protototype for objects that repreresents integer values. All integer litarals are clone of this object.
 
 */

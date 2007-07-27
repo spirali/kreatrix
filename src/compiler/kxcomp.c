@@ -370,22 +370,45 @@ static int
 kxcomp_put_alias(KxCompiler *self, int message_type, char *message_name)
 {
 	char *symbol = kxparser_token_string_value(self->parser);
-	kxcblock_put_symbol(self->block, symbol);
-
-	char *doc_string = kxparser_get_documentation_string(self->parser);
-
+	int doc_type;
+	char *doc_string = kxparser_get_documentation_string(self->parser, &doc_type);
+	
 	if (doc_string) {
-		kxcblock_put_string(self->block,doc_string);
+		kxcblock_put_symbol(self->block, strdup(symbol));
+	} else {
+		kxcblock_put_symbol(self->block, symbol);
 	}
+	/*if (doc_string) {
+		kxcblock_put_string(self->block,doc_string);
+	}*/
 
 	kxcomp_next_token(self);
-	CHECK(grammar_keyword_message(self));
-
-	if (doc_string) {
-		kxcblock_put_message(self->block,KXCI_KEYWORD_MSG,strdup("__asDocTo:"), self->parser->line_number); 
+	if(grammar_keyword_message(self) == 0) {
+		if (doc_string) {
+			free(doc_string);
+			free(symbol);
+		}
+		return 0;
 	}
 
+	/*if (doc_string) {
+		kxcblock_put_message(self->block,KXCI_KEYWORD_MSG,strdup("__asDocTo:"), self->parser->line_number); 
+	}*/
+
 	kxcblock_put_message(self->block,message_type,strdup(message_name), self->parser->line_number); 
+
+	if (doc_string) {
+		kxcblock_put_symbol(self->block,symbol);
+		kxcblock_put_string(self->block,doc_string);
+
+		char *msg;
+		if (doc_type == KXPARSER_DOC_OBJ) {
+			msg = "__slot:mainDoc:";
+		} else {
+			msg = "__slot:doc:";
+		}
+		kxcblock_put_message(self->block,KXCI_KEYWORD_MSG,strdup(msg), self->parser->line_number); 
+	}
 	return 1;
 }
 

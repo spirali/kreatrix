@@ -12,6 +12,11 @@
 #include "kxstring.h"
 #include "kxinteger.h"
 
+/*KXobject Base Character
+ [Basic prototypes] 
+*/
+
+
 KxObjectExtension kxcharacter_extension;
 
 

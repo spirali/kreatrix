@@ -7,17 +7,21 @@ GrabDoc = Object clone do: {
 	init = { 
 		_file = File clone.
 		_fileout = File clone.
-		_objectOpen = false.
 	}.
 
 	inFilename: = { :aString | (_file close name: aString) openForReading. }.
 	outFilename: = { :aString | (_fileout close name: aString) openForWriting }.
 	
+	_objectOpen <- false.
+
+	closeObjectIfOpen = {
+		_objectOpen ifTrue: [ write: "}.\n" ].
+	}.
+
 	run = { 
 		content = _file contentAsString.
 
-		_objectOpen = false.
-		
+		_objectOpen: false.
 		index = 0.
 		[   |doc|
 			doc << content sliceBetween: "/*KX" and: "*/" from: index.
@@ -26,8 +30,7 @@ GrabDoc = Object clone do: {
 				processDoc: doc. true 
 			].
 		] whileTrue.
-		_objectOpen ifTrue: [ write: "}.\n" ].
-
+		closeObjectIfOpen.
 	}.
 
 	
@@ -50,18 +53,22 @@ GrabDoc = Object clone do: {
 	write: = { :aString | aString writeTo: _fileout }.
 	
 	msg_object = { :params :lines | |category objpath text|
+		closeObjectIfOpen.
 		category << params at: 0.
 		params removeAt: 0.
 		objpath << "". 
 		params foreach: [ :each | objpath << objpath," ",each ].
 		
-		write: "(slot: #", objpath trim,") do: {\n".
-		writeSlot: "__doc_category" with: category.
+		objpath << objpath trim.
 
 		text << "".
 		lines foreach: [ :each | text << text, each, "\n". ].
+
+		write: "__slot: #",objpath,  " mainDoc: \"\"\"", text asString trim,"\"\"\".\n".
+		write: "(slot: #", objpath,") do: {\n".
+
 		writeSlot: "__doc" with: text asString trim.
-		_objectOpen << true.
+		_objectOpen: true.
 	}.
 
 
@@ -78,7 +85,9 @@ GrabDoc = Object clone do: {
 		].
 		text << "".
 		lines foreach: [ :each | text << text, each, "\n". ].
-		writeSlot: "(slot: #",name,") __doc" with: text.
+		text << text trim.
+	//	writeSlot: "(slot: #",name,") __doc" with: text.
+		write: "__slot: #",name,  " mainDoc: \"\"\"", text,"\"\"\".\n".
 	}.
 	
 

@@ -1,8 +1,19 @@
 
 String slot: #__asDocTo: set: { :aObject |
-	self == "" ifFalse: [(slot: #aObject) slot:#__doc set: self].
+	#aObject slot:#__doc set: self.
 	^(slot: #aObject).
 }.
+
+Object slot: #__slot:doc: set: { :slot :aString | 
+	(hasSlot: #__slotDocs) ifFalse: [ __slotDocs = Dictionary clone ].
+	__slotDocs at: slot put: aString.
+}.
+
+Object slot: #__slot:mainDoc: set: { :slot :aString | 
+	__slot: slot doc: aString.
+	(slot: slot) __doc = aString.
+}.
+
 
 Lobby type = "Lobby".
 true asString = "true".
@@ -36,16 +47,16 @@ Object do: {
 	/** [Output] Write receiver into aStream */
 	writeTo: = { :aStream | aStream writeByteArray: self asByteArray }.
 	
-	/** [Testing] */
+	/*= [Testing] */
 	isNil = false. 
 
-	/** [Testing] */
+	/*= [Testing] */
 	isNotNil = true.
 
-	/** [Testing] */
+	/*= [Testing] */
 	ifNil: = nil slot: #ifNotNil:.
 
-	/** [Testing] */
+	/*= [Testing] */
 	ifNotNil: = nil slot: #ifNil:.
 	
 	/** [Comparing] Tests equivalention */
@@ -62,6 +73,10 @@ Object do: {
 		assoc << Association clone.
 		assoc value: anObject.
 		^assoc key: self.
+	}.
+
+	slot:ifAbsent: = { :slot :aBlock |
+		^(hasSlot: slot) ifTrue: [ slot: slot ] ifFalse: aBlock.
 	}.
 }.
 
@@ -426,6 +441,9 @@ Module do: {
 	registerAs: = { :aModuleName | 
 		Lobby slot: aModuleName set: self.
 		_loadedModules at: aModuleName put: self.
+		VM docFlag ifTrue: [ 
+			Lobby __slot: aModuleName doc: "[Modules]".
+		].
 	}.
 
 	isLoaded: = { :aModuleName | 
@@ -437,7 +455,7 @@ Module do: {
 	}
 }.
 
-/** Imports module */
+/** [Actions] Imports module */
 Lobby import: = { :aModuleName | 
 	/*slotName << aModuleName asSymbol.
 	(Lobby hasSlot: slotName) ifTrue: [ ^Lobby slot: slotName ].
@@ -447,7 +465,7 @@ Lobby import: = { :aModuleName |
 	^Module clone load: aModuleName.
 }.
 
-/** Import local file */
+/** [Actions] Import local file */
 Lobby localImport: = { :aFilename |
 	^doFile: (localImportPath joinPath: aFilename).
 }.

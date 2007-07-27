@@ -27,6 +27,9 @@ typedef struct KxParser KxParser;
 
 #define TOKEN_DOCUMENTATION 500
 
+#define KXPARSER_DOC_OBJ  0
+#define KXPARSER_DOC_SLOT 1
+
 struct KxParser {
 	char *buffer;
 	char *pos;
@@ -39,6 +42,7 @@ struct KxParser {
 
 	int parse_documentation;
 	char *documentation_string;
+	int documentation_type;
 };
 
 KxParser *kxparser_parse_string(char *string, int parser_documentation);
@@ -52,7 +56,7 @@ char kxparser_token_char_value(KxParser *self);
 
 
 
-char *kxparser_get_documentation_string(KxParser *self);
+char *kxparser_get_documentation_string(KxParser *self, int *type);
 void kxparser_reset_documentation_string(KxParser *self);
 
 

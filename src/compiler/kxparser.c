@@ -445,6 +445,7 @@ kxparser_multi_line_comment(KxParser *self)
 static int
 kxparser_documentation(KxParser *self)
 {
+	self->documentation_type = (GET_CHAR == '*')?KXPARSER_DOC_OBJ:KXPARSER_DOC_SLOT;
 	char tmp[STRING_SIZE+1];
 	int pos = 0;
 	char chr=NEXT_CHAR;
@@ -476,10 +477,11 @@ kxparser_documentation(KxParser *self)
 }
 
 char *
-kxparser_get_documentation_string(KxParser *self)
+kxparser_get_documentation_string(KxParser *self, int *type)
 {
 	char *string = self->documentation_string;
 	self->documentation_string = NULL;
+	*type = self->documentation_type;
 	return string;
 }
 
@@ -575,7 +577,7 @@ kxparser_read_token(KxParser *self)
 					SKIP_CHAR;
 					chr = NEXT_CHAR;
 					int r;
-					if (self->parse_documentation && chr == '*') {
+					if (self->parse_documentation && (chr == '*' || chr == '=')) {
 						r = kxparser_documentation(self);
 					} else {
 						r = kxparser_multi_line_comment(self);

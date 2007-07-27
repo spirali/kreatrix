@@ -5,7 +5,7 @@
  **********************************************************************/
 
 /*KXobject Base Float
-  Prototype of floating point number.
+  [Basic prototypes] Prototype of floating point number.
   Protototype for objects that repreresents floating point values. All floating point litarals are clone of this object.
 
 */

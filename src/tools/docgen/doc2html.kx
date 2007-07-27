@@ -88,13 +88,6 @@ Object do: {
 		^__slots collect: [ :each | slot: each ].
 	}.
 
-	__shortDescription = { |line cat|
-		(hasSlot: #__doc) ifFalse: [ ^"" ].
-		line << __firstLineOfDoc.
-		cat << line sliceBetween: "[" and: "]".
-		(cat isEmpty) ifFalse: [ line << line replace: "[",cat,"]" to: "" ].
-		^line.
-	}.
 
 	__parametersList = { 
 		(hasSlot: #__doc_params) ifTrue: [
@@ -126,10 +119,12 @@ Object do: {
 		^hasSlot: #__doc.
 	}.
 
-	__longDescription = {
-		(hasSlot: #__doc) ifFalse: [ ^"" ].
-		^((__doc asListBy: "\n") allButFirst) asStringDelimiter: "\n".
+	__documentation = { |str doc|
+	    str << (hasSlot: #__doc) ifTrue: [ __doc ] ifFalse: [ "" ].
+		doc << __Documentation clone text: str.
+		^doc object: self.
 	}.
+
 
 	__notes = {
 		|list|
@@ -137,20 +132,50 @@ Object do: {
 		isActivable ifTrue: [ list add: "Object is activable " ].
 		^list.
 	}.
-	
-	__firstLineOfDoc = { |list|
-		(hasSlot: #__doc) ifFalse: [ ^"" ].
-		list << (__doc asListBy: "\n").
-		^(list isEmpty) ifTrue: [ "" ] ifFalse: [ list first ].
+}.
+
+__Documentation = Object clone do: {
+	type = "__Documentation".
+
+	text <- "".
+
+	object = nil.
+
+	object: = { :anObject |
+		object = anObject.
+		freezeSlot: #object.
 	}.
 
-	__category = { |cat line list|
-		cat << (__firstLineOfDoc sliceBetween: "[" and: "]") trim.
+	firstLineOfDoc = { |list|
+		list << (text asListBy: "\n").
+		firstLineOfDoc = (list isEmpty) ifTrue: [ "" ] ifFalse: [ list first ].
+		^firstLineOfDoc.
+	}.
+
+	defaultCategory = {
+		(object __name first == '_') ifTrue: [ ^"private" ].
+		^"unsorted"
+	}.
+	
+	category = { |cat line list|
+		cat << (firstLineOfDoc sliceBetween: "[" and: "]") trim.
 		(cat == "") ifFalse: [
 			^cat.
 		].
-		^"unsorted".
+		^defaultCategory.
 	}.
+
+	longDescription = {
+		^((text asListBy: "\n") allButFirst) asStringDelimiter: "\n".
+	}.
+
+	shortDescription = { |line cat|
+		line << firstLineOfDoc.
+		cat << line sliceBetween: "[" and: "]".
+		(cat isEmpty) ifFalse: [ line << line replace: "[",cat,"]" to: "" ].
+		^line.
+	}.
+
 }.
 
 __Link = Object clone do: {
@@ -292,17 +317,18 @@ __SlotSection = __Section clone do: {
 	type = "__SlotSection".
 	
 	name: "Slots".
-	objects <- #().
+	documentations <- #().
 
 	body = {
 		|table|
 		table << __Table clone.
 
-		objects sort: [ :a :b | a key < b key ].
+		documentations sort: [ :a :b | a key < b key ].
 
-		objects foreach: [ :assoc |  |link|
-			link << __LinkToObject clone object: assoc value name: assoc key.
-			table addRow: #(link (assoc value __shortDescription __asText)).
+		documentations foreach: [ :assoc |  |link|
+//			(assoc value object == (Object slot: #ifNil:)) ifTrue: [ assoc value category println ].
+			link << __LinkToObject clone object: assoc value object name: assoc key.
+			table addRow: #(link (assoc value shortDescription __asText)).
 		].
 		^table asHtml.
 	}.
@@ -359,26 +385,38 @@ __SlotCategoriesSection = __SectionContainer clone do: {
 
 	name: "Slots".
 
-	object: = { :anObject | |cats objs list sec dict|
+	object: = { :anObject | |objs list sec dict slotdocs cat|
 		dict << Dictionary clone.
 
 		objs << anObject __objectsInSlots.
 
-		cats << (objs collect: [ :object | 
-			object __category.
-		]) asSet.
+/*		cats << (objs collect: [ :object | 
+			object __documentation category.
+		]) asSet.*/
 
-		cats foreach: [ :each | dict at: each put: #() ].
-		anObject __slots foreach: [ :slot | |obj assoc|
+//		cats foreach: [ :each | dict at: each put: #() ].
+		
+	//	(anObject hasSlot: #__slotDocs) && (anObject == Lobby) ifTrue: [ anObject __slotDocs println ].
+		slotdocs << anObject slot: #__slotDocs ifAbsent: [ Dictionary clone ].
+
+		anObject __slots foreach: [ :slot | |obj assoc doc|
 			obj << anObject slot: slot.
-			assoc << slot asString => obj.
+	
+			doc << __Documentation clone text: (slotdocs at: slot ifAbsent: [ "" ]).
+			doc object: obj.
+	//		(anObject == Lobby) && (doc text != "") ifTrue: [ doc shortDescription println ].
+
+			assoc << slot asString => doc.
 			assoc freezeSlot: #value.
-			(dict at: obj __category) add: (assoc)
+
+			cat << doc category.
+			(dict hasKey: cat) ifFalse: [ dict at: cat put: #() ].
+			(dict at: cat) add: (assoc)
 		].
 		list << #().
 		dict foreachKeyValue: [ :key :value |  |sec|
 			sec << __SlotSection clone.
-			sec objects: value.
+			sec documentations: value.
 			sec name: key.
 			list add: sec.
 		].
@@ -410,7 +448,7 @@ __ObjectPage = __Page clone do: {
 		^str," |".
 	}.
 
-	save = { |obj path sec notes slot|
+	save = { |obj path sec notes slot doc|
 		obj << (slot: #object).
 		path << pathLinks.
 
@@ -422,8 +460,10 @@ __ObjectPage = __Page clone do: {
 			sections add: sec.
 		].
 
+		doc << obj __documentation.
+		
 		sec << __Section clone name: "Description".
-		sec body: obj __longDescription.
+		sec body: doc longDescription.
 		sections add: sec.
 
 		sec << __ParentSection clone object: obj.
@@ -447,12 +487,13 @@ __ObjectPage = __Page clone do: {
 		writeHead.
 		file writeln: path,"<hr/>".
 		writeHeader.
-		file writeln: obj __shortDescription.
+		file writeln: doc shortDescription.
 		writeSections.
 
 		file writeln: "<hr/>",path.
 		writeTail.
 
+	//	"." print. stdout flush.
 	/*	obj __name println.
 		stdout flush.*/
 	}.
@@ -503,6 +544,7 @@ __IndexPage = __Page clone do: {
 		writeSections.
 
 		writeTail.
+
 	}
 }.
 
@@ -514,6 +556,7 @@ __IndexPage = __Page clone do: {
 	VM quit.
 ].
 
+"Initing ..." println.
 
 (args reject: [ :each | each == "Lobby" ]) foreach: [ :each | 
 	import: each.
@@ -527,16 +570,19 @@ VM docFlag ifFalse:
 doFile: "out.kx".
 // Need for documentation of std lib
 doFile: "../../vminit/vminit.kx".
-"Init finished" println.
+
+
 
 modules = (args reject: [ :each | each == "Lobby" ])
 			collect: [ :each | each => (Lobby slot: each asSymbol) ].
 
 
+"Creating names ..." println.
 modules foreach: [ :each |
 	each value __createName: each key path: #().
 ].
 
+"Saving pages ..." println.
 Lobby __createName: "Lobby" path: #().
 
 Lobby __save.
@@ -549,3 +595,7 @@ index moduleNames: args.
 index create.
 
 Lobby __clean.
+
+//Lobby Object __documentation longDescription println.
+
+//Lobby Object __slotDocs foreach: [ :each | each println ].

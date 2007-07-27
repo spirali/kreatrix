@@ -4,6 +4,10 @@
  *
  **********************************************************************/
 
+/*KXobject Base Set
+ [Data structures] 
+*/
+
 #include <stdlib.h>
 #include <stdio.h>
 

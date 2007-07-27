@@ -4,6 +4,10 @@
  *
  **********************************************************************/
 
+/*KXobject Base Dictionary
+ [Data structures] 
+*/
+
 #include <stdlib.h>
 #include <stdio.h>
 

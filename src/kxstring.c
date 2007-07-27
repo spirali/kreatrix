@@ -5,7 +5,7 @@
  **********************************************************************/
 
 /*KXobject Base String
-	Prototype of string.
+[Basic prototypes]	Prototype of string.
  Object String is prototype for objects which represents character strings. All strings literals are clones of this object.
 
 */

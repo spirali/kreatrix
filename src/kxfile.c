@@ -5,7 +5,7 @@
  **********************************************************************/
 
 /*KXobject Base File
-  Prototype of file.
+  [I/O] Prototype of file.
   This object serves for accessing to files on filesystem or to standart 
   streams.
 */

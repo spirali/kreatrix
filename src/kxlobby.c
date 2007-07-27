@@ -4,6 +4,10 @@
  *
  **********************************************************************/
 
+/*KXobject Base Lobby
+  [Singletons] Global space
+ */
+
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -26,6 +30,11 @@ char * create_kxc_filename(char *kxfilename);
 
 
 // TODO: use standard function for do_file
+//
+
+/*KXdoc doFile: filename
+[Actions] compile and run file
+*/
 static KxObject *
 kxlobby_do_file(KxObject *self, KxMessage *message) 
 {
@@ -108,13 +117,28 @@ KxObject *kxlobby_new(KxCore *core)
 	kxobject_set_slot_no_ref2(self,kxcore_get_symbol(core,"Compiler"), kxcompiler_new_prototype(core));
 
 	kxobject_set_slot_no_ref(self,kxcore_get_symbol(core,"Lobby"), self);
+
 	kxobject_set_slot_no_ref(self,kxcore_get_symbol(core,"true"), core->object_true);
+
 	kxobject_set_slot_no_ref(self,kxcore_get_symbol(core,"false"), core->object_false);
 	kxobject_set_slot_no_ref(self,kxcore_get_symbol(core,"nil"), core->object_nil);
 
+/*KXdoc stdout
+ [I/O] Standard output
+*/
 
 	kxobject_set_slot_no_ref(self,kxcore_get_symbol(core,"stdout"), core->object_stdout);
+
+/*KXdoc stdin
+ [I/O] Standard input
+*/
+
 	kxobject_set_slot_no_ref(self,kxcore_get_symbol(core,"stdin"), core->object_stdin);
+
+/*KXdoc stderr
+ [I/O] Standard error output
+*/
+
 	kxobject_set_slot_no_ref(self,kxcore_get_symbol(core,"stderr"), core->object_stderr);
 	
 	KxMethodTable table[] = {

@@ -4,6 +4,11 @@
  *
  **********************************************************************/
 
+/*KXobject Base Symbol
+[Basic prototypes]
+*/
+
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>

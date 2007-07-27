@@ -8,8 +8,7 @@
 
 
 /*KXobject Base Object
-
-	Base object. 
+	[Basic prototypes] Base object. 
 	Parent for all objects.
   
 */
@@ -55,7 +54,7 @@ kxbaseobject_set_slot(KxObject *self, KxMessage *message)
 	KXCHECK_SYMBOL(symbol);
 	kxobject_set_slot(self,symbol,message->params[1]);
 
-	KXRETURN(message->params[1]);
+	KXRETURN(self);
 }
 
 /*KXdoc slot:update: aSymbol anObject

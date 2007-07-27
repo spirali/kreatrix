@@ -15,7 +15,7 @@
 #include "kxexception.h"
 
 /*KXobject Base List
-  
+ [Data structures] 
 */
 
 KxObjectExtension kxlist_extension;
