@@ -169,7 +169,10 @@ list_free(List *list)
 void 
 list_free_all(List *list) 
 {
-	list_foreach(list, free);
+	int t;
+	for (t=0;t<list->size;t++) {
+		free(list->items[t]);
+	}
 	list_free(list);
 }
 
