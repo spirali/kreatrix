@@ -106,6 +106,7 @@ struct KxCore  {
 	KxObject *dictionary[KXDICTIONARY_SIZE];
 	KxObject *basic_prototypes[KXPROTOS_COUNT];
 
+	Dictionary *global_data;
 };
 
 KxCore *kxcore_new();
@@ -148,6 +149,10 @@ kxcore_register_simple_exception(KxCore *core, char *group, char *name, char *ty
 KxObject *kxcore_get_registered_exception(KxCore *core, char *group, char *name);
 KxObject *kxcore_clone_registered_exception(KxCore *core, char *group, char *name);
 KxObject *kxcore_clone_registered_exception_text(KxCore *core, char *group, char *name, char *form, ...);
+
+void kxcore_set_global_data(KxCore *core, char *key, void *data);
+void* kxcore_get_global_data(KxCore *core, char *key);
+void kxcore_remove_global_data(KxCore *core, char *key);
 
 
 #ifdef KX_THREADS_SUPPORT

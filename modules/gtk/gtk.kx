@@ -1,0 +1,17 @@
+(isLoaded: #gtk) ifTrue: [ ^getModule: #gtk ].
+
+loadCLibrary: "gtk".
+
+Box do: {
+	
+	expand <- true.
+	fill <- true.
+	padding <- 0.
+
+	packStart: = { :aWidget |
+		packStart: aWidget expand: expand fill: fill padding: padding.
+	}.
+
+}.
+
+registerAs: #gtk.

@@ -111,6 +111,8 @@ list_join(List *list, List *list2)
 		list->items = realloc(list->items,sizeof(void*)*list->capacity);
 		ALLOCTEST(list->items);
 	}
+
+	// TODO: use memcpy
 	int t;
 	for (t=0;t<list2->size;t++) {
 	 	list->items[old_size+t] = list2->items[t];

@@ -140,6 +140,7 @@ kxobject_clean(KxObject *self) {
 	if (self->extension && self->extension->clean)
 		self->extension->clean(self);
 	kxobject_slots_clean(self);
+	kxobject_remove_all_parents(self);
 }
 
 KxObject *
@@ -213,8 +214,11 @@ kxobject_clone(KxObject *self)
 		if (self->extension->clone) 
 			msg.target = self->extension->clone(self);
 		else {
+			REF_REMOVE(msg.message_name);
+			KxObject *str = kxobject_type_name(self);
 			KxException *excp = kxexception_new_with_text(KXCORE,
-				"Object '%s' cannot be cloned", kxobject_type_name(self)->data.ptr);
+				"Object '%s' cannot be cloned", str->data.ptr);
+			REF_REMOVE(str);
 			KXTHROW(excp);
 		}
 	} else {
@@ -753,8 +757,13 @@ kxobject_mark(KxObject *self)
 
 
 	self->gc_mark = 1;
+
+	if (self->parent_slot.parent && self->parent_slot.parent->gc_mark)
+	{
+		kxobject_mark(self->parent_slot.parent);	
+	}
 	
-	KxParentSlot *pslot = &self->parent_slot;
+	KxParentSlot *pslot = self->parent_slot.next;
 	while(pslot) {
 		if (!pslot->parent->gc_mark)
 			kxobject_mark(pslot->parent);
@@ -927,4 +936,29 @@ kxobject_type_error(
 	
 	REF_REMOVE(type_name);
 	KXTHROW(excp);
+}
+
+KxObject *
+kxobject_need_boolean(KxObject *self)
+{
+	KxString *type_name = kxobject_type_name(self);
+
+	KxException *excp = kxexception_new_with_text(
+		KXCORE,"Object true or false expected as parameter, not '%s'", 
+		KXSTRING_VALUE(type_name));
+	
+	REF_REMOVE(type_name);
+	KXTHROW(excp);
+}
+
+int
+kxobject_check_type(KxObject *self, KxObjectExtension *extension)
+{
+	KxObjectExtension *ext = self->extension;
+	while(ext) {
+		if (ext == extension) 
+			return 1;
+		ext = ext->parent;
+	};
+	return 0;
 }

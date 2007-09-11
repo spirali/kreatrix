@@ -1,0 +1,330 @@
+
+Benchmark clone do: {
+
+
+	Graph = Object clone do: {
+	
+		Edge = Object clone do: { 
+			type = "Edge".
+			
+			start <- 0.
+			end <- 1.
+
+			cost <- 1.
+
+			mark <- false.
+
+			markOn = { mark: true }.
+			markOff = { mark: false }.
+
+			asString = {
+				^start asString,"-",end asString,":",cost.
+			}.
+
+			hasVertex: = { :vertex | 
+				^ (start == vertex) or: [ end == vertex ].
+			}.
+		}.
+
+		Vertex = Object clone do: {
+			type = "Vertex".
+
+			name <- 0.
+
+			baseObject = self.
+
+			== = { :anObject | 
+				(anObject isKindOf: baseObject) ifFalse: [ ^false ].
+				^(anObject name == name).
+			}.
+
+			hash = { ^name hash }.
+
+			mark <- false.
+
+			markOn = { mark: true }.
+			markOff = { mark: false }.
+
+			asString = { ^"{",name,"}" }.
+		}.
+
+
+		type = "Graph".
+
+		matrix <- Array2d clone fillWith: 0.
+
+		edges <- #().
+
+		init = { 
+			matrix: (Array2d clone fillWith: 0).
+			edges: #().
+		}.
+
+		addEdgeFrom:to:cost: = { :from :to :cost| 
+			|edge|
+			edge << Edge clone.
+			edge start: from.
+			edge end: to.
+			edge cost: cost.
+
+			addEdge: edge.
+		}.
+
+
+		numberOfVertexes: = { :vertexes |
+			matrix size: vertexes@vertexes.
+			matrix fillWith: 0.
+		}.
+
+		numberOfVertexes = { 
+			^matrix width.
+		}.
+
+		symetricAt:put: = { :point :cost | 
+			matrix at: point put: cost.
+			matrix at: (point y@point x) put: cost.
+
+		}.
+
+		addEdge: = { :edge | 
+			edges add: edge.
+			
+			symetricAt: (edge start@edge end) put: edge cost.
+		}.
+
+		popEdge = { 
+			|edge|
+			edge << edges pop.
+			symetricAt: (edge start@edge end) put: 0.
+		}.
+
+	/*	neighboursOf:wihout: = { :vertex :from| |list|
+			
+		}.*/
+
+		neighboursOf:without: = { :vertex :ignore | |list result|
+			result << #().
+			list << matrix rowAsList: vertex.
+			//list removeAt: ignore.
+			0 to: list size do: [ :v | 
+				(((list at: v) > 0) and: [ v != ignore ]) ifTrue: [
+					result add: v.
+				].
+			].
+			^result.
+		}.
+
+
+		hasCycle = { |stack marks from|
+			marks << #() size: numberOfVertexes.
+			marks fillWith: false.
+			from << #() size: numberOfVertexes.
+			from fillWith: (-1).
+			
+			0 to: numberOfVertexes do: [ :i |
+				(marks at: i) ifFalse: [
+					stack << #( i ).
+					marks at: i put: true.
+					[ stack isEmpty ] whileFalse: [ |v next|
+						v << stack pop.
+						next << neighboursOf: v without: 	
+								(from at: v).
+						next foreach: [ :vertex |
+								(marks at: vertex) ifTrue: [ ^true ].
+							marks at: vertex put: true.
+								from at: vertex put: v.
+						].
+						stack join: next.
+					].
+				].
+			].
+	//		stack << #( (edges first => edges first start) ).
+	//		stack << #( ((edges first start)=>(edges first end)) ).
+
+	/*		[ stack size > 1 ] whileTrue: [ |prev|
+				
+				(neighboursOf: stack) reject: [ :v | v . 
+			].*/
+
+
+			^false.
+		}.
+
+		spanningTree = {
+			|list result|
+			list << edges sort: [ :a :b | a cost < b cost ].
+			result << self clone.
+			result numberOfVertexes: numberOfVertexes.
+			list foreach: [ :edge|
+				result addEdge: edge.
+				result hasCycle ifTrue: [ result popEdge ].
+			].
+
+			result edges println.
+			^result
+		}.
+	}.
+
+	generateGraph = {
+		|graph|
+		graph << Graph clone.
+		graph numberOfVertexes: 41.
+		graph addEdgeFrom: 0 to: 1 cost: 2. // 1
+		graph addEdgeFrom: 1 to: 2 cost: 3. // 2
+		graph addEdgeFrom: 2 to: 3 cost: 2. // 3
+		graph addEdgeFrom: 3 to: 0 cost: 2. // 4 
+		graph addEdgeFrom: 2 to: 4 cost: 1. // 5
+		graph addEdgeFrom: 3 to: 4 cost: 4. // 6
+		graph addEdgeFrom: 4 to: 5 cost: 3. // 7
+		graph addEdgeFrom: 5 to: 6 cost: 4. // 8
+		graph addEdgeFrom: 4 to: 6 cost: 3. // 9
+		graph addEdgeFrom: 4 to: 6 cost: 5. // 10
+		graph addEdgeFrom: 0 to: 6 cost: 8. // 11
+		graph addEdgeFrom: 7 to: 2 cost: 7. // 12
+		graph addEdgeFrom: 8 to: 2 cost: 7. // 12
+		graph addEdgeFrom: 8 to: 1 cost: 4. // 13
+		graph addEdgeFrom: 8 to: 0 cost: 4. // 14
+		graph addEdgeFrom: 8 to: 3 cost: 4. // 15
+		graph addEdgeFrom: 8 to: 3 cost: 4. // 16
+		graph addEdgeFrom: 2 to: 6 cost: 5. // 17
+
+		graph addEdgeFrom: 0 to: 16 cost: 5. // 17
+		graph addEdgeFrom: 17 to: 23 cost: 9. // 17
+		graph addEdgeFrom: 17 to: 16 cost: 5. // 17
+		graph addEdgeFrom: 18 to: 15 cost: 5. // 17
+		graph addEdgeFrom: 20 to: 21 cost: 5. // 17
+		graph addEdgeFrom: 20 to: 22 cost: 5. // 17
+		graph addEdgeFrom: 20 to: 23 cost: 5. // 17
+		graph addEdgeFrom: 23 to: 21 cost: 6. // 17
+		graph addEdgeFrom: 24 to: 22 cost: 5. // 17
+		graph addEdgeFrom: 1 to: 22 cost: 8. // 17
+		graph addEdgeFrom: 1 to: 29 cost: 1. // 17
+		graph addEdgeFrom: 1 to: 14 cost: 8. // 17
+		graph addEdgeFrom: 1 to: 15 cost: 8. // 17
+
+		graph addEdgeFrom: 2 to: 11 cost: 9. // 17
+		graph addEdgeFrom: 2 to: 12 cost: 5. // 17
+		graph addEdgeFrom: 2 to: 20 cost: 7. // 17
+		graph addEdgeFrom: 2 to: 22 cost: 2. // 17
+
+
+		graph addEdgeFrom: 7 to: 14 cost: 2. // 17
+		graph addEdgeFrom: 8 to: 15 cost: 2. // 17
+		graph addEdgeFrom: 8 to: 21 cost: 4. // 17
+		graph addEdgeFrom: 8 to: 9 cost: 8. // 17
+
+		graph addEdgeFrom: 8 to: 21 cost: 9. // 17
+		graph addEdgeFrom: 8 to: 9 cost: 9. // 17
+
+		graph addEdgeFrom: 9 to: 11 cost: 11. // 17
+		graph addEdgeFrom: 10 to: 11 cost: 11. // 17
+		graph addEdgeFrom: 4 to: 11 cost: 7. // 17
+
+		graph addEdgeFrom: 9 to: 31 cost: 17. // 17
+		graph addEdgeFrom: 10 to: 31 cost: 14. // 17
+		graph addEdgeFrom: 4 to: 31 cost: 1. // 17
+
+
+		graph addEdgeFrom: 15 to: 31 cost: 2. // 17
+		graph addEdgeFrom: 10 to: 31 cost: 3. // 17
+		graph addEdgeFrom: 14 to: 31 cost: 7. // 17
+
+		graph addEdgeFrom: 15 to: 37 cost: 7. // 17
+		graph addEdgeFrom: 10 to: 37 cost: 3. // 17
+		graph addEdgeFrom: 14 to: 37 cost: 2. // 17
+
+		graph addEdgeFrom: 31 to: 37 cost: 7. // 17
+		graph addEdgeFrom: 35 to: 37 cost: 3. // 17
+		graph addEdgeFrom: 34 to: 37 cost: 2. // 17
+
+		graph addEdgeFrom: 22 to: 37 cost: 7. // 17
+		graph addEdgeFrom: 39 to: 36 cost: 3. // 17
+		graph addEdgeFrom: 11 to: 34 cost: 2. // 17
+
+		graph addEdgeFrom: 0 to: 33 cost: 5. // 17
+		graph addEdgeFrom: 33 to: 34 cost: 2. // 17
+		graph addEdgeFrom: 14 to: 38 cost: 1. // 17
+		graph addEdgeFrom: 22 to: 38 cost: 5. // 17
+		graph addEdgeFrom: 23 to: 38 cost: 4. // 17
+		graph addEdgeFrom: 24 to: 38 cost: 5. // 17
+		graph addEdgeFrom: 12 to: 38 cost: 5. // 17
+
+		graph addEdgeFrom: 19 to: 20 cost: 5. // 17
+		graph addEdgeFrom: 19 to: 30 cost: 5. // 17
+
+		graph addEdgeFrom: 9 to: 20 cost: 4. // 17
+		graph addEdgeFrom: 9 to: 30 cost: 6. // 17
+
+		graph addEdgeFrom: 39 to: 20 cost: 8. // 17
+		graph addEdgeFrom: 39 to: 30 cost: 2. // 17
+
+		graph addEdgeFrom: 7 to: 23 cost: 11. // 17
+		graph addEdgeFrom: 7 to: 24 cost: 17. // 17
+
+		graph addEdgeFrom: 0 to: 40 cost: 1. // 17
+		graph addEdgeFrom: 0 to: 27 cost: 1. // 17
+
+
+		graph addEdgeFrom: 18 to: 40 cost: 3. // 17
+		graph addEdgeFrom: 19 to: 40 cost: 1. // 17
+
+
+		graph addEdgeFrom: 14 to: 31 cost: 7. // 17
+		graph addEdgeFrom: 17 to: 33 cost: 7. // 17
+
+		graph addEdgeFrom: 12 to: 26 cost: 5. // 17
+		graph addEdgeFrom: 12 to: 36 cost: 5. // 17
+
+		graph addEdgeFrom: 4 to: 35 cost: 2. // 17
+		graph addEdgeFrom: 6 to: 35 cost: 5. // 17
+
+		graph addEdgeFrom: 25 to: 35 cost: 6. // 17
+		graph addEdgeFrom: 25 to: 35 cost: 2. // 17
+
+		graph addEdgeFrom: 27 to: 35 cost: 3. // 17
+		graph addEdgeFrom: 37 to: 35 cost: 7. // 17
+
+		graph addEdgeFrom: 16 to: 39 cost: 3. // 17
+		graph addEdgeFrom: 15 to: 38 cost: 7. // 17
+
+
+		graph addEdgeFrom: 3 to: 31 cost: 3. // 17
+		graph addEdgeFrom: 3 to: 21 cost: 2. // 17
+		graph addEdgeFrom: 3 to: 11 cost: 1. // 17
+		graph addEdgeFrom: 3 to: 40 cost: 5. // 17
+
+		graph addEdgeFrom: 24 to: 30 cost: 8. // 17
+		graph addEdgeFrom: 24 to: 31 cost: 7. // 17
+		graph addEdgeFrom: 24 to: 32 cost: 8. // 17
+		graph addEdgeFrom: 24 to: 33 cost: 7. // 17
+		graph addEdgeFrom: 24 to: 34 cost: 8. // 17
+		graph addEdgeFrom: 24 to: 35 cost: 7. // 17
+		graph addEdgeFrom: 24 to: 36 cost: 8. // 17
+		graph addEdgeFrom: 24 to: 37 cost: 7. // 17
+	
+
+		graph matrix println.
+
+		graph edges foreach: [ :edge | (edge start asString,"-",edge end,",") print ].
+
+		"" println.
+
+	/*	graph numberOfVertexes: 3.
+		graph addEdgeFrom: 0 to: 1 cost: 10.
+		graph addEdgeFrom: 1 to: 2 cost: 20.
+		graph addEdgeFrom: 2 to: 0 cost: 3.*/
+		^graph.
+
+	}.
+
+	run = {
+		|graph result|
+		graph << generateGraph.
+		graph edges size println.
+		result << graph spanningTree.
+
+
+
+		result edges foreach: [ :edge | (edge start asString,"-",edge end,",") print ].
+	}.
+}.

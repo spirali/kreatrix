@@ -6,8 +6,13 @@
 
 #define ALLOCTEST(x) if((!x)) utils_out_of_memory(__FILE__,__LINE__)
 
+#ifndef MAX
 #define MAX(x,y) (x)>(y)?(x):(y)
+#endif // #ifndef MAX
+
+#ifndef MIN
 #define MIN(x,y) (x)<(y)?(x):(y)
+#endif // #ifndef MIN
 
 //#define PDEBUG printf
 #define PDEBUG  if(0) printf 

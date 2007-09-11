@@ -1,0 +1,83 @@
+
+
+GBasicType = Object clone do: {
+	type = "GBasicType".
+
+	name <- "GType".
+	cname <- "".
+
+	ignoreResult <- false.
+
+	convertName = { 	
+		(cname last == '*') ifTrue: [
+			^cname sliceTo: (cname size - 1)
+		].
+		^cname 
+	}.
+
+	name:cname: = { :name :cname | 
+		name: name.
+		cname: cname.
+	}.
+
+	asString = { ^"(",name,")" }.
+
+	codeForGettingParamId: = { :id |
+		^"".
+	}.
+
+}.
+
+GType = GBasicType clone do: {
+	type = "GType".
+
+	codeForGettingParamId: = { :id |
+		^"\tKXPARAM_TO_", convertName asUppercase,"(param",id, ",",id,");".
+	}.
+
+}.
+
+GTypePrimitive = GType clone do: {
+	type = "GTypePrimitive".
+	convertName <- "".
+
+	name:cname:convertName: = { :name :cname :convertName |
+		name: name.
+		cname: cname.
+		convertName: convertName.
+	}.
+}.
+
+GTypeAlias = GBasicType clone do: {
+	type = "GTypeAlias".
+
+	gtype <- GBasicType.
+
+	name = { 
+		^gtype cname.
+	}.
+
+	cname:gtype: = { :aName :gtype | 
+		cname: aName.
+		gtype: gtype.
+	}.
+}.
+
+GTypeConstant = GBasicType clone do: {
+	type = "GTypeConstant".
+
+	value <- "".
+	name: "<Constant>".
+}.
+
+GTypeSelf = GTypeConstant clone do: {
+	value: "self->data.ptr".
+	name: "<Self>".
+}.
+
+GTypeVoid = GBasicType clone do: {
+	name: "<void>".
+	cname: "void".
+
+	ignoreResult: true.
+}.

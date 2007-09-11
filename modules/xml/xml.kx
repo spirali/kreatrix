@@ -1,0 +1,103 @@
+(isLoaded: #xml) ifTrue: [ ^getModule: #xml ].
+
+loadCLibrary: "xml".
+
+
+XmlException = VM inGroup: "module-xml" exception: "XmlException".
+
+Node do: {
+	asString = { ^type, "::", name }.
+
+	descendants = {
+		|list| 
+		list << #(). 
+		childrens foreach: [ :each | list addAll: each descendantsAndSelf ].
+		^list.
+	}.
+
+	descendantsAndSelf = { 
+		|list| 
+		list << #(self). 
+		childrens foreach: [ :each | list addAll: each descendantsAndSelf ].
+		^list.
+	}.
+
+	isElement = false.
+	isText = false.
+	isAttribute = false.
+
+	Element do: {
+		isElement = true.
+
+		attributes = { ^properties }.
+
+		attribute: = { :anAttributeName |
+			
+		}.
+
+		hasAttribute: = { :anAttributeName |
+			properties foreach: 
+				[ :attr | (attr name == anAttributeName) ifTrue:[ ^true ]].
+			^false.
+		}.
+
+		hasChild: = { :aName |
+			childrens foreach: [ :each | 
+				(each name == aName) ifTrue: [ ^true ] ].
+			^false.
+		}.
+
+		child:ifAbsent: = { :aName :aBlock |
+			|child|
+			child << childrens detect: [ :each | each name == aName ].
+			child ifNil: [ ^ aBlock value ].
+			^child.
+		}.
+
+		child: = { :aName |
+			^child: aName ifAbsent: 
+				[ throw: (xml XmlException clone message: 
+					"Child '",aName,"' not found") ].
+		}.
+
+		childrens: = { :aName | 
+			^childrens select: [ :child | child name == aName ].
+		}.
+
+		attribute: = { :anAttributeName | |attr|
+			^attribute: anAttributeName 
+				ifAbsent: [ 
+					throw: (xml XmlException clone message: 
+						"Attribute '", anAttributeName, "' not found") ].
+		}.
+
+		attribute:ifAbsent: = { :anAttributeName :aBlock |
+			properties foreach: [ :attr | (attr name == anAttributeName) ifTrue: [ ^attr value ] ].
+			^aBlock value.
+		}.
+
+		text = {
+			^(child: "text") text.
+		}.
+
+		ifHasAttribute:do: = { :attribute :aBlock |
+			^aBlock value: (attribute: attribute ifAbsent: [ ^self ]).
+		}.
+
+	}.
+
+	Text do: {
+		isText = true.
+
+		text = { ^content }.
+	}.
+
+	Attribute do: {
+		isAttribute = true.
+
+		value = { ^children content }.
+	}
+}.
+
+
+registerAs: #xml.

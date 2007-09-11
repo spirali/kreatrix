@@ -120,6 +120,10 @@ int kxobject_update_slot_flags(KxObject *self, KxSymbol *key, int flags);
 
 KxObject *kxobject_type_error(KxObject *self, KxObjectExtension *extension);
 
+KxObject *kxobject_need_boolean(KxObject *self);
+
+int kxobject_check_type(KxObject *self, KxObjectExtension *extension);
+
 
 /** Only for 'foreach' constructions */
 void kxobject_ref_remove(void *self);

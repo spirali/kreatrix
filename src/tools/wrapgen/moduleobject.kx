@@ -121,8 +121,14 @@ ModuleObject = ModuleItem clone do: {
 RootObject = ModuleObject clone do: {
 	type = "RootObject".
 
+	initModule <- "".
 	loadFromElement: = { :anElement | 
 		loadContentFromElement: anElement.
+
+		(anElement hasChild: "init-code") ifTrue: [
+			initModule: ((anElement child: "init-code") child: "text") text.
+		].
+
 	}.
 
 	config: = { :value |
@@ -133,6 +139,14 @@ RootObject = ModuleObject clone do: {
 	replaceTable at: "%call_init_extensions%" put: #getCallInitExtensionCode.
 	replaceTable at: "%add_prototypes%" put: #getAddPrototypeCode.
 	replaceTable at: "%remove_prototypes%" put: #getRemovePrototypeCode.
+	
+	replaceDictionary = {
+		|dict|
+		dict << resend replaceDictionary.
+		dict at: "%init_module%" 
+			put: initModule.
+		^dict.
+	}.
 
 	create = {
 		|dict file|

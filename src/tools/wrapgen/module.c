@@ -15,7 +15,10 @@ KxObject *
 kxmodule_main(KxModule *self, KxMessage *message)
 {
 
+
 %call_init_extensions%
+
+%init_module%
 
 %add_prototypes%
 

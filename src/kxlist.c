@@ -360,10 +360,9 @@ kxlist_pop(KxList *self, KxMessage *message)
 		KxException *excp = kxexception_new_with_text(KXCORE,"List is empty");
 		KXTHROW(excp);
 	}
-	REF_REMOVE((KxObject*)list->items[list->size-1]);
-
+	KxObject *obj = ((KxObject*)list->items[list->size-1]);
 	list_pop(list);
-	KXRETURN(self);
+	return obj;
 }
 
 static KxObject *

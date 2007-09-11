@@ -20,10 +20,24 @@ WrapperConfig = Object clone do: {
 
 	rawCodes <- Dictionary clone.
 
+	templates <- Dictionary clone.
+
 	loadFromElement: = { :aRootElement | 
 		rootElement: aRootElement.
 		
 		rawCodes: _rawCodes.
+		templates: loadTemplates.
+	}.
+
+	loadTemplates = { |elements|
+		elements << (rootElement child: "templates" ifAbsent: [ ^self ]) childrens.
+		elements << elements select: [ :each | 
+			each name == "template-prototype" 
+		].
+		^(elements collect: [ :element | |name template|
+			name << element attribute: "template".
+			name => element.
+		]) asDictionary.
 	}.
 
 	_rawCodes = {

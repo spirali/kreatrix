@@ -1,0 +1,228 @@
+
+List asStringCamelCase = {
+	^ first,allButFirst asStringCapitalized.
+}.
+
+List asStringCapitalized = {
+	^(collect: [ :string | string capitalized ]) asString.
+}.
+
+
+GFunction = Object clone do: {
+	type = "GFunction".
+
+	definition <- nil.
+	generator <- nil.
+	returnType <- nil.
+	
+	params <- #().
+
+	isMethod = {
+		^definition params size > 0 and: 
+			[ classCName == definition params first].
+	}.
+
+	call = { ^definition call }.
+	slotName = { ^definition slotName }.
+
+	className = {
+		^definition className.
+	}.
+
+	classCName = {
+		^definition classCName.
+	}.
+
+	wrapperCName = {
+	//	^(slotName asList collect: [ :char | char == ':' ifTrue: [ '_'] ifFalse: [ char ] ]) asString.
+		^"kx",className asLowercase, "_", 
+			(slotName replaceAll: ":" to: "_").
+	}.
+
+	addParams = {
+		|p|
+		params: #().
+		isMethod ifTrue: [
+			p << definition params allButFirst.
+		] ifFalse: [
+			p << definition params.
+		].
+		params join: (p collect: [ :param | 
+			
+			(generator findType: param).
+		]).
+	}.
+
+	codeGetParams = { |id|
+		id << (-1).
+		^((params collect: [ :param | 
+			id << id + 1.
+			param codeForGettingParamId: id.
+		]) reject: [ :string | string isEmpty ]) asStringDelimiter: "\n".
+	}.
+	
+	codeCall = { |str list|
+
+		isMethod 
+			ifTrue: [ 
+				str << call,"(self->data.ptr". 
+				(params size > 0) ifTrue: [ str << str, "," ]. ]
+			ifFalse: [ str << call,"(" ].
+		
+		list << #().
+		0 to: params size do: [ :i |
+			list add: "param",i
+		].
+		^str,(list asStringDelimiter: ","),")".
+
+	}.
+
+	numberOfParameters = {
+		^params size.
+	}.
+
+	code = { |str|
+		str << "static KxObject *\n",wrapperCName,
+		 " (KxObject *self, KxMessage *message)\n{\n",codeGetParams,"\n\t".
+		returnType ignoreResult 
+			ifTrue: [ str << str,codeCall,";\n\tKXRETURN(self);" ]
+			ifFalse: [
+				str << str,"return KX",
+					returnType name asUppercase,"((",returnType cname,")",codeCall,");".
+
+			].
+		
+		^str,"\n}\n".
+	}.
+
+	cloneWithDefinition:generator: = { :definition :generator |
+		|func|
+		func << GFunction clone.
+		func definition: definition.
+		func generator: generator.
+		func addParams.
+		func returnType: (generator findType: definition returnType).
+		^func.
+	}.
+}.
+
+GFuncDefinition = Object clone do: {
+	type = "GFuncDefinition".
+	
+	params <- #().
+	call <- "".
+	returnType <- nil.
+	slotName <- nil.
+
+
+	fromString: = { :aString |
+		|index names params|
+		index << aString find: "(".
+		index ifNil: [  
+			throw: (Exception clone message: "invalid function definition").
+		].
+		names << aString sliceTo: (aString find:"(").
+		params << aString sliceBetween: "(" and: ")".
+
+		paramsFromString: params.
+		namesFromString: names.
+	}.
+
+	generateSlotName = { 
+		|parts|
+		parts << callNameParts.
+		((params size > 0) and: [ (params at: 0) == classCName ]) ifTrue: [
+			(params size == 1) ifTrue: [
+				(parts first == "get") && 
+				(returnType == "gboolean")  
+					ifTrue: [
+					^"is",(parts allButFirst asStringCapitalized).
+				].
+				^parts asStringCamelCase.
+
+			].
+			(params size == 2) ifTrue: [
+				(parts first == "set") ifTrue: [
+					^(parts allButFirst asStringCamelCase),":".
+				].
+				^(parts asStringCamelCase),":".
+			].
+		].
+		
+		("No automatic name for:", call) println.
+		//parts asStringCamelCase println.
+		^"unknown".
+	}.
+
+	namesFromString: = { :aString | |list|
+		list << aString asListBy: " ".
+		(list size == 3) ifTrue: [ 
+			slotName: (list at: 0).
+			returnType: (list at: 1).
+			call: (list at: 2).
+			^self.
+		].
+
+		returnType: (list at: 0).
+		call: (list at: 1).
+		slotName: (generateSlotName).
+	}.
+
+	hasSlotName = { 
+		^slotName isNotNil.
+	}.
+
+	callNameParts = {
+		^(call asListBy: "_") allButFirst: 2.
+	}.
+	/*generateAutomaticSlotName = {
+		(params size > 2) ifTrue: [ 
+			throw: (Exception clone message: "Need manual name for function: ",call
+		].
+	}.*/
+
+	paramsFromString: = { :aString | |list|
+		list << ((aString asListBy: ",") collect: [ :param | |list str|
+			list << (param asListBy: " ").
+			str << (list allButLast asStringDelimiter: " ") trim.
+			(list last beginsWith: "*") ifTrue: [ str,"*" ] ifFalse: [ str ].
+		]).
+		params: (list reject: [ :string | string == "" ]).
+	}.
+
+	className = { |parts|
+		// HACK!
+		(call beginsWith: "gtk_check") ifTrue: [
+			^"GtkCheckButton".
+		].
+		parts << call asListBy: "_".
+		^((parts at: 0) capitalized),((parts at: 1) capitalized).
+		//^ (parts collect: [ :string | string capitalized ]) asString println.
+	}.
+
+	classCName = {
+		^className,"*".
+	}.
+
+}.
+
+
+GRawFunction = Object clone do: {
+	type = "GRawFunction".
+
+	
+	numberOfParameters <- 0.
+
+	codeString <- "KXRETURN(self)".
+
+	slotName <- "returnSelf".
+
+	wrapperCName <- "kx_return_self".
+
+	code = {
+		^"static KxObject *\n",wrapperCName,
+		 " (KxObject *self, KxMessage *message)\n{\n",	
+		 codeString,"\n}\n".
+	}.
+
+}.

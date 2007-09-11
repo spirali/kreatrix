@@ -1,0 +1,34 @@
+String replaceByDictionary: = { :aDictionary |
+	|str|
+	str << self.
+	aDictionary foreachKeyValue: [ :key :value | 
+		str << str replace: key to: value.
+	].
+	^str.	
+}.
+
+Replacer = Object clone do: {
+	type = "Replacer".
+
+	template <- "".
+	replaceDictionary <- Dictionary clone.
+
+	loadTemplate: = { :filename | 
+		template: (File clone name: filename) openForReading contentAsString.
+	}.
+
+	saveTo: = { :filename | |file|
+		file << File clone name: filename.
+		file openForWriting.
+		file write: (template replaceByDictionary: replaceDictionary).
+		file close.
+	}.
+}.
+
+String replaceAll:to: = { :pattern :target | 
+	|new str| 
+	str << self.
+	[ new << str replace: pattern to: target. 
+	  str == new ] whileFalse: [ str << new ].
+	 ^str
+}.

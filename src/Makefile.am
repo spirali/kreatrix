@@ -1,5 +1,5 @@
 
-SUBDIRS = utils compiler tools vminit . modules
+SUBDIRS = utils compiler tools vminit .
 # testing purpose
 #SUBDIRS = utils compiler .
 

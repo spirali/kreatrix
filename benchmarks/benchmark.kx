@@ -1,0 +1,35 @@
+import: "time".
+
+Benchmark = Object clone do: {
+	type = "Benchmark".
+
+	initBenchmark = {}.
+	closeBenchmark = {}.
+
+	run = {}.
+
+}.
+
+/*list = 
+	#("t1_sum.kx" 
+	  "t1_recursive.kx" 
+	  "t1_sort.kx" 
+	  "t2_wcounter.kx"
+	  "t2_graph.kx"
+	  ).
+
+*/
+list = #("t2_graph.kx").
+
+list foreach: [ :filename | 
+	|benchmark| 
+	benchmark << doFile: filename.
+	
+	benchmark initBenchmark.
+	1 repeat: [
+		(time timeOfRun: [ benchmark run. ]) asMilliseconds println.
+	].
+
+	benchmark closeBenchmark.
+].
+

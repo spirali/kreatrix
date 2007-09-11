@@ -53,10 +53,10 @@ kxgc_collect(KxCore *core)
 			REF_ADD(obj);
 			kxobject_clean(obj);
 			KxObject *next = obj->gc_next;
-			if (obj->ref_count != 1) {
+	/*		if (obj->ref_count != 1) {
 				printf("!-! Invalid collection ");
 				kxobject_dump(obj);
-			}
+			}*/
 			REF_REMOVE(obj);
 			obj = next;
 		} else {
@@ -75,12 +75,43 @@ kxgc_dumpall(KxCore *core)
 	KxObject *base_object = core->base_object;
 	
 	KxObject *obj = base_object->gc_next;
+
+	//List *list = list_new();
+
 	while(obj != base_object) {
 		printf("DUMP::");
 		kxobject_dump(obj);
+/*		list_append(list, obj);
+		REF_ADD(obj);*/
 		obj = obj->gc_next;
 	}
 
 	printf("----------END_OF_DUMP------------\n");
+	/*list_foreach(list, (ListForeachFcn*) kxobject_clean);
+	list_foreach(list, (ListForeachFcn*) kxobject_remove_all_parents);
+	int t;
+	for (t=0;t<list->size;t++) {
+		KxObject *obj = list->items[t];
+		if (obj->ref_count > 1)
+			kxobject_dump(obj);
+		REF_REMOVE(obj);
+	}
+	list_free(list);
+	{
+	printf("---\n");
+	KxObject *base_object = core->base_object;
+	
+	KxObject *obj = base_object->gc_next;
+
+	List *list = list_new();
+
+	while(obj != base_object) {
+		printf("DUMP::");
+		kxobject_dump(obj);
+		list_append(list, obj);
+		REF_ADD(obj);
+		obj = obj->gc_next;
+	}
+	}*/
 
 }

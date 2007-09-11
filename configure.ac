@@ -11,8 +11,6 @@ AC_PROG_RANLIB
 
 AC_EXEEXT
 
-# Allow disabling this feature
-PKG_CHECK_MODULES(libxml, libxml-2.0)
 
 
 AC_CHECK_LIB(dl, dlopen)
@@ -28,15 +26,17 @@ AC_CONFIG_FILES([
 		src/tools/docgen/Makefile
 		src/tools/objgen/Makefile
 		src/tools/wrapgen/Makefile
-		src/modules/Makefile
-		src/modules/test/Makefile
-		src/modules/system/Makefile
-		src/modules/sockets/Makefile
-		src/modules/pool/Makefile
-		src/modules/cgi/Makefile
-		src/modules/threads/Makefile
-		src/modules/xml/Makefile
 		src/vminit/Makefile
+		modules/Makefile
+		modules/test/Makefile
+		modules/system/Makefile
+		modules/sockets/Makefile
+		modules/time/Makefile
+		modules/pool/Makefile
+		modules/cgi/Makefile
+		modules/threads/Makefile
+		modules/xml/Makefile
+		modules/gtk/Makefile
 		tests/Makefile
 		docs/Makefile
 		docs/examples/Makefile
@@ -72,7 +72,7 @@ AM_CONDITIONAL([KX_THREADS_SUPPORT], true)
 fi
 
 
-# XML module
+# ---- XML module ---------------------------
 AC_ARG_ENABLE(xml,
 [  --disable-xml   Disable building xml module ],
 [ 
@@ -80,6 +80,8 @@ kx_xml="${enableval}"
 ],[kx_xml=yes])
 
 if test "$kx_xml" = yes; then
+
+PKG_CHECK_MODULES(libxml, libxml-2.0)
 LIBXML_CFLAGS="`xml2-config --cflags`"
 LIBXML_LIBS="`xml2-config --libs`"
 
@@ -91,5 +93,9 @@ else
 AM_CONDITIONAL([KX_XML_MODULE], false)
 AC_MSG_NOTICE([Module XML disabled])
 fi
+
+# ---- GTK module ---------------------------
+
+PKG_CHECK_MODULES([gtk], [gtk+-2.0])
 
 AC_OUTPUT

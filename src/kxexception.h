@@ -17,11 +17,13 @@ typedef KxObject KxException;
 
 KxObject * kxexception_new_prototype(KxCore *core);
 
-/* Don't add own reference on message, BACKWARD COMPATABILITY */
+/* I don't add own reference on message, BACKWARD COMPATABILITY */
 KxObject * kxexception_new_with_message(KxCore *core, KxString *message);
+
 KxObject * kxexception_new_with_text(KxCore *core, char *form, ...);
 
 KxException *kxexception_type_error(char *type_name, KxObject *obj);
+KxException *kxexception_from_errno(KxCore *core, char *text);
 
 
 

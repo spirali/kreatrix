@@ -2,7 +2,7 @@
 DEBUGER=""
 PARAM=""
 
-export KREATRIX_MODULES_PATH="../src/modules"
+export KREATRIX_MODULES_PATH="../modules"
 
 if [ "$1" == "valgrind" ]; then
 	DEBUGER="valgrind"

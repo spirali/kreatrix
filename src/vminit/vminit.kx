@@ -221,7 +221,7 @@ List do: {
 		^nil.
 	}.
 
-	detect:ifAbsent: = { :aBlock1 :aBlock2 |
+	detect:ifNone: = { :aBlock1 :aBlock2 |
 		foreach: [ :each |
 			(aBlock1 value: each) ifTrue: [ ^each ] .
 		].
@@ -308,6 +308,17 @@ List do: {
 		^copyFrom: 0 to: (size - count)
 	}.
 
+	last: = { :count | 
+		(size <= count) ifTrue: [ ^ self copy ].
+		^copyFrom: (size - count) to: size.
+	}.
+
+	first: = { :count | 
+		(size <= count) ifTrue: [ ^ self copy ].
+		^copyFrom: 0 to: count.
+	}.
+
+
 	allButLast = { ^allButLast: 1 }.
 
 	reversed = { |list|
@@ -316,13 +327,20 @@ List do: {
 		^list.
 	}.
 
-	asStringDelimiter: = { :delimiter |  |str|
-		isEmpty ifTrue: [ ^"" ].
-		str << first asString.
-		allButFirst foreach: [ :each | str << str, delimiter, each ].
-		^str.
+	asStringDelimiter: = { :delimiter |  |list|
+		isEmpty ifTrue: [ ^"" ].		
+		list << #().
+		allButLast foreach: [ :each | 
+			list add: each.
+			list add: delimiter.
+		].
+		list add: last.
+		^list asString.
 	}.
-
+	
+	fillWith: = { :anObject|
+		0 to: size do: [ :i | at: i put: anObject ].
+	}.
 }.
 
 Lobby Association = Object clone do: {
@@ -401,6 +419,12 @@ Dictionary do: {
 			(each value == (at: each key)) ifFalse: [ ^false ].
 		].
 		^true.
+	}.
+
+	asList = {
+		|list|
+		list << #().
+		^list addAll: self.
 	}.
 }. 
 
@@ -646,5 +670,30 @@ Array2d do: {
 
 	size = {
 		^width@height.
-	}
+	}.
+
+	rowAsList: = { :row | |list|
+		list << #().
+		forRow: row do: [ :each | list add: each ].
+		^list.
+	}.
+
+	columnAsList: = { :column | |list|
+		list << #().
+		forColumn: column do: [ :each | list add: each ].
+		^list.
+	}.
+
+
+	asString = { |str|
+		str << "[\n".
+		0 to: height do: [ :i | |list|
+			list << rowAsList: i.
+			str << str,"[",
+				   (list allButLast collect: 
+				   		[ :each | each asString,"," ]) asString, 	
+    				list last, "]\n".
+		].
+		^str,"]".
+	}.
 }.

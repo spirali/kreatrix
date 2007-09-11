@@ -1,0 +1,41 @@
+
+
+Benchmark clone do: {
+
+	ackX:y: = { :x :y | 
+		(x == 0) ifTrue: [ ^y + 1 ].
+		(y == 0) ifTrue: [ ^ackX: x - 1 y: 1 ].
+		^ackX: x - 1 y: (^ackX: x y: y - 1).
+	}.
+
+	Integer fib = {
+		(self < 2) ifTrue: [ ^1 ].
+		^ (self - 2) fib + (self - 1) fib.
+	}.
+
+	Float fib = {
+		(self < 2.0) ifTrue: [ ^1.0 ].
+		^ (self - 2.0) fib + (self - 1.0) fib.
+	}.
+
+	Integer takY:z: = { :y :z |
+		(y < self) ifTrue: [ 
+			^((self - 1) takY: y z: z) 
+				takY: ((y - 1) takY: z z: self)
+				z: ((z - 1) takY: self z: y).
+		].
+		^z.
+	}.
+
+
+	run = { |n m|
+		n << 25.
+		m << 7.
+
+		(ackX: 3 y: n + 1).
+		n fib.
+		n asFloat fib.
+
+		(3*m takY: 2*m z: m).
+	}
+}.

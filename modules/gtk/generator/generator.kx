@@ -1,0 +1,361 @@
+import: "xml".
+
+localImport: "utils.kx".
+localImport: "type.kx".
+localImport: "function.kx".
+
+GClass = Object clone do: {
+	type = "GClass".
+
+	childrens <- #().
+	name <- "".
+
+	cname = { ^name, "*" }.
+
+	generator <- nil.
+
+	functions <- #().
+
+	templateC = (File clone name: "object.c") openForReading contentAsString.
+	templateH = (File clone name: "object.h") openForReading contentAsString.
+
+	parent <- nil.
+
+	isAbstract <- false.
+
+	createParams <- "".
+
+	initPrototypeExtraCode <- "".
+
+	extensionName = {
+		^"kx",name asLowercase,"_extension".
+	}.
+
+	/*init = {
+		childrens: #().
+	:}.*/
+
+	parentObject = {
+		parent ifNil: [ ^"KXCORE->base_object" ].
+		^parent name asLowercase.
+	}.
+
+	parentExtension = {
+		parent ifNil: [ ^nil ].
+		^parent extensionName.
+	}.
+
+	loadFromElement: = { :anElement |
+		name: (anElement attribute: "name").
+		(anElement hasAttribute: "createp") ifTrue: [ createParams: (anElement attribute: "createp") ].
+		(anElement hasAttribute: "abstract") ifTrue: [ isAbstract: (anElement attribute: "abstract") == "true" ].
+		anElement ifHasAttribute: "init" do: [ :value | initPrototypeExtraCode: value ].
+		generator addType: (GType clone name: name cname: cname).
+		loadChildrensFromElement: anElement.
+	}.
+
+	loadChildrensFromElement: = { :anElement |
+		childrens: ((anElement childrens: "class") collect: [ :element |
+			|class|
+			class << GClass clone.
+			class generator: generator.
+			class parent: self.
+			class loadFromElement: element.
+		]).
+	}.
+	
+	filename = { ^name asLowercase }.
+
+	filenameC = { ^filename,".c" }.
+	filenameH = { ^filename,".h" }.
+
+	slotName = { ^name sliceFrom: 3 }.
+
+	functionsPrefix = { |list prev|
+		list << #(((name at: 0) asLowercase)).
+		prev << false.
+		name asList allButFirst foreach: [ :char | 
+			(char isUppercase && prev not) ifTrue: [
+				list add: "_".
+				prev << true.
+			] ifFalse: [ prev << false ].
+			list add: char asLowercase.
+		].
+		^list asString.
+
+		
+
+	//	^(name sliceTo: 3) asLowercase, "_", (name sliceFrom: 3) asLowercase.
+	}.
+
+	write = {
+		|dict file|
+		dict << replaceDictionary.
+
+		file << (File clone name: "../",filenameC) openForWriting.
+		file write: (templateC replaceByDictionary: dict).
+
+		file << (File clone name: "../",filenameH) openForWriting.
+		file write: (templateH replaceByDictionary: dict).
+	}.
+
+	create = {
+		("Creating ",name," ... ") println.
+	//	functions foreach: [ :func | ("    ",func call) println ].
+		write.
+	//	createChildrens.
+	}.
+
+/*	createChildrens = {
+		childrens foreach: [ :child | child create ].
+	}.
+*/
+	asString = { ^"GClass:",name }.
+
+	functionsCode = { 
+		^(functions collect: [ :func | func code ]) asString.
+	}.
+
+	functionsTableCode = { 
+		^(functions collect: [ :func | 
+			"\t\t{\"",func slotName,"\",", func numberOfParameters,",",func wrapperCName,"},\n" ]) asString.
+	}.
+
+	codeParentExtension = { |p|
+		p << parentExtension.
+		p ifNil: [ ^"NULL" ].
+		^"&",p.
+	}.
+	
+	initPrototypeCode = {
+		isAbstract 
+			ifTrue: [ ^initPrototypeExtraCode, "\n\tself->extension = &gtkabstractclass_extension;" ]
+	     	ifFalse: [ 
+				^initPrototypeExtraCode,"\n\tself->data.ptr = ", functionsPrefix,"_new(",createParams,");\n",
+				"\tkxgtk_set_wrapper(self, self->data.ptr);\n".
+			
+			].
+	}.
+
+	replaceDictionary = {
+		^#( ("%name%" => name asLowercase)
+		   ("%Name%" => name)
+		   ("%NAME%" => name asUppercase)
+		   ("%include%" => generator includeString)
+		   ("%ctype%" => cname)
+		   ("%parent_extension%" => codeParentExtension)
+		   ("%cfunctions%" => functionsCode)
+		   ("%cfunctions_table%" => functionsTableCode)
+		   ("%init_prototype%" => initPrototypeCode)
+		) asDictionary.
+	}.
+
+	allClasses = {
+		|list|
+		list << #(self).
+		childrens foreach: [ :child | list join: child allClasses ].
+		^list.
+	}.
+
+	initExtensionString = {
+		^"\tkx", name asLowercase, "_extension_init();".
+	}.
+
+	callInitPrototypeString = {
+		|var str|
+		var << name asLowercase.
+		str << "\tKxObject *",var," = kx", name asLowercase, "_new_prototype(", parentObject, ");\n".
+
+		isAbstract 
+			ifTrue: [ ^str, "\tkxobject_set_slot_no_ref2(self, KXSYMBOL(\"",slotName,"\"),",var,");\n". ]
+			ifFalse: [ ^str,
+						"\tkxcore_add_prototype(KXCORE, ",var,");\n",
+						"\tkxobject_set_slot_no_ref2(self, KXSYMBOL(\"",slotName,"\"),",var,");\n".
+			].
+
+	}.
+
+	removePrototypeString = {
+		isAbstract ifTrue: [ ^"" ].
+		^"kxcore_remove_prototype(KXCORE, &", extensionName,");".
+	}.
+
+	implicitFunctions = { |list|
+		list << #().
+
+		isAbstract ifFalse: [
+			|func|
+			func << GRawFunction clone.
+			func slotName: "clone".
+			func wrapperCName: functionsPrefix,"_clone".
+			func codeString: ("\tKxObject *clone = kxobject_raw_clone(self);\n",
+							  "\tclone->data.ptr = ", functionsPrefix, "_new(",createParams,");\n",
+	//						  "\tg_object_ref_sink(clone->data.ptr);",
+							  "\tkxgtk_set_wrapper(clone, clone->data.ptr);\n",
+							  "\treturn clone;"
+							  ). 
+			list add: func.
+		].
+		^list.
+	}.
+	
+	findFunctions = { |lowerName list|
+		lowerName << name asLowercase.
+		list << (generator functions select: [ :func |
+			func className asLowercase == lowerName. 
+		]).
+		functions: (implicitFunctions join: list).
+	}.
+}.
+
+
+Generator = Object clone do: {
+	type = "Generator".
+	
+	initTypes = { 
+		types = #(GTypeVoid).
+
+		types add: (GTypePrimitive clone 
+			name: "integer" cname: "gint" convertName: "int").
+		types add: (GTypePrimitive clone 
+			name: "integer" cname: "guint" convertName: "int").
+		types add: (GTypePrimitive clone 
+			name: "string" cname: "const gchar*" convertName: "cstring").
+		types add: (GTypePrimitive clone 
+			name: "gboolean" cname: "gboolean" convertName: "gboolean").
+
+	}.
+
+	
+	addType: = { :aType |
+		types add: aType.
+	}.
+
+	initTypes.
+
+
+	document = xml Document clone readFile: "class.xml".
+
+	rootClass = GClass clone.
+	rootClass generator: self.
+
+	rootClass loadFromElement: (document rootElement child: "class").
+
+	allClasses = rootClass allClasses.
+
+	/*allClasses foreach: [ :class |
+		class generator: nil.
+		class parent: nil.
+		class childrens: nil.
+	].*/
+
+
+	functions = #().
+
+
+	headers = {
+		^allClasses collect: [ :class | class filenameH ].
+	}.
+
+
+	includeString = { 
+		includeString = 
+			(headers collect: [ :filename | "#include \"",filename,"\"\n" ]) asString.
+		includeString = includeString, "#include \"gtk_utils.h\"".
+		^includeString.
+	}.
+
+	loadFunctions = { |file|
+		file << (File clone name: "functions.txt") openForReading.
+		file foreachLine: [ :line | |definition|
+			line << line trim.
+			line == "\n" ifFalse: [
+				definition <<  (GFuncDefinition clone fromString: line).
+				functions add: (GFunction cloneWithDefinition: definition generator: self).
+			].
+		].
+		file close.
+	}.
+
+	findType: = { :typeName |
+		^types detect: [ :type | type cname == typeName ] ifNone: [ 
+			throw: (Exception clone message: "Unknown type '",typeName,"'").
+		].
+	}.
+	
+	findFunctionsForClasses = {
+		allClasses foreach: [ :class | class findFunctions ].
+	}.
+
+	/*checkFunctions = { |list|
+		list << functions select: [ :func | func slotName isNil ].
+		list isEmpty ifFalse: [ 
+			"Automatic name cannot be generated for functions: " println.
+			list foreach: [ :func | func call println ].
+			VM quit.
+		].
+	}.*/
+
+	createMakefile = { |rep filenames|
+		"Creating makefile ... " println.
+		filenames << (allClasses collect: 
+				[ :class | 
+					class filenameH," \\\n", class filenameC," \\\n" 
+				]) asString.
+
+
+		rep << Replacer clone loadTemplate: "Makefile-template.am".
+		rep replaceDictionary: #(
+			("%filenames%" => filenames)
+		) asDictionary.
+		rep saveTo: "../Makefile.am".
+	}.
+
+
+	createModule = { |rep extensions prototypes removePrototypesString include|
+		"Creating module ... " println.
+		extensions << (allClasses collect: 
+				[ :class | 
+					class initExtensionString,"\n"
+				]) asString.
+		prototypes << (allClasses collect: 
+				[ :class | 
+					class callInitPrototypeString,"\n"
+				]) asString.
+
+		removePrototypesString << (allClasses collect: 
+				[ :class |
+					"\t",class removePrototypeString,"\n" ]) asString.
+		rep << Replacer clone loadTemplate: "module.c".
+		rep replaceDictionary: #(
+			("%init_extensions%" => extensions)
+			("%remove_prototypes%" => removePrototypesString)
+			("%init_prototypes%" => prototypes)
+			("%include%" => includeString)
+		) asDictionary.
+		rep saveTo: "../gtk.c".
+	}.
+	
+
+	create = {
+		(args size > 0) ifTrue: [
+			createMakefile.
+		].
+		createModule.
+		allClasses foreach: [ :class | class create ].
+	}.
+
+}.
+
+
+Generator do: {
+	loadFunctions.
+
+	findFunctionsForClasses.
+	//checkFunctions.
+	//functions foreach: [ :each | (each call , ":", each className,":", each returnType ,"/",(each params asStringDelimiter: ",")) println. ].
+	create.
+
+	//allClasses foreach: [ :class | (class name, " ", class functions printString) println].
+}.
+

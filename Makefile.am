@@ -1,5 +1,5 @@
 
-SUBDIRS = src docs tests
+SUBDIRS = src modules docs tests
 
 MOSTLYCLEANFILES=*.kxc
 

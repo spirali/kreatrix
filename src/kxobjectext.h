@@ -27,7 +27,6 @@ typedef int(KxObjectFcnCompare)(struct KxObject *self, struct KxObject *param);
 
 struct KxObjectExtension {
 	
-	char *type_name;
 
 	KxObjectFcnActivate *activate;
 	KxObjectFcnClone *clone;
@@ -36,7 +35,9 @@ struct KxObjectExtension {
 	KxObjectFcnCopy *copy;
 	//KxObjectFcnDepthCopy *depth_copy;
 	KxObjectFcnClean *clean;
-	//KxObjectFcnCompare *compare;
+
+	char *type_name;
+	KxObjectExtension *parent;
 };
 
 void kxobjectext_init(KxObjectExtension *self);

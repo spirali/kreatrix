@@ -475,6 +475,14 @@ kxbaseobject_unfreeze_slot(KxObject *self, KxMessage *message)
 	KXRETURN(self);
 }
 
+static KxObject *
+kxbaseobject_dump(KxObject *self, KxMessage *message)
+{
+	kxobject_dump(self);
+	KXRETURN(self);
+}
+
+
 
 void 
 kxbaseobject_add_method_table(KxObject *self)
@@ -509,6 +517,7 @@ kxbaseobject_add_method_table(KxObject *self)
 		{"identityHash",0, kxbaseobject_identity_hash },
 		{"freezeSlot:",1, kxbaseobject_freeze_slot },
 		{"unfreezeSlot:",1, kxbaseobject_unfreeze_slot },
+		{"dump",0, kxbaseobject_dump },
 		{NULL,0, NULL}
 	};
 	kxobject_add_methods(self, table);

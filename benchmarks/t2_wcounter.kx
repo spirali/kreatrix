@@ -1,0 +1,25 @@
+
+
+Benchmark clone do: {
+
+	run = {
+		|words file list|
+
+		words << Dictionary clone.
+
+		file << (File clone name: "data.txt") openForReading.
+	
+		file foreachLine: [ :line | 
+			(line asListBy: " ,.!?\n:;") foreach: [ :word | |count|
+				words at: word put: (words at: word ifAbsent: [ 0 ]) + 1.
+			].
+		].
+
+		list << words asList.
+		list sort: [ :a :b | a value < b value ].
+		(list last: 10) println.
+		list size println.
+		list println.
+		//words asList println.
+	}.
+}.

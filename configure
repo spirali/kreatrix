@@ -653,15 +653,17 @@ CCDEPMODE
 am__fastdepCC_TRUE
 am__fastdepCC_FALSE
 RANLIB
+KX_THREADS_SUPPORT_TRUE
+KX_THREADS_SUPPORT_FALSE
 PKG_CONFIG
 libxml_CFLAGS
 libxml_LIBS
-KX_THREADS_SUPPORT_TRUE
-KX_THREADS_SUPPORT_FALSE
 LIBXML_CFLAGS
 LIBXML_LIBS
 KX_XML_MODULE_TRUE
 KX_XML_MODULE_FALSE
+gtk_CFLAGS
+gtk_LIBS
 LIBOBJS
 LTLIBOBJS'
 ac_subst_files=''
@@ -675,7 +677,9 @@ LIBS
 CPPFLAGS
 PKG_CONFIG
 libxml_CFLAGS
-libxml_LIBS'
+libxml_LIBS
+gtk_CFLAGS
+gtk_LIBS'
 
 
 # Initialize some variables set by options.
@@ -1269,6 +1273,8 @@ Some influential environment variables:
   libxml_CFLAGS
               C compiler flags for libxml, overriding pkg-config
   libxml_LIBS linker flags for libxml, overriding pkg-config
+  gtk_CFLAGS  C compiler flags for gtk, overriding pkg-config
+  gtk_LIBS    linker flags for gtk, overriding pkg-config
 
 Use these variables to override the choices made by `configure' or to help
 it to find libraries and programs with nonstandard names/locations.
@@ -3363,7 +3369,167 @@ fi
 
 
 
-# Allow disabling this feature
+
+
+
+
+{ echo "$as_me:$LINENO: checking for dlopen in -ldl" >&5
+echo $ECHO_N "checking for dlopen in -ldl... $ECHO_C" >&6; }
+if test "${ac_cv_lib_dl_dlopen+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-ldl  $LIBS"
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char dlopen ();
+int
+main ()
+{
+return dlopen ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_link") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest$ac_exeext &&
+       $as_test_x conftest$ac_exeext; then
+  ac_cv_lib_dl_dlopen=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	ac_cv_lib_dl_dlopen=no
+fi
+
+rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
+      conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ echo "$as_me:$LINENO: result: $ac_cv_lib_dl_dlopen" >&5
+echo "${ECHO_T}$ac_cv_lib_dl_dlopen" >&6; }
+if test $ac_cv_lib_dl_dlopen = yes; then
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBDL 1
+_ACEOF
+
+  LIBS="-ldl $LIBS"
+
+fi
+
+
+ac_config_headers="$ac_config_headers config.h"
+
+ac_config_files="$ac_config_files Makefile src/Makefile src/utils/Makefile src/compiler/Makefile src/tools/Makefile src/tools/kx2carray/Makefile src/tools/docgen/Makefile src/tools/objgen/Makefile src/tools/wrapgen/Makefile src/vminit/Makefile modules/Makefile modules/test/Makefile modules/system/Makefile modules/sockets/Makefile modules/time/Makefile modules/pool/Makefile modules/cgi/Makefile modules/threads/Makefile modules/xml/Makefile modules/gtk/Makefile tests/Makefile docs/Makefile docs/examples/Makefile"
+
+
+#AC_DEFINE_UNQUOTED([SHARE_EXT],["$shrext_cmds"],[Extension of modules])
+
+# TODO: Autodetect extension
+
+cat >>confdefs.h <<_ACEOF
+#define SHARE_EXT ".so"
+_ACEOF
+
+
+
+
+# Check whether --enable-debug-gc was given.
+if test "${enable_debug_gc+set}" = set; then
+  enableval=$enable_debug_gc;
+
+cat >>confdefs.h <<_ACEOF
+#define KX_DEBUG_GC 1
+_ACEOF
+
+{ echo "$as_me:$LINENO: DEBUG OPTIONS: gc-debug enabled" >&5
+echo "$as_me: DEBUG OPTIONS: gc-debug enabled" >&6;}
+
+fi
+
+
+# Threads support
+# Check whether --enable-threads was given.
+if test "${enable_threads+set}" = set; then
+  enableval=$enable_threads;
+kx_threads="${enableval}"
+
+else
+  kx_threads=yes
+fi
+
+
+if test "$kx_threads" = no; then
+
+
+if false; then
+  KX_THREADS_SUPPORT_TRUE=
+  KX_THREADS_SUPPORT_FALSE='#'
+else
+  KX_THREADS_SUPPORT_TRUE='#'
+  KX_THREADS_SUPPORT_FALSE=
+fi
+
+{ echo "$as_me:$LINENO: Threads support disabled" >&5
+echo "$as_me: Threads support disabled" >&6;}
+else
+
+cat >>confdefs.h <<_ACEOF
+#define KX_THREADS_SUPPORT 1
+_ACEOF
+
+
+
+if true; then
+  KX_THREADS_SUPPORT_TRUE=
+  KX_THREADS_SUPPORT_FALSE='#'
+else
+  KX_THREADS_SUPPORT_TRUE='#'
+  KX_THREADS_SUPPORT_FALSE=
+fi
+
+fi
+
+
+# ---- XML module ---------------------------
+# Check whether --enable-xml was given.
+if test "${enable_xml+set}" = set; then
+  enableval=$enable_xml;
+kx_xml="${enableval}"
+
+else
+  kx_xml=yes
+fi
+
+
+if test "$kx_xml" = yes; then
+
 
 
 if test "x$ac_cv_env_PKG_CONFIG_set" != "xset"; then
@@ -3595,166 +3761,6 @@ else
 echo "${ECHO_T}yes" >&6; }
 	:
 fi
-
-
-
-
-{ echo "$as_me:$LINENO: checking for dlopen in -ldl" >&5
-echo $ECHO_N "checking for dlopen in -ldl... $ECHO_C" >&6; }
-if test "${ac_cv_lib_dl_dlopen+set}" = set; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-ldl  $LIBS"
-cat >conftest.$ac_ext <<_ACEOF
-/* confdefs.h.  */
-_ACEOF
-cat confdefs.h >>conftest.$ac_ext
-cat >>conftest.$ac_ext <<_ACEOF
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char dlopen ();
-int
-main ()
-{
-return dlopen ();
-  ;
-  return 0;
-}
-_ACEOF
-rm -f conftest.$ac_objext conftest$ac_exeext
-if { (ac_try="$ac_link"
-case "(($ac_try" in
-  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
-  *) ac_try_echo=$ac_try;;
-esac
-eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
-  (eval "$ac_link") 2>conftest.er1
-  ac_status=$?
-  grep -v '^ *+' conftest.er1 >conftest.err
-  rm -f conftest.er1
-  cat conftest.err >&5
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
-	 test ! -s conftest.err
-       } && test -s conftest$ac_exeext &&
-       $as_test_x conftest$ac_exeext; then
-  ac_cv_lib_dl_dlopen=yes
-else
-  echo "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-	ac_cv_lib_dl_dlopen=no
-fi
-
-rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
-      conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ echo "$as_me:$LINENO: result: $ac_cv_lib_dl_dlopen" >&5
-echo "${ECHO_T}$ac_cv_lib_dl_dlopen" >&6; }
-if test $ac_cv_lib_dl_dlopen = yes; then
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBDL 1
-_ACEOF
-
-  LIBS="-ldl $LIBS"
-
-fi
-
-
-ac_config_headers="$ac_config_headers config.h"
-
-ac_config_files="$ac_config_files Makefile src/Makefile src/utils/Makefile src/compiler/Makefile src/tools/Makefile src/tools/kx2carray/Makefile src/tools/docgen/Makefile src/tools/objgen/Makefile src/tools/wrapgen/Makefile src/modules/Makefile src/modules/test/Makefile src/modules/system/Makefile src/modules/sockets/Makefile src/modules/pool/Makefile src/modules/cgi/Makefile src/modules/threads/Makefile src/modules/xml/Makefile src/vminit/Makefile tests/Makefile docs/Makefile docs/examples/Makefile"
-
-
-#AC_DEFINE_UNQUOTED([SHARE_EXT],["$shrext_cmds"],[Extension of modules])
-
-# TODO: Autodetect extension
-
-cat >>confdefs.h <<_ACEOF
-#define SHARE_EXT ".so"
-_ACEOF
-
-
-
-
-# Check whether --enable-debug-gc was given.
-if test "${enable_debug_gc+set}" = set; then
-  enableval=$enable_debug_gc;
-
-cat >>confdefs.h <<_ACEOF
-#define KX_DEBUG_GC 1
-_ACEOF
-
-{ echo "$as_me:$LINENO: DEBUG OPTIONS: gc-debug enabled" >&5
-echo "$as_me: DEBUG OPTIONS: gc-debug enabled" >&6;}
-
-fi
-
-
-# Threads support
-# Check whether --enable-threads was given.
-if test "${enable_threads+set}" = set; then
-  enableval=$enable_threads;
-kx_threads="${enableval}"
-
-else
-  kx_threads=yes
-fi
-
-
-if test "$kx_threads" = no; then
-
-
-if false; then
-  KX_THREADS_SUPPORT_TRUE=
-  KX_THREADS_SUPPORT_FALSE='#'
-else
-  KX_THREADS_SUPPORT_TRUE='#'
-  KX_THREADS_SUPPORT_FALSE=
-fi
-
-{ echo "$as_me:$LINENO: Threads support disabled" >&5
-echo "$as_me: Threads support disabled" >&6;}
-else
-
-cat >>confdefs.h <<_ACEOF
-#define KX_THREADS_SUPPORT 1
-_ACEOF
-
-
-
-if true; then
-  KX_THREADS_SUPPORT_TRUE=
-  KX_THREADS_SUPPORT_FALSE='#'
-else
-  KX_THREADS_SUPPORT_TRUE='#'
-  KX_THREADS_SUPPORT_FALSE=
-fi
-
-fi
-
-
-# XML module
-# Check whether --enable-xml was given.
-if test "${enable_xml+set}" = set; then
-  enableval=$enable_xml;
-kx_xml="${enableval}"
-
-else
-  kx_xml=yes
-fi
-
-
-if test "$kx_xml" = yes; then
 LIBXML_CFLAGS="`xml2-config --cflags`"
 LIBXML_LIBS="`xml2-config --libs`"
 
@@ -3784,6 +3790,120 @@ fi
 
 { echo "$as_me:$LINENO: Module XML disabled" >&5
 echo "$as_me: Module XML disabled" >&6;}
+fi
+
+# ---- GTK module ---------------------------
+
+
+pkg_failed=no
+{ echo "$as_me:$LINENO: checking for gtk" >&5
+echo $ECHO_N "checking for gtk... $ECHO_C" >&6; }
+
+if test -n "$PKG_CONFIG"; then
+    if test -n "$gtk_CFLAGS"; then
+        pkg_cv_gtk_CFLAGS="$gtk_CFLAGS"
+    else
+        if test -n "$PKG_CONFIG" && \
+    { (echo "$as_me:$LINENO: \$PKG_CONFIG --exists --print-errors \"gtk+-2.0\"") >&5
+  ($PKG_CONFIG --exists --print-errors "gtk+-2.0") 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; then
+  pkg_cv_gtk_CFLAGS=`$PKG_CONFIG --cflags "gtk+-2.0" 2>/dev/null`
+else
+  pkg_failed=yes
+fi
+    fi
+else
+	pkg_failed=untried
+fi
+if test -n "$PKG_CONFIG"; then
+    if test -n "$gtk_LIBS"; then
+        pkg_cv_gtk_LIBS="$gtk_LIBS"
+    else
+        if test -n "$PKG_CONFIG" && \
+    { (echo "$as_me:$LINENO: \$PKG_CONFIG --exists --print-errors \"gtk+-2.0\"") >&5
+  ($PKG_CONFIG --exists --print-errors "gtk+-2.0") 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; then
+  pkg_cv_gtk_LIBS=`$PKG_CONFIG --libs "gtk+-2.0" 2>/dev/null`
+else
+  pkg_failed=yes
+fi
+    fi
+else
+	pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        gtk_PKG_ERRORS=`$PKG_CONFIG --short-errors --errors-to-stdout --print-errors "gtk+-2.0"`
+        else
+	        gtk_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "gtk+-2.0"`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$gtk_PKG_ERRORS" >&5
+
+	{ { echo "$as_me:$LINENO: error: Package requirements (gtk+-2.0) were not met:
+
+$gtk_PKG_ERRORS
+
+Consider adjusting the PKG_CONFIG_PATH environment variable if you
+installed software in a non-standard prefix.
+
+Alternatively, you may set the environment variables gtk_CFLAGS
+and gtk_LIBS to avoid the need to call pkg-config.
+See the pkg-config man page for more details.
+" >&5
+echo "$as_me: error: Package requirements (gtk+-2.0) were not met:
+
+$gtk_PKG_ERRORS
+
+Consider adjusting the PKG_CONFIG_PATH environment variable if you
+installed software in a non-standard prefix.
+
+Alternatively, you may set the environment variables gtk_CFLAGS
+and gtk_LIBS to avoid the need to call pkg-config.
+See the pkg-config man page for more details.
+" >&2;}
+   { (exit 1); exit 1; }; }
+elif test $pkg_failed = untried; then
+	{ { echo "$as_me:$LINENO: error: The pkg-config script could not be found or is too old.  Make sure it
+is in your PATH or set the PKG_CONFIG environment variable to the full
+path to pkg-config.
+
+Alternatively, you may set the environment variables gtk_CFLAGS
+and gtk_LIBS to avoid the need to call pkg-config.
+See the pkg-config man page for more details.
+
+To get pkg-config, see <http://www.freedesktop.org/software/pkgconfig>.
+See \`config.log' for more details." >&5
+echo "$as_me: error: The pkg-config script could not be found or is too old.  Make sure it
+is in your PATH or set the PKG_CONFIG environment variable to the full
+path to pkg-config.
+
+Alternatively, you may set the environment variables gtk_CFLAGS
+and gtk_LIBS to avoid the need to call pkg-config.
+See the pkg-config man page for more details.
+
+To get pkg-config, see <http://www.freedesktop.org/software/pkgconfig>.
+See \`config.log' for more details." >&2;}
+   { (exit 1); exit 1; }; }
+else
+	gtk_CFLAGS=$pkg_cv_gtk_CFLAGS
+	gtk_LIBS=$pkg_cv_gtk_LIBS
+        { echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6; }
+	:
 fi
 
 cat >confcache <<\_ACEOF
@@ -4401,15 +4521,17 @@ do
     "src/tools/docgen/Makefile") CONFIG_FILES="$CONFIG_FILES src/tools/docgen/Makefile" ;;
     "src/tools/objgen/Makefile") CONFIG_FILES="$CONFIG_FILES src/tools/objgen/Makefile" ;;
     "src/tools/wrapgen/Makefile") CONFIG_FILES="$CONFIG_FILES src/tools/wrapgen/Makefile" ;;
-    "src/modules/Makefile") CONFIG_FILES="$CONFIG_FILES src/modules/Makefile" ;;
-    "src/modules/test/Makefile") CONFIG_FILES="$CONFIG_FILES src/modules/test/Makefile" ;;
-    "src/modules/system/Makefile") CONFIG_FILES="$CONFIG_FILES src/modules/system/Makefile" ;;
-    "src/modules/sockets/Makefile") CONFIG_FILES="$CONFIG_FILES src/modules/sockets/Makefile" ;;
-    "src/modules/pool/Makefile") CONFIG_FILES="$CONFIG_FILES src/modules/pool/Makefile" ;;
-    "src/modules/cgi/Makefile") CONFIG_FILES="$CONFIG_FILES src/modules/cgi/Makefile" ;;
-    "src/modules/threads/Makefile") CONFIG_FILES="$CONFIG_FILES src/modules/threads/Makefile" ;;
-    "src/modules/xml/Makefile") CONFIG_FILES="$CONFIG_FILES src/modules/xml/Makefile" ;;
     "src/vminit/Makefile") CONFIG_FILES="$CONFIG_FILES src/vminit/Makefile" ;;
+    "modules/Makefile") CONFIG_FILES="$CONFIG_FILES modules/Makefile" ;;
+    "modules/test/Makefile") CONFIG_FILES="$CONFIG_FILES modules/test/Makefile" ;;
+    "modules/system/Makefile") CONFIG_FILES="$CONFIG_FILES modules/system/Makefile" ;;
+    "modules/sockets/Makefile") CONFIG_FILES="$CONFIG_FILES modules/sockets/Makefile" ;;
+    "modules/time/Makefile") CONFIG_FILES="$CONFIG_FILES modules/time/Makefile" ;;
+    "modules/pool/Makefile") CONFIG_FILES="$CONFIG_FILES modules/pool/Makefile" ;;
+    "modules/cgi/Makefile") CONFIG_FILES="$CONFIG_FILES modules/cgi/Makefile" ;;
+    "modules/threads/Makefile") CONFIG_FILES="$CONFIG_FILES modules/threads/Makefile" ;;
+    "modules/xml/Makefile") CONFIG_FILES="$CONFIG_FILES modules/xml/Makefile" ;;
+    "modules/gtk/Makefile") CONFIG_FILES="$CONFIG_FILES modules/gtk/Makefile" ;;
     "tests/Makefile") CONFIG_FILES="$CONFIG_FILES tests/Makefile" ;;
     "docs/Makefile") CONFIG_FILES="$CONFIG_FILES docs/Makefile" ;;
     "docs/examples/Makefile") CONFIG_FILES="$CONFIG_FILES docs/examples/Makefile" ;;
@@ -4550,20 +4672,22 @@ CCDEPMODE!$CCDEPMODE$ac_delim
 am__fastdepCC_TRUE!$am__fastdepCC_TRUE$ac_delim
 am__fastdepCC_FALSE!$am__fastdepCC_FALSE$ac_delim
 RANLIB!$RANLIB$ac_delim
+KX_THREADS_SUPPORT_TRUE!$KX_THREADS_SUPPORT_TRUE$ac_delim
+KX_THREADS_SUPPORT_FALSE!$KX_THREADS_SUPPORT_FALSE$ac_delim
 PKG_CONFIG!$PKG_CONFIG$ac_delim
 libxml_CFLAGS!$libxml_CFLAGS$ac_delim
 libxml_LIBS!$libxml_LIBS$ac_delim
-KX_THREADS_SUPPORT_TRUE!$KX_THREADS_SUPPORT_TRUE$ac_delim
-KX_THREADS_SUPPORT_FALSE!$KX_THREADS_SUPPORT_FALSE$ac_delim
 LIBXML_CFLAGS!$LIBXML_CFLAGS$ac_delim
 LIBXML_LIBS!$LIBXML_LIBS$ac_delim
 KX_XML_MODULE_TRUE!$KX_XML_MODULE_TRUE$ac_delim
 KX_XML_MODULE_FALSE!$KX_XML_MODULE_FALSE$ac_delim
+gtk_CFLAGS!$gtk_CFLAGS$ac_delim
+gtk_LIBS!$gtk_LIBS$ac_delim
 LIBOBJS!$LIBOBJS$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 86; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 88; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5

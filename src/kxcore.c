@@ -106,6 +106,8 @@ kxcore_new()
 	core->prototypes = dictionary_new();
 	core->registered_exceptions = dictionary_new();
 
+	core->global_data = dictionary_new();
+
 	/** Init base object */
 	core->base_object = kxbaseobject_new(core);
 
@@ -185,13 +187,32 @@ kxcore_add_prototype(KxCore *self, KxObject *prototype)
 	dictionary_add(self->prototypes,prototype->extension, prototype);
 }
 
+/*static void
+kxcore_dump_prototypes(KxCore *self)
+{
+	List *list = dictionary_keys_as_list(self->prototypes);
+
+	int t;
+	printf("Prototypes: ----------------\n");
+	for(t = 0; t<list->size; t++) {
+		KxObjectExtension *ext = list->items[t];
+		printf("%s\n", ext->type_name);
+	}
+	printf("----------------\n");
+	list_free(list);
+}*/
+
 KxObject * 
 kxcore_get_prototype(KxCore *self, KxObjectExtension *prototype_extension)
 {
 	KxObject *obj = (KxObject*) dictionary_get(self->prototypes,prototype_extension);
+
+/*	fprintf(stderr,"get '%s' \n", prototype_extension->type_name);
+	kxcore_dump_prototypes(self);*/
+	
 	if (obj == NULL) {
 		fprintf(stderr,"Fatal error: Prototype '%s' not found\n", prototype_extension->type_name);
-		exit(-1);
+		abort();
 	}
 	return obj;
 }
@@ -224,11 +245,10 @@ kxcore_registered_exception_clean(Dictionary *dict)
 void
 kxcore_free(KxCore *self) 
 {
-	kxgc_collect(self);
 
 	kxobject_clean(self->lobby);
 
-
+	kxgc_collect(self);
 
 	REF_REMOVE(self->lobby);
 
@@ -275,10 +295,12 @@ kxcore_free(KxCore *self)
 	list_free(self->stack_list);
 
 	list_free(self->symbol_table);
+
 	dictionary_free(self->prototypes);
+	dictionary_free(self->global_data);
 
 
-	if (kx_verbose)
+	if (kx_verbose || self->objects_count)
 		printf("core->objects_count = %i\n", self->objects_count);
 	free(self);
 }
@@ -548,4 +570,22 @@ KxObject *kxcore_clone_registered_exception_text(KxCore *core, char *group, char
 	kxobject_set_slot(obj, core->dictionary[KXDICT_MESSAGE], str);
 	REF_REMOVE(str);
 	return obj;
+}
+
+void
+kxcore_set_global_data(KxCore *core, char *key, void *data)
+{
+	dictionary_add_with_compare(core->global_data, key, data, (CompareFcn*)strcmp);
+}
+
+void *
+kxcore_get_global_data(KxCore *core, char *key)
+{
+	return dictionary_get_with_compare(core->global_data, key, (CompareFcn*)strcmp);
+}
+
+void
+kxcore_remove_global_data(KxCore *core, char *key)
+{
+	dictionary_remove_with_compare(core->global_data, key, (CompareFcn*)strcmp);
 }

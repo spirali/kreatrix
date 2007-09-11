@@ -6,6 +6,8 @@
 
 #include <stdarg.h>
 #include <stdio.h>
+#include <string.h>
+#include <errno.h>
 
 #include "kxexception.h"
 #include "kxobject.h"
@@ -56,3 +58,13 @@ kxexception_type_error(char *type_name, KxObject *obj)
 	REF_REMOVE(type_obj2);
 	return excp;
 }
+
+
+KxException *
+kxexception_from_errno(KxCore *core, char *text) 
+{
+	char tmp[250];
+	snprintf(tmp,250, "%s: %s", text, strerror(errno));
+	return kxexception_new_with_text(core, tmp);
+}
+

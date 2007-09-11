@@ -133,6 +133,20 @@ kxcharacter_as_uppercase(KxCharacter *self, KxMessage *message)
 	return KXCHARACTER(toupper(c));
 }
 
+static KxObject *
+kxcharacter_is_uppercase(KxCharacter *self, KxMessage *message)
+{
+	char c = self->data.charval;
+	KXRETURN_BOOLEAN(isupper(c));
+}
+
+static KxObject *
+kxcharacter_is_lowercase(KxCharacter *self, KxMessage *message)
+{
+	char c = self->data.charval;
+	KXRETURN_BOOLEAN(islower(c));
+}
+
 static void
 kxcharacter_add_method_table(KxCharacter *self) 
 {
@@ -145,6 +159,9 @@ kxcharacter_add_method_table(KxCharacter *self)
 		{"isAlphaNumeric",0, kxcharacter_is_alpha_numeric },
 		{"asLowercase",0, kxcharacter_as_lowercase },
 		{"asUppercase",0, kxcharacter_as_uppercase },
+		{"isLowercase",0, kxcharacter_is_lowercase },
+		{"isUppercase",0, kxcharacter_is_uppercase },
+
 		{NULL,0, NULL}
 	};
 	kxobject_add_methods(self, table);

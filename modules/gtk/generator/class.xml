@@ -1,0 +1,22 @@
+<gtk>
+
+<class name="GtkObject" abstract="true" init="kxgtkobject_extra_init(self);">
+	<class name="GtkWidget" abstract="true">
+		<class name="GtkContainer" abstract="true">
+			<class name="GtkBin" abstract="true">
+				<class name="GtkWindow" createp="0"/>
+				<class name="GtkButton">
+					<class name="GtkCheckButton">
+
+					</class>
+				</class>
+			</class>
+			<class name="GtkBox" abstract="true">
+				<class name="GtkVBox" createp="TRUE,0"/>
+				<class name="GtkHBox" createp="TRUE,0"/>
+			</class>
+		</class>
+	</class>
+</class>
+
+</gtk>

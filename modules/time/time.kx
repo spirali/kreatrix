@@ -1,0 +1,36 @@
+(isLoaded: #time) ifTrue: [ ^getModule: #time ].
+
+loadCLibrary: "time".
+
+Time = Object clone do: {
+	type = "Time".
+
+	seconds <- 0.
+	milliseconds <- 0.
+
+	milliseconds:since: = { :currentTime :lastTime | |delta|
+		delta << currentTime - lastTime.
+		seconds: delta / 1000.
+		milliseconds: (delta mod: 1000).
+	}.
+
+
+	printSeconds = {
+		^(seconds asFloat + (milliseconds asFloat / 1000.0)) asString.
+	}.
+
+	asMilliseconds = {
+		^(seconds * 1000) + milliseconds.
+	}.
+
+	asSeconds = { ^seconds }.
+
+}.
+
+timeOfRun: = { :aBlock | |startTime|
+	startTime << time millisecondClockValue.
+	aBlock value.
+	^Time clone milliseconds: millisecondClockValue since: startTime.
+}.
+
+registerAs: #time.

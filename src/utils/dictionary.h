@@ -26,6 +26,7 @@ void dictionary_remove(Dictionary *self, void *key);
 
 void dictionary_add_with_compare(Dictionary *self, void *key, void *value, CompareFcn *fcn);
 void *dictionary_get_with_compare(Dictionary *self, void *key, CompareFcn *fcn);
+void dictionary_remove_with_compare(Dictionary *self, void *key, CompareFcn *fcn);
 
 
 void dictionary_foreach_value(Dictionary *self, ForeachFcn *fcn);
