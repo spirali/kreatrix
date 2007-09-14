@@ -30,11 +30,17 @@ static void kxgtkbutton_free(KxObject *self)
 	kxgtk_remove_wrapper(self);
 }
 
+static void kxgtkbutton_mark(KxObject *self)
+{
+	kxgtk_mark_container(self);
+}
+
 void kxgtkbutton_extension_init() {
 	kxobjectext_init(&kxgtkbutton_extension);
 	kxgtkbutton_extension.type_name = "GtkButton";
 	kxgtkbutton_extension.parent = &kxgtkbin_extension;
 	kxgtkbutton_extension.free = kxgtkbutton_free;
+	kxgtkbutton_extension.mark = kxgtkbutton_mark;
 //%init_extension%
 }
 

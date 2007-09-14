@@ -38,13 +38,25 @@ kxgtk_init_keys()
     kxgtk_constructor_key = g_quark_from_static_string("KxGObject::constructor");
 }
 
-void gtk_utils_init()
+static void 
+kxgtk_mark_windows(KxCore *core)
+{
+	List *list = kxcore_get_global_data(core, "kxgtk-window-list");
+	int t;
+	for (t=0;t<list->size;t++) {
+		kxgtk_mark_gobject(list->items[t]);
+	}
+}
+
+void kxgtk_utils_init(KxCore *core)
 {
 	kxgtk_init_keys();
 
 	// Init abstract class
 	kxobjectext_init(&gtkabstractclass_extension);
 	gtkabstractclass_extension.type_name = "GtkAbstractClass";
+
+	kxcore_register_mark_function(core, kxgtk_mark_windows);
 }
 
 static KxObject *
@@ -246,3 +258,34 @@ kxgtk_kxobject_from_boxed(const GValue *value)
 			);
 	abort();
 }
+
+static void kxgtk_mark_callback(GtkWidget *obj, gpointer data);
+
+void kxgtk_mark_container(GObject *obj)
+{
+	GType type = G_OBJECT_TYPE(obj);
+	if (G_TYPE_CHECK_CLASS_TYPE(type, GTK_TYPE_CONTAINER)) {
+		gtk_container_forall(GTK_CONTAINER(obj), kxgtk_mark_callback, NULL);
+	}
+}
+
+void
+kxgtk_mark_gobject(GObject *obj) 
+{
+	KxObject *self = g_object_get_qdata(obj, kxgtk_wrapper_key);
+	if (self) {
+		if (KXOBJECT_HAS_GC_MARK(self)) {
+			return;
+		}
+		kxobject_mark(self);
+	} else 
+		kxgtk_mark_container(obj);
+}
+
+static void
+kxgtk_mark_callback(GtkWidget *obj, gpointer data)
+{
+	kxgtk_mark_bafff_gobject(G_OBJECT(obj));
+}
+
+

@@ -20,11 +20,17 @@ static void kx%name%_free(KxObject *self)
 	kxgtk_remove_wrapper(self);
 }
 
+static void kx%name%_mark(KxObject *self)
+{
+	kxgtk_mark_container(self);
+}
+
 void kx%name%_extension_init() {
 	kxobjectext_init(&kx%name%_extension);
 	kx%name%_extension.type_name = "%Name%";
 	kx%name%_extension.parent = %parent_extension%;
 	kx%name%_extension.free = kx%name%_free;
+	kx%name%_extension.mark = kx%name%_mark;
 //%init_extension%
 }
 

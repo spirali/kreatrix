@@ -32,7 +32,7 @@ kxmodule_main(KxModule *self, KxMessage *message)
 	kxcore_set_global_data(KXCORE,"kxgtk-window-list", list);
 
 	gtk_init(0, NULL);
-	gtk_utils_init();
+	kxgtk_utils_init(KXCORE);
 
 	kxgdkevent_extension_init();
 	kxgtkobject_extension_init();

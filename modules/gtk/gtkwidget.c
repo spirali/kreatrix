@@ -30,11 +30,17 @@ static void kxgtkwidget_free(KxObject *self)
 	kxgtk_remove_wrapper(self);
 }
 
+static void kxgtkwidget_mark(KxObject *self)
+{
+	kxgtk_mark_container(self);
+}
+
 void kxgtkwidget_extension_init() {
 	kxobjectext_init(&kxgtkwidget_extension);
 	kxgtkwidget_extension.type_name = "GtkWidget";
 	kxgtkwidget_extension.parent = &kxgtkobject_extension;
 	kxgtkwidget_extension.free = kxgtkwidget_free;
+	kxgtkwidget_extension.mark = kxgtkwidget_mark;
 //%init_extension%
 }
 

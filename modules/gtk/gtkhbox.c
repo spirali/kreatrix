@@ -30,11 +30,17 @@ static void kxgtkhbox_free(KxObject *self)
 	kxgtk_remove_wrapper(self);
 }
 
+static void kxgtkhbox_mark(KxObject *self)
+{
+	kxgtk_mark_container(self);
+}
+
 void kxgtkhbox_extension_init() {
 	kxobjectext_init(&kxgtkhbox_extension);
 	kxgtkhbox_extension.type_name = "GtkHBox";
 	kxgtkhbox_extension.parent = &kxgtkbox_extension;
 	kxgtkhbox_extension.free = kxgtkhbox_free;
+	kxgtkhbox_extension.mark = kxgtkhbox_mark;
 //%init_extension%
 }
 

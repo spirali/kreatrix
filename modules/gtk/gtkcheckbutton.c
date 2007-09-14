@@ -30,11 +30,17 @@ static void kxgtkcheckbutton_free(KxObject *self)
 	kxgtk_remove_wrapper(self);
 }
 
+static void kxgtkcheckbutton_mark(KxObject *self)
+{
+	kxgtk_mark_container(self);
+}
+
 void kxgtkcheckbutton_extension_init() {
 	kxobjectext_init(&kxgtkcheckbutton_extension);
 	kxgtkcheckbutton_extension.type_name = "GtkCheckButton";
 	kxgtkcheckbutton_extension.parent = &kxgtkbutton_extension;
 	kxgtkcheckbutton_extension.free = kxgtkcheckbutton_free;
+	kxgtkcheckbutton_extension.mark = kxgtkcheckbutton_mark;
 //%init_extension%
 }
 

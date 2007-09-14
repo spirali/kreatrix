@@ -16,7 +16,7 @@ KxObject *kxgboolean_from(KxCore *core, gboolean value);
 
 extern KxObjectExtension gtkabstractclass_extension;
 
-void gtk_utils_init();
+void kxgtk_utils_init(KxCore *core);
 
 void kxgtkobject_extra_init(KxObject *self);
 
@@ -35,6 +35,8 @@ void kxgtk_register_boxed_type(GType boxed_type,  KxObject *prototype);
 
 extern GQuark kxgtk_prototype_key;
 extern GQuark kxgtk_wrapper_key;
+
+void kxgtk_mark_gobject(GObject *obj);
 
 
 #endif

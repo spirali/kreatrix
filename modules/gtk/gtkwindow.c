@@ -30,11 +30,17 @@ static void kxgtkwindow_free(KxObject *self)
 	kxgtk_remove_wrapper(self);
 }
 
+static void kxgtkwindow_mark(KxObject *self)
+{
+	kxgtk_mark_container(self);
+}
+
 void kxgtkwindow_extension_init() {
 	kxobjectext_init(&kxgtkwindow_extension);
 	kxgtkwindow_extension.type_name = "GtkWindow";
 	kxgtkwindow_extension.parent = &kxgtkbin_extension;
 	kxgtkwindow_extension.free = kxgtkwindow_free;
+	kxgtkwindow_extension.mark = kxgtkwindow_mark;
 //%init_extension%
 }
 

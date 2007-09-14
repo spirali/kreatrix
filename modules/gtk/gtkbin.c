@@ -30,11 +30,17 @@ static void kxgtkbin_free(KxObject *self)
 	kxgtk_remove_wrapper(self);
 }
 
+static void kxgtkbin_mark(KxObject *self)
+{
+	kxgtk_mark_container(self);
+}
+
 void kxgtkbin_extension_init() {
 	kxobjectext_init(&kxgtkbin_extension);
 	kxgtkbin_extension.type_name = "GtkBin";
 	kxgtkbin_extension.parent = &kxgtkcontainer_extension;
 	kxgtkbin_extension.free = kxgtkbin_free;
+	kxgtkbin_extension.mark = kxgtkbin_mark;
 //%init_extension%
 }
 
