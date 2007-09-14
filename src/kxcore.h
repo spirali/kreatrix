@@ -52,6 +52,8 @@ typedef struct KxCore KxCore;
 						kxcore_switch_to_stack(KXCORE, __stack); }
 typedef void(KxGILFcn)(KxCore*);
 
+typedef void(KxMarkFunction)(KxCore*);
+
 #else
 
 #define KX_THREADS_BEGIN 
@@ -107,6 +109,8 @@ struct KxCore  {
 	KxObject *basic_prototypes[KXPROTOS_COUNT];
 
 	Dictionary *global_data;
+
+	List *mark_functions;
 };
 
 KxCore *kxcore_new();
@@ -154,6 +158,7 @@ void kxcore_set_global_data(KxCore *core, char *key, void *data);
 void* kxcore_get_global_data(KxCore *core, char *key);
 void kxcore_remove_global_data(KxCore *core, char *key);
 
+void kxcore_register_mark_function(KxCore *core, KxMarkFunction *function);
 
 #ifdef KX_THREADS_SUPPORT
 	void kxcore_reset_yield_counter(KxCore *core);

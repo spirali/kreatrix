@@ -299,6 +299,9 @@ kxcore_free(KxCore *self)
 	dictionary_free(self->prototypes);
 	dictionary_free(self->global_data);
 
+	if (self->mark_functions) {
+		list_free(self->mark_functions);
+	}
 
 	if (kx_verbose || self->objects_count)
 		printf("core->objects_count = %i\n", self->objects_count);
@@ -405,6 +408,14 @@ kxcore_mark(KxCore *self)
 	list_foreach(self->stack_list, (ListForeachFcn*) kxstack_mark);
 	dictionary_foreach_value(self->prototypes, (ListForeachFcn*) kxobject_mark);
 	dictionary_foreach_value(self->registered_exceptions, (ForeachFcn*) kxcore_mark_registered_exceptions);
+
+	if (self->mark_functions) {
+		int t;
+		for (t=0;t<self->mark_functions->size;t++) {
+			KxMarkFunction *fcn = (KxMarkFunction*) self->mark_functions->items[t];
+			fcn(self);
+		}
+	}
 	
 }
 
@@ -589,3 +600,12 @@ kxcore_remove_global_data(KxCore *core, char *key)
 {
 	dictionary_remove_with_compare(core->global_data, key, (CompareFcn*)strcmp);
 }
+
+void kxcore_register_mark_function(KxCore *core, KxMarkFunction *function)
+{
+	if (core->mark_functions == NULL) {
+		core->mark_functions = list_new();
+	}
+	list_append(core->mark_functions, function);
+}
+

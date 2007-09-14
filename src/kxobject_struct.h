@@ -18,6 +18,9 @@
 
 #define KXOBJECT_RESET_SLOTSEARCH_MARK(self) (self)->slot_search_mark = 0
 
+
+#define KXOBJECT_HAS_GC_MARK(self) ((self)->gc_mark)
+
 typedef struct KxObject KxObject;
 typedef struct KxParentSlot KxParentSlot;
 typedef struct KxSlot KxSlot;
