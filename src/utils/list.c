@@ -134,7 +134,6 @@ list_remove(List *list, int position)
 		list->items[t] = list->items[t+1];
 	}
 
-//	printf("s1 = %i %i\n",list->size,position);
 	if (list->size < list->capacity/2) {
 		if (list->capacity <= LIST_DEFAULT_CAPACITY) {
 			return;
@@ -144,6 +143,18 @@ list_remove(List *list, int position)
 
 		list->items = realloc(list->items,sizeof(void*)*list->capacity);
 		ALLOCTEST(list->items);
+	}
+}
+
+void
+list_remove_first(List *list, void *data) 
+{
+	int t;
+	for (t=0;t<list->size;t++) {
+		if (list->items[t] == data) {
+			list_remove(list, t);
+			return;
+		}
 	}
 }
   

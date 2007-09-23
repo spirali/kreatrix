@@ -1,0 +1,19 @@
+typedef struct {
+  gint width;
+  gint height;
+} GtkRequisition;
+
+
+typedef struct {
+  gint min_width;
+  gint min_height;
+  gint max_width;
+  gint max_height;
+  gint base_width;
+  gint base_height;
+  gint width_inc;
+  gint height_inc;
+  gdouble min_aspect;
+  gdouble max_aspect;
+  GdkGravity win_gravity;
+} GdkGeometry;

@@ -8,7 +8,7 @@ GBasicType = Object clone do: {
 
 	ignoreResult <- false.
 
-	convertName = { 	
+	convertName <- { 	
 		(cname last == '*') ifTrue: [
 			^cname sliceTo: (cname size - 1)
 		].
@@ -39,7 +39,7 @@ GType = GBasicType clone do: {
 
 GTypePrimitive = GType clone do: {
 	type = "GTypePrimitive".
-	convertName <- "".
+	convertName:  "".
 
 	name:cname:convertName: = { :name :cname :convertName |
 		name: name.

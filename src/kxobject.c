@@ -691,6 +691,7 @@ kxobject_type_name(KxObject *self)
 	if (obj) {
 		if (IS_KXSTRING(obj)) 
 			return obj;
+		REF_REMOVE(obj);
 		return KXSTRING("(type_is_not_string)");
 	}
 	KxReturn ret = kxstack_get_return_state(KXSTACK);
@@ -752,13 +753,15 @@ kxobject_activate_with_message(KxObject *self, KxMessage *message)
 void 
 kxobject_mark(KxObject *self) 
 {
+	/*printf("MARK::");
+	kxobject_dump(self);*/
 	if (self->gc_mark)
 		return;
 
 
 	self->gc_mark = 1;
 
-	if (self->parent_slot.parent && self->parent_slot.parent->gc_mark)
+	if (self->parent_slot.parent && !self->parent_slot.parent->gc_mark)
 	{
 		kxobject_mark(self->parent_slot.parent);	
 	}

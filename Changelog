@@ -3,6 +3,7 @@
 	+ Module "time" added
 	+ ObjectExtensions now supports inheritance
 	+ Fixed few bugs in module xml
+	+ Slots && and || in true/false was renamed to /\ and \/
 
 0.9 
 	+ New compiler front-end

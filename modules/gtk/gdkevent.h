@@ -12,6 +12,13 @@
 
 #define IS_KXGDKEVENT(self) ((self)->extension == &kxgdkevent_extension)
 
+#define KXGDKEVENT_DATA(self) ((GdkEvent*) self->data.ptr)
+
+#define KXPARAM_TO_GDKEVENT(param_name, param_id) \
+	GdkEvent* param_name; { KxObject *tmp = message->params[param_id]; if (IS_KXGDKEVENT(tmp)) \
+	{ param_name = KXGDKEVENT_DATA(tmp); } else { return kxobject_type_error(tmp,&kxgdkevent_extension); }} 
+
+
 typedef struct KxObject KxGdkEvent;
 
 

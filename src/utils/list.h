@@ -36,6 +36,8 @@ void list_put(List *list, int position, void *item);
 void *list_get(List *list, int position);
 void list_append(List *list, void *data);
 void list_remove(List *list, int position);
+void list_remove_first(List *list, void *data);
+
 void list_clean(List* list);
 void list_foreach(List *list, ListForeachFcn *fcn);
 void * list_pop(List *list);

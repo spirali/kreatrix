@@ -6,6 +6,7 @@
 #include "kxobject.h"
 #include "kxexception.h"
 #include "kxinteger.h"
+#include "kxfloat.h"
 #include "kxstring.h"
 #include "kxcore.h"
 #include "gdkevent.h"
@@ -34,6 +35,8 @@ kxmodule_main(KxModule *self, KxMessage *message)
 
 %init_prototypes%
 
+%constants%
+
 	kxgtk_add_method_table(self);
 	KXRETURN(self);
 }
@@ -43,15 +46,8 @@ kxmodule_unload(KxModule *self)
 {
 %remove_prototypes%
   	kxcore_remove_prototype(KXCORE, &kxgdkevent_extension);
-	List *list = 
-		(List*) kxcore_get_global_data(KXCORE, "kxgtk-window-list");
-	kxcore_remove_global_data(KXCORE,"kxgtk-window-list");
 
-	int t;
-	for (t=0;t<list->size;t++) {
-		gtk_widget_destroy(GTK_WIDGET(list->items[t]));
-	}
-	list_free(list);
+	kxgtk_utils_unload(KXCORE);
 }
 
 static KxObject *

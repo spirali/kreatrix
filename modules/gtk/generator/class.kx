@@ -1,0 +1,175 @@
+
+
+GClass = GWrapper clone do: {
+	type = "GClass".
+
+	childrens <- #().
+
+
+	isAbstract <- false.
+
+	createParams <- "".
+
+	initPrototypeExtraCode <- "".
+
+
+	/*init = {
+		childrens: #().
+	:}.*/
+
+	parentObject = {
+		parent ifNil: [ ^"KXCORE->base_object" ].
+		^parent name asLowercase.
+	}.
+
+
+	loadFromElement: = { :anElement |
+		name: (anElement attribute: "name").
+		(anElement hasAttribute: "createp") ifTrue: [ createParams: (anElement attribute: "createp") ].
+		(anElement hasAttribute: "abstract") ifTrue: [ isAbstract: (anElement attribute: "abstract") == "true" ].
+		anElement ifHasAttribute: "init" do: [ :value | initPrototypeExtraCode: value ].
+		loadChildrensFromElement: anElement.
+	}.
+
+	loadChildrensFromElement: = { :anElement |
+		childrens: ((anElement childrens: "class") collect: [ :element |
+			|class|
+			class << GClass clone.
+			class generator: generator.
+			class parent: self.
+			class loadFromElement: element.
+		]).
+	}.
+	
+
+
+	write = {
+		|dict file|
+		dict << replaceDictionary.
+
+		file << (File clone name: "../",filenameC) openForWriting.
+		file write: (templateC replaceByDictionary: dict).
+
+		file << (File clone name: "../",filenameH) openForWriting.
+		file write: (templateH replaceByDictionary: dict).
+	}.
+
+	create = {
+		("Creating ",name," ... ") println.
+		write.
+	}.
+
+	asString = { ^"GClass:",name }.
+
+	functionsCode = { 
+		^(functions collect: [ :func | func code ]) asString.
+	}.
+
+	functionsTableCode = { 
+		^(functions collect: [ :func | 
+			"\t\t{\"",func slotName,"\",", func numberOfParameters,",",func wrapperCName,"},\n" ]) asString.
+	}.
+
+	codeParentExtension = { |p|
+		p << parentExtension.
+		p ifNil: [ ^"NULL" ].
+		^"&",p.
+	}.
+	
+	initPrototypeCode = {
+		isAbstract 
+			ifTrue: [ ^initPrototypeExtraCode, "\n\tself->extension = &gtkabstractclass_extension;" ]
+			ifFalse: [ 
+				^initPrototypeExtraCode,"\n\tself->data.ptr = ", functionsPrefix,"_new(",createParams,");\n",
+					"\tkxgtk_set_wrapper(self, self->data.ptr);\n".
+			]
+	}.
+
+	
+
+
+	allClasses = {
+		|list|
+		list << #(self).
+		childrens foreach: [ :child | list join: child allClasses ].
+		^list.
+	}.
+
+	initExtensionString = {
+		^"\tkx", name asLowercase, "_extension_init();".
+	}.
+
+	callInitPrototypeString = {
+		|var str|
+		var << name asLowercase.
+		str << "\tKxObject *",var," = kx", name asLowercase, "_new_prototype(", parentObject, ");\n".
+
+		isAbstract 
+			ifTrue: [ ^str, "\tkxobject_set_slot_no_ref2(self, KXSYMBOL(\"",slotName,"\"),",var,");\n". ]
+			ifFalse: [ ^str,
+						"\tkxcore_add_prototype(KXCORE, ",var,");\n",
+						"\tkxobject_set_slot_no_ref2(self, KXSYMBOL(\"",slotName,"\"),",var,");\n".
+			].
+
+	}.
+
+	implicitFunctions = { |list|
+		list << #().
+
+		isAbstract ifFalse: [
+			|func|
+			func << GRawFunction clone.
+			func slotName: "clone".
+			func wrapperCName: functionsPrefix,"_clone".
+			func codeString: ("\tKxObject *clone = kxobject_raw_clone(self);\n",
+							  "\tclone->data.ptr = ", functionsPrefix, "_new(",createParams,");\n",
+	//						  "\tg_object_ref_sink(clone->data.ptr);",
+							  "\tkxgtk_set_wrapper(clone, clone->data.ptr);\n",
+							  "\treturn clone;"
+							  ). 
+			list add: func.
+		].
+		^list.
+	}.
+
+	removePrototypeString = {
+		isAbstract ifTrue: [ ^"" ].
+		^resend removePrototypeString.
+	}.
+
+	
+	initFunctions = { |lowerName list|
+		lowerName << name asLowercase.
+		list << (generator functions select: [ :func |
+			func className asLowercase == lowerName. 
+		]).
+		functions: (implicitFunctions join: list).
+	}.
+
+	markCode = {
+		^"kxgtk_mark_container(self->data.ptr);\n\tkxgtk_mark_watched_closures(self->data.ptr);".
+	}.
+
+	newFromCode = {
+^"""
+	KxObject *self = kxgtk_check_wrapper((GObject*)data);
+	if (self != NULL) {
+		return self;
+	}
+
+	KxObject *proto = kxcore_get_prototype(core, &kx""",name asLowercase,"""_extension);
+	self = kxobject_raw_clone(proto);
+	g_object_ref_sink(data);
+	self->data.ptr = data;
+
+	kxgtk_set_wrapper(self, G_OBJECT(data));
+
+	return self;
+""" }.
+
+	freeCode = { 
+		^"kxgtk_remove_wrapper(self);"
+	}.
+}.
+
+

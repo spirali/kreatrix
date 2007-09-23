@@ -49,11 +49,14 @@ am__installdirs = "$(DESTDIR)$(gtk_pkglibdir)" \
 	"$(DESTDIR)$(gtk_pkglibdir)"
 gtk_pkglibPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(gtk_pkglib_PROGRAMS)
-am_gtk_so_OBJECTS = gtkobject.$(OBJEXT) gtkwidget.$(OBJEXT) \
-	gtkcontainer.$(OBJEXT) gtkbin.$(OBJEXT) gtkwindow.$(OBJEXT) \
-	gtkbutton.$(OBJEXT) gtkcheckbutton.$(OBJEXT) gtkbox.$(OBJEXT) \
-	gtkvbox.$(OBJEXT) gtkhbox.$(OBJEXT) gtk.$(OBJEXT) \
-	gtk_utils.$(OBJEXT) kxclosure.$(OBJEXT) gdkevent.$(OBJEXT)
+am_gtk_so_OBJECTS = gobject.$(OBJEXT) gtkobject.$(OBJEXT) \
+	gtkwidget.$(OBJEXT) gtkcontainer.$(OBJEXT) gtkbin.$(OBJEXT) \
+	gtkwindow.$(OBJEXT) gtkbutton.$(OBJEXT) \
+	gtkcheckbutton.$(OBJEXT) gtkbox.$(OBJEXT) gtkvbox.$(OBJEXT) \
+	gtkhbox.$(OBJEXT) gtkmisc.$(OBJEXT) gtklabel.$(OBJEXT) \
+	gtkaccelgroup.$(OBJEXT) gtkrequisition.$(OBJEXT) \
+	gdkgeometry.$(OBJEXT) gtk.$(OBJEXT) gtk_utils.$(OBJEXT) \
+	kxclosure.$(OBJEXT) gdkevent.$(OBJEXT)
 gtk_so_OBJECTS = $(am_gtk_so_OBJECTS)
 gtk_so_LDADD = $(LDADD)
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)
@@ -99,6 +102,8 @@ INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
+KX_GTK_MODULE_FALSE = @KX_GTK_MODULE_FALSE@
+KX_GTK_MODULE_TRUE = @KX_GTK_MODULE_TRUE@
 KX_THREADS_SUPPORT_FALSE = @KX_THREADS_SUPPORT_FALSE@
 KX_THREADS_SUPPORT_TRUE = @KX_THREADS_SUPPORT_TRUE@
 KX_XML_MODULE_FALSE = @KX_XML_MODULE_FALSE@
@@ -165,7 +170,9 @@ sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 gtk_pkglibdir = ${libdir}/kreatrix/gtk
 gtk_so_SOURCES = \
-   gtkobject.h \
+   gobject.h \
+gobject.c \
+gtkobject.h \
 gtkobject.c \
 gtkwidget.h \
 gtkwidget.c \
@@ -185,6 +192,16 @@ gtkvbox.h \
 gtkvbox.c \
 gtkhbox.h \
 gtkhbox.c \
+gtkmisc.h \
+gtkmisc.c \
+gtklabel.h \
+gtklabel.c \
+gtkaccelgroup.h \
+gtkaccelgroup.c \
+gtkrequisition.h \
+gtkrequisition.c \
+gdkgeometry.h \
+gdkgeometry.c \
 gtk.c \
    gtk_utils.c \
    gtk_utils.h \
@@ -263,15 +280,21 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdkevent.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdkgeometry.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gobject.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtk.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtk_utils.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtkaccelgroup.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtkbin.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtkbox.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtkbutton.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtkcheckbutton.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtkcontainer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtkhbox.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtklabel.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtkmisc.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtkobject.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtkrequisition.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtkvbox.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtkwidget.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtkwindow.Po@am__quote@

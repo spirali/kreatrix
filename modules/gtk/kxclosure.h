@@ -12,5 +12,6 @@ struct KxClosure {
 
 KxClosure *kxclosure_new(KxObject *callback);
 
+void kxclosure_mark(KxClosure *closure);
 
 #endif

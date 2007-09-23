@@ -109,6 +109,28 @@ stringTest = test TestCase clone do: {
 		(a capitalized == "ABCdEfG") assertTrue.
 		(b capitalized == "*..a..bC") assertTrue.
 	}.
+
+	testAsListSeparator = {
+		|str list|
+		str << "ax12 ., 876 56 465 10 4 12 ax fdlj sf axaxaxsdax0".
+
+		list << str asListSeparator: "ax".
+		(list size == 7) assertTrue.
+		(list first == "") assertTrue.
+		(list last == "0") assertTrue.
+
+		str << "aaaaaa".
+		list << str asListSeparator: "aa".
+		(list == #("" "" "" "")) assertTrue.
+		list << str asListSeparator: "aaa".
+		(list == #("" "" "")) assertTrue.
+		list << str asListSeparator: "aaaa".
+		(list == #("" "aa")) assertTrue.
+		list << str asListSeparator: "aaaaa".
+		(list == #("" "a")) assertTrue.
+		list << str asListSeparator: "aaaaaa".
+		(list == #("" "")) assertTrue.
+	}.
 }.
 
 stringTest run.

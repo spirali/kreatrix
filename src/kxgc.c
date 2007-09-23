@@ -37,6 +37,16 @@ kxgc_collect(KxCore *core)
 		obj = base_object->gc_next;
 		printf("------------END_OF_COLLECT----------\n");
 	}
+
+	// DEBUG
+//	kxobject_slots_dump(core->lobby);
+/*	KxSymbol *dsym = kxcore_get_symbol(core, "Association");
+	KxObject *assoc = kxobject_get_slot(core->lobby, dsym);
+	kxobject_slots_dump(assoc);
+	REF_REMOVE(assoc);
+	REF_REMOVE(dsym);*/
+
+
 	// ---- DEBUG end ----
 
 	// count of objects
@@ -67,6 +77,22 @@ kxgc_collect(KxCore *core)
 
 }
 
+void
+kxgc_cleanall(KxCore *core) 
+{
+	KxObject *obj;
+
+	KxObject *base_object = core->base_object;
+	obj = base_object->gc_next;
+	while(obj != base_object) {
+		REF_ADD(obj);
+		kxobject_clean(obj);
+		KxObject *o = obj;
+		obj = obj->gc_next;
+		REF_REMOVE(o);
+	}
+}
+
 void 
 kxgc_dumpall(KxCore *core)
 {
@@ -76,18 +102,23 @@ kxgc_dumpall(KxCore *core)
 	
 	KxObject *obj = base_object->gc_next;
 
-	//List *list = list_new();
+//	List *list = list_new();
 
 	while(obj != base_object) {
 		printf("DUMP::");
 		kxobject_dump(obj);
-/*		list_append(list, obj);
-		REF_ADD(obj);*/
+
+		/*// DEBUG 
+		list_append(list, obj);
+		REF_ADD(obj);
+		// END OF DEBUG*/
+
 		obj = obj->gc_next;
 	}
 
 	printf("----------END_OF_DUMP------------\n");
-	/*list_foreach(list, (ListForeachFcn*) kxobject_clean);
+/*
+	list_foreach(list, (ListForeachFcn*) kxobject_clean);
 	list_foreach(list, (ListForeachFcn*) kxobject_remove_all_parents);
 	int t;
 	for (t=0;t<list->size;t++) {
@@ -112,6 +143,6 @@ kxgc_dumpall(KxCore *core)
 		REF_ADD(obj);
 		obj = obj->gc_next;
 	}
-	}*/
-
+	}
+*/
 }

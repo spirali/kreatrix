@@ -85,6 +85,13 @@ kxcharacter_as_string(KxCharacter *self, KxMessage *message)
 }
 
 static KxObject *
+kxcharacter_as_integer(KxCharacter *self, KxMessage *message)
+{
+	return KXINTEGER(self->data.charval);
+}
+
+
+static KxObject *
 kxcharacter_is_alpha_numeric(KxCharacter *self, KxMessage *message) 
 {
 	char c = self->data.charval;
@@ -161,7 +168,7 @@ kxcharacter_add_method_table(KxCharacter *self)
 		{"asUppercase",0, kxcharacter_as_uppercase },
 		{"isLowercase",0, kxcharacter_is_lowercase },
 		{"isUppercase",0, kxcharacter_is_uppercase },
-
+		{"asInteger",0, kxcharacter_as_integer },
 		{NULL,0, NULL}
 	};
 	kxobject_add_methods(self, table);

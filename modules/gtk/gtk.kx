@@ -14,4 +14,13 @@ Box do: {
 
 }.
 
+Button do: {
+	cloneWithLabel:onClick: = { :label :aBlock |
+		|button|
+		button << cloneWithLabel: label.
+		button signal: "clicked" connect: aBlock.
+		^button.
+	}.
+}.
+
 registerAs: #gtk.

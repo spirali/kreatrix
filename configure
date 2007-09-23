@@ -664,6 +664,8 @@ KX_XML_MODULE_TRUE
 KX_XML_MODULE_FALSE
 gtk_CFLAGS
 gtk_LIBS
+KX_GTK_MODULE_TRUE
+KX_GTK_MODULE_FALSE
 LIBOBJS
 LTLIBOBJS'
 ac_subst_files=''
@@ -1260,6 +1262,7 @@ Optional Features:
   --enable-debug-gc   If this option is enabled, GC runs before every activation of CodeBlock
   --disable-threads   Disable threads support
   --disable-xml   Disable building xml module
+  --disable-gtk   Disable building GTK module
 
 Some influential environment variables:
   CC          C compiler command
@@ -3793,6 +3796,18 @@ echo "$as_me: Module XML disabled" >&6;}
 fi
 
 # ---- GTK module ---------------------------
+# ---- XML module ---------------------------
+# Check whether --enable-gtk was given.
+if test "${enable_gtk+set}" = set; then
+  enableval=$enable_gtk;
+kx_gtk="${enableval}"
+
+else
+  kx_gtk=yes
+fi
+
+
+if test "$kx_gtk" = yes; then
 
 
 pkg_failed=no
@@ -3905,6 +3920,32 @@ else
 echo "${ECHO_T}yes" >&6; }
 	:
 fi
+
+
+
+if true; then
+  KX_GTK_MODULE_TRUE=
+  KX_GTK_MODULE_FALSE='#'
+else
+  KX_GTK_MODULE_TRUE='#'
+  KX_GTK_MODULE_FALSE=
+fi
+
+else
+
+
+if false; then
+  KX_GTK_MODULE_TRUE=
+  KX_GTK_MODULE_FALSE='#'
+else
+  KX_GTK_MODULE_TRUE='#'
+  KX_GTK_MODULE_FALSE=
+fi
+
+{ echo "$as_me:$LINENO: Module GTK disabled" >&5
+echo "$as_me: Module GTK disabled" >&6;}
+fi
+
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -4041,6 +4082,20 @@ if test -z "${KX_XML_MODULE_TRUE}" && test -z "${KX_XML_MODULE_FALSE}"; then
   { { echo "$as_me:$LINENO: error: conditional \"KX_XML_MODULE\" was never defined.
 Usually this means the macro was only invoked conditionally." >&5
 echo "$as_me: error: conditional \"KX_XML_MODULE\" was never defined.
+Usually this means the macro was only invoked conditionally." >&2;}
+   { (exit 1); exit 1; }; }
+fi
+if test -z "${KX_GTK_MODULE_TRUE}" && test -z "${KX_GTK_MODULE_FALSE}"; then
+  { { echo "$as_me:$LINENO: error: conditional \"KX_GTK_MODULE\" was never defined.
+Usually this means the macro was only invoked conditionally." >&5
+echo "$as_me: error: conditional \"KX_GTK_MODULE\" was never defined.
+Usually this means the macro was only invoked conditionally." >&2;}
+   { (exit 1); exit 1; }; }
+fi
+if test -z "${KX_GTK_MODULE_TRUE}" && test -z "${KX_GTK_MODULE_FALSE}"; then
+  { { echo "$as_me:$LINENO: error: conditional \"KX_GTK_MODULE\" was never defined.
+Usually this means the macro was only invoked conditionally." >&5
+echo "$as_me: error: conditional \"KX_GTK_MODULE\" was never defined.
 Usually this means the macro was only invoked conditionally." >&2;}
    { (exit 1); exit 1; }; }
 fi
@@ -4683,11 +4738,13 @@ KX_XML_MODULE_TRUE!$KX_XML_MODULE_TRUE$ac_delim
 KX_XML_MODULE_FALSE!$KX_XML_MODULE_FALSE$ac_delim
 gtk_CFLAGS!$gtk_CFLAGS$ac_delim
 gtk_LIBS!$gtk_LIBS$ac_delim
+KX_GTK_MODULE_TRUE!$KX_GTK_MODULE_TRUE$ac_delim
+KX_GTK_MODULE_FALSE!$KX_GTK_MODULE_FALSE$ac_delim
 LIBOBJS!$LIBOBJS$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 88; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 90; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5

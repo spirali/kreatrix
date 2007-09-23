@@ -25,8 +25,8 @@ void kxgtk_remove_wrapper(KxObject *self);
 
 KxObject *kxgtk_check_wrapper(GObject *gobject);
 
-KxObject * kxgtk_kxobject_from_gvalue(const GValue *value);
-KxObject * kxgtk_kxobject_from_gobject(GObject *gobject);
+KxObject * kxgtk_kxobject_from_gvalue(KxCore *core, const GValue *value);
+KxObject * kxgtk_kxobject_from_gobject(KxCore *core, GObject *gobject);
 
 typedef KxObject * (KxNewObjectFcn)(KxCore *, void *);
 
@@ -37,6 +37,8 @@ extern GQuark kxgtk_prototype_key;
 extern GQuark kxgtk_wrapper_key;
 
 void kxgtk_mark_gobject(GObject *obj);
+void kxgtk_mark_watched_closures(GObject *obj);
 
+void kxgtk_utils_unload(KxCore *core);
 
 #endif

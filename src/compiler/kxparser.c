@@ -30,6 +30,7 @@ is_binary_msg_char(char c)
 		case '-':
 		case '+':
 		case '/':
+		case '\\':
 		case '*':
 		case ',':
 		case '&':

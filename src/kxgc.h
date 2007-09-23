@@ -11,6 +11,7 @@
 
 void kxgc_collect(KxCore *core);
 void kxgc_dumpall(KxCore *core);
+void kxgc_cleanall(KxCore *core);
 
 
 #endif

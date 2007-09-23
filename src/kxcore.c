@@ -245,7 +245,9 @@ kxcore_registered_exception_clean(Dictionary *dict)
 void
 kxcore_free(KxCore *self) 
 {
-
+	if (kx_verbose) {
+		printf("kxcore_free() ... \n");
+	}
 	kxobject_clean(self->lobby);
 
 	kxgc_collect(self);
@@ -287,6 +289,7 @@ kxcore_free(KxCore *self)
 	
 	dictionary_free(self->registered_exceptions);
 
+	kxgc_cleanall(self);
 	if (kx_verbose)
 		kxgc_dumpall(self);
 	//kxobject_dump(self->base_object);
@@ -598,6 +601,7 @@ kxcore_get_global_data(KxCore *core, char *key)
 void
 kxcore_remove_global_data(KxCore *core, char *key)
 {
+	//printf("Removing global data %s\n", key);
 	dictionary_remove_with_compare(core->global_data, key, (CompareFcn*)strcmp);
 }
 

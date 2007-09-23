@@ -1,0 +1,132 @@
+
+
+GStruct = GWrapper clone do: {
+
+	Attribute = Object clone do: {
+		type = "GStructAttribute".
+
+		name <- "".
+		gtype <- nil.
+
+		wrapper <- nil.
+
+		slotNameReader = { 
+			^(name asListBy: "_") asStringCamelCase.
+		}.
+
+		slotNameWriter = {
+			^slotNameReader,":".
+		}.
+
+		functionsPrefix = { ^ wrapper functionsPrefix }.
+
+		functionReader = { |func|
+				func << GRawFunction clone.
+				func slotName: slotNameReader.
+				func wrapperCName: functionsPrefix,"_", name.
+				func codeString: ("\treturn KX",gtype name asUppercase,
+								  "( ((", wrapper cname,") self->data.ptr)->",name,");").
+				^func.
+		}.
+
+		functionWriter = { |func|
+				func << GRawFunction clone.
+				func numberOfParameters: 1.
+				func slotName: slotNameWriter.
+				func wrapperCName: functionsPrefix,"_", name,"_".
+
+				func codeString: (gtype codeForGettingParamId: 0),
+					"\n\t((", wrapper cname,") self->data.ptr)->",name," = param0;".
+				^func.
+		}
+
+
+	}.
+	
+	type = "GStruct".
+
+	attributes <- #().
+
+	init = {
+		resend init.
+		attributes: #().
+	}.
+
+	loadBodyFromString: = { :aString | 
+		|list|
+		list << (aString sliceBetween: "{" and: "}") asListBy: ";".
+		(list foreach: [ :str |  |list attr|
+			str trim isEmpty ifFalse: [ 
+				list << (str asListBy: " ").
+				attr << Attribute clone.
+				attr wrapper: self.
+				attr name: list last trim.
+				attr gtype: (generator findType: (list first trim)).
+
+				attributes add: attr.
+			]
+		]).
+	}.
+	
+	loadFromStringType1: = { :aString |
+		name: (aString sliceBetween: "}" and: ";") trim.
+		name println.
+		loadBodyFromString: aString.
+		^true.
+	}.
+
+	loadFromFileType1:generator: = { :filename :generator|
+		|file list|
+		list << #().
+		file << File clone name: filename.
+		file openForReading.
+		(file contentAsString asListSeparator: "typedef") foreach: [ :str |
+				|struct str2|
+				str2 << str trim.
+				str2 isEmpty ifFalse: [
+					struct << GStruct clone.
+					struct generator: generator.
+					(struct loadFromStringType1: str trim) ifTrue: [ list add: struct ].
+				].
+		].
+		^list.
+	}.
+
+	initPrototypeCode = {
+		^ "self->data.ptr = calloc(sizeof(",name ,"),1);\n".
+	}.
+
+	cloneFunction = {
+		|func|
+		func << GRawFunction clone.
+		func slotName: "clone".
+		func wrapperCName: functionsPrefix,"_clone".
+		func codeString: ("\tKxObject *clone = kxobject_raw_clone(self);\n",
+						  "\tclone->data.ptr = calloc(sizeof(",name ,"),1);\n",
+						  "\treturn clone;"
+						  ). 
+		^func
+	}.
+
+	freeCode = { 
+		^"free(self->data.ptr);"
+	}.
+
+	newFromCode = {
+^"""
+	KxObject *self; 
+	KxObject *proto = kxcore_get_prototype(core, &kx""",name asLowercase,"""_extension);
+	self = kxobject_raw_clone(proto);
+	self->data.ptr = data;
+	return self;
+""" }.
+
+	initFunctions = {
+		functions: #(cloneFunction).
+		attributes foreach: [ :attr | 
+			functions add: attr functionReader.
+			functions add: attr functionWriter.
+		].
+	}.
+
+}.

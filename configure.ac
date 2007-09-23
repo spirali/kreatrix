@@ -95,7 +95,22 @@ AC_MSG_NOTICE([Module XML disabled])
 fi
 
 # ---- GTK module ---------------------------
+# ---- XML module ---------------------------
+AC_ARG_ENABLE(gtk,
+[  --disable-gtk   Disable building GTK module ],
+[ 
+kx_gtk="${enableval}"
+],[kx_gtk=yes])
+
+if test "$kx_gtk" = yes; then
 
 PKG_CHECK_MODULES([gtk], [gtk+-2.0])
+
+AM_CONDITIONAL([KX_GTK_MODULE], true)
+else
+AM_CONDITIONAL([KX_GTK_MODULE], false)
+AC_MSG_NOTICE([Module GTK disabled])
+fi
+
 
 AC_OUTPUT

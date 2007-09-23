@@ -32,12 +32,12 @@ false not println.
 	Eager AND and OR. (Pascal like).
 */
 "Eager And:" println.
-(true && false) println.
-(true && true) println.
+(true /\ false) println.
+(true /\ true) println.
 
 "Eager Or:" println.
-(true || false) println.
-(true || true) println.
+(true \/ false) println.
+(true \/ true) println.
 
 /**
 	Lazy AND and OR. (C like).
@@ -51,4 +51,4 @@ false not println.
 (false or: [ true ]) println.
 
 
-((true || false) && false && (true || false)) println
+((true \/ false) /\ false /\ (true \/ false)) println

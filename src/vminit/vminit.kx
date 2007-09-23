@@ -108,6 +108,11 @@ File do: {
 	writeln = { writeByteArray: "\n" asByteArray }.
 	writeln: = { :aObject | aObject writeTo: self. writeln. }.
 
+	readCharacter = {
+		^readCharacterIfEof: [ 
+			throw: (Exception IOException clone message: "End of file")
+		].
+	}.
 	/*IOException = Exception clone do: {
 		type = "IOException".
 	}.*/
@@ -170,6 +175,21 @@ String do: {
 		(last == '/') 
 			ifTrue: [	^self,aString.	].
 		^self, "/", aString.
+	}.
+
+	asListSeparator: = { :aString | 
+		|list pos tmp size|
+		list << #().
+		tmp << self.
+		pos << find: aString.
+		size << aString size.
+		[ pos isNil ] whileFalse: [ 
+			list add: (tmp sliceTo: pos).
+			tmp << tmp sliceFrom: (pos + size).
+			pos << tmp find: aString.
+		].
+		list add: tmp.
+		^list.
 	}.
 }.
 
@@ -627,7 +647,7 @@ Point = Object clone do: {
 
 	== = { :aPoint |
 		(aPoint isKindOf: Point) ifTrue: [
-			^(aPoint x == aPoint x) && (aPoint y == aPoint y).
+			^(aPoint x == aPoint x) /\ (aPoint y == aPoint y).
 		].
 		^false.
 	}.

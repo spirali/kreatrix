@@ -1,0 +1,57 @@
+
+GEnumType = GType clone do: {
+	type = "GEnumType".
+
+	name: "integer".
+
+	convertName: "int".
+
+}.
+
+GEnum = GType clone do: {
+	type = "GEnum".
+
+	name <- "".
+	values <- #().
+
+	init = {
+		values: #().
+	}.
+
+	fromString: = { :string | |pos|
+		pos << string find: "}".
+		pos ifNil: [ ^self ].
+		name: (string sliceFrom: pos+1) trim.
+
+		((string sliceBetween: "{" and: "}") asListBy: ",") foreach: [ :each |
+			values add: each trim.
+		].
+	}.
+
+
+
+	getConstants = {
+		^values collect: [ :each | |const|
+			const << IntegerConstant clone.
+			const value: each.
+			const name: (each sliceFrom: 4).
+		].
+	}.
+
+	getType = {
+		^ GEnumType clone cname: name.
+	}.
+
+	loadFromFile: = { :filename |
+		|list file|
+		file << File clone name: filename.
+		file openForReading.
+
+		list << file contentAsString asListBy: ";".
+		^list collect: [ :str | 
+			|enum|
+			enum << GEnum clone.
+			enum fromString: str.
+		].
+	}.
+}.

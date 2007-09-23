@@ -198,7 +198,7 @@ KxObject *
 kxstring_trim_begin(KxString *self, KxMessage *message)
 {
 	char *str = KXSTRING_VALUE(self);
-	while(((*str) == ' ' || (*str) == '\t')  && *str != 0) { str++; };
+	while( *str != 0 && ((*str) == ' ' || (*str) == '\t' || (*str) == '\n' || (*str) == '\r')) { str++; };
 	return KXSTRING(str);
 }
 
@@ -213,7 +213,7 @@ kxstring_trim_end(KxString *self, KxMessage *message)
 	int len = strlen(str);
 	int t;
 	for (t=len-1;t>=0;t--) {
-		if (str[t] != ' ' && str[t] != '\t') 
+		if (str[t] != ' ' && str[t] != '\t' && str[t] != '\n' && str[t] != '\r') 
 			break;
 	}
 	t++;
@@ -514,7 +514,7 @@ kxstring_as_integer(KxString *self, KxMessage *message)
 	KxInt intval = strtol(str,&err,10);
 	if (*err != '\0') {
 		KxException *excp = kxexception_new_with_text(KXCORE,
-			"String doesn't contain integer");
+			"String '%s' doesn't contain integer", str);
 		KXTHROW(excp);
 	}
 	return KXINTEGER(intval);

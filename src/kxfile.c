@@ -24,6 +24,7 @@
 #include "kxlist.h"
 #include "kxbytearray.h"
 #include "kxinteger.h"
+#include "kxcharacter.h"
 
 #define THROW_STD_IO_EXCEPTION  { kxfile_throw_std_io_exception (self); return NULL; }
 
@@ -586,6 +587,17 @@ kxfile_as_filedescriptor(KxFile *self, KxMessage *message)
 	return KXINTEGER(fileno(data->file));
 }
 
+static KxObject *
+kxfile_read_character(KxFile *self, KxMessage *message) 
+{
+	KxFileData *data = self->data.ptr;
+	int c = fgetc(data->file);
+	if (c == EOF) {
+		return kxobject_evaluate_block_simple(message->params[0]);
+	}
+	return KXCHARACTER(c);
+}
+
 static void 
 kxfile_add_method_table(KxFile *self)
 {
@@ -599,6 +611,7 @@ kxfile_add_method_table(KxFile *self)
 		{"readLine", 0, kxfile_read_line},
 		{"readLines", 0, kxfile_read_lines},
 		{"readByteArraySize:", 1, kxfile_read_bytearray_with_size},
+		{"readCharacterIfEof:", 1, kxfile_read_character},
 		{"isAtEnd", 0, kxfile_is_at_end },
 		{"size", 0, kxfile_size },
 		{"foreachLine:", 1, kxfile_foreach_line},

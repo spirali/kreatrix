@@ -1,0 +1,8 @@
+
+struct GtkAllocation {
+  gint x;
+  gint y;
+  gint width;
+  gint height;
+};
+

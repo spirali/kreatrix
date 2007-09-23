@@ -35,6 +35,7 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 @KX_THREADS_SUPPORT_TRUE@am__append_1 = threads
 @KX_XML_MODULE_TRUE@am__append_2 = xml
+@KX_GTK_MODULE_TRUE@am__append_3 = gtk
 subdir = modules
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -79,6 +80,8 @@ INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
+KX_GTK_MODULE_FALSE = @KX_GTK_MODULE_FALSE@
+KX_GTK_MODULE_TRUE = @KX_GTK_MODULE_TRUE@
 KX_THREADS_SUPPORT_FALSE = @KX_THREADS_SUPPORT_FALSE@
 KX_THREADS_SUPPORT_TRUE = @KX_THREADS_SUPPORT_TRUE@
 KX_XML_MODULE_FALSE = @KX_XML_MODULE_FALSE@
@@ -144,7 +147,7 @@ sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 SUBDIRS = test system sockets time pool cgi $(am__append_1) \
-	$(am__append_2) gtk
+	$(am__append_2) $(am__append_3)
 noinst_SCRIPT = noinst_modules_gen.sh
 EXTRA_DIST = noinst_modules_gen.sh
 CLEANFILES = noinst_modules_paths.kx noinst_modules_paths.kxc

@@ -7,7 +7,9 @@ CFLAGS+= -fPIC $(gtk_CFLAGS) -I$(top_srcdir)/src
 gtk_pkglib_PROGRAMS = gtk.so
 
 gtk_so_SOURCES= \
-   gtkobject.h \
+   gobject.h \
+gobject.c \
+gtkobject.h \
 gtkobject.c \
 gtkwidget.h \
 gtkwidget.c \
@@ -27,6 +29,16 @@ gtkvbox.h \
 gtkvbox.c \
 gtkhbox.h \
 gtkhbox.c \
+gtkmisc.h \
+gtkmisc.c \
+gtklabel.h \
+gtklabel.c \
+gtkaccelgroup.h \
+gtkaccelgroup.c \
+gtkrequisition.h \
+gtkrequisition.c \
+gdkgeometry.h \
+gdkgeometry.c \
 gtk.c \
    gtk_utils.c \
    gtk_utils.h \

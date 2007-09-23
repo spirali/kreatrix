@@ -1,0 +1,134 @@
+
+GWrapper = Object clone do: {
+	type = "ObjectWrapper".
+
+	name <- "".
+
+	parent <- nil.
+
+	cname = { ^name, "*" }.
+
+	init = { }.
+
+	generator <- nil.
+
+	functions <- #().
+
+	templateC = (File clone name: "object.c") openForReading contentAsString.
+	templateH = (File clone name: "object.h") openForReading contentAsString.
+
+	filename = { ^name asLowercase }.
+
+	filenameC = { ^filename,".c" }.
+	filenameH = { ^filename,".h" }.
+
+	slotName = { ^name sliceFrom: 3 }.
+
+	extensionName = {
+		^"kx",name asLowercase,"_extension".
+	}.
+
+	getType = {
+		^GType clone name: name cname: cname
+	}.
+
+	parentExtension = {
+		parent ifNil: [ ^nil ].
+		^parent extensionName.
+	}.
+
+	functionsPrefix = { |list prev|
+		list << #(((name at: 0) asLowercase)).
+		prev << false.
+		name asList allButFirst foreach: [ :char | 
+			(char isUppercase /\ prev not) ifTrue: [
+				list add: "_".
+				prev << true.
+			] ifFalse: [ prev << false ].
+			list add: char asLowercase.
+		].
+		^list asString.
+	}.
+
+	write = {
+		|dict file|
+		dict << replaceDictionary.
+
+		file << (File clone name: "../",filenameC) openForWriting.
+		file write: (templateC replaceByDictionary: dict).
+
+		file << (File clone name: "../",filenameH) openForWriting.
+		file write: (templateH replaceByDictionary: dict).
+	}.
+
+	create = {
+		("Creating ",name," ... ") println.
+		write.
+	}.
+
+	codeParentExtension = { |p|
+		p << parentExtension.
+		p ifNil: [ ^"NULL" ].
+		^"&",p.
+	}.
+
+	
+	functionsCode = { 
+		^(functions collect: [ :func | func code ]) asString.
+	}.
+
+	functionsTableCode = { 
+		^(functions collect: [ :func | 
+			"\t\t{\"",func slotName,"\",", func numberOfParameters,",",func wrapperCName,"},\n" ]) asString.
+	}.
+
+
+	initPrototypeCode = "".
+
+	markCode = "".
+
+	freeCode = "".
+
+	newFromCode = "".
+
+	replaceDictionary = {
+		^#( ("%name%" => name asLowercase)
+		   ("%Name%" => name)
+		   ("%NAME%" => name asUppercase)
+		   ("%include%" => generator includeString)
+		   ("%ctype%" => cname)
+		   ("%parent_extension%" => codeParentExtension)
+		   ("%cfunctions%" => functionsCode)
+		   ("%cfunctions_table%" => functionsTableCode)
+		   ("%init_prototype%" => initPrototypeCode)
+		   ("%mark%" => markCode)
+		   ("%free%" => freeCode)
+		   ("%new_from%" => newFromCode)
+		) asDictionary.
+	}.
+
+
+	initExtensionString = {
+		^"\tkx", name asLowercase, "_extension_init();".
+	}.
+
+	callInitPrototypeString = {
+		|var str|
+		var << name asLowercase.
+		str << "\tKxObject *",var," = kx", name asLowercase, "_new_prototype(KXCORE->base_object);\n".
+		^str,
+			"\tkxcore_add_prototype(KXCORE, ",var,");\n",
+			"\tkxobject_set_slot_no_ref2(self, KXSYMBOL(\"",slotName,"\"),",var,");\n".
+
+	}.
+
+	removePrototypeString = {
+		^"kxcore_remove_prototype(KXCORE, &", extensionName,");".
+	}.
+
+	initFunctions = { 
+
+
+	}.
+
+}.

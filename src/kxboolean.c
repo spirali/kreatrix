@@ -110,8 +110,8 @@ kxboolean_true_add_methods(KxObject *self)
 		{"ifTrue:ifFalse:",2, kxtrue_iftrue_iffalse },
 		{"ifFalse:ifTrue:",2, kxtrue_iffalse_iftrue },
 		{"not",0, kxtrue_not },
-		{"&&",1, kxtrue_eager_and },
-		{"||",1, kxtrue_eager_or },
+		{"/\\",1, kxtrue_eager_and },
+		{"\\/",1, kxtrue_eager_or },
 		{"and:",1, kxtrue_lazy_and },
 		{"or:",1, kxtrue_lazy_or },
 		{NULL,0, NULL}
@@ -215,8 +215,8 @@ kxboolean_false_add_methods(KxObject *self)
 		{"ifTrue:ifFalse:",2, kxfalse_iftrue_iffalse },
 		{"ifFalse:ifTrue:",2, kxfalse_iffalse_iftrue },
 		{"not",0, kxfalse_not },
-		{"&&",1, kxfalse_and },
-		{"||",1, kxfalse_or },
+		{"/\\",1, kxfalse_and },
+		{"\\/",1, kxfalse_or },
 		{"and:",1, kxfalse_lazy_and },
 		{"or:",1, kxfalse_lazy_or },
 		{NULL,0, NULL}

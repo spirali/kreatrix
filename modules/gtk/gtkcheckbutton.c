@@ -4,11 +4,14 @@
 #include "kxobject.h"
 #include "kxcfunction.h"
 #include "kxinteger.h"
+#include "kxfloat.h"
 #include "kxstring.h"
 #include "kxexception.h"
+#include "gdkevent.h"
 
 //#include "gtkcheckbutton.h"
 
+#include "gobject.h"
 #include "gtkobject.h"
 #include "gtkwidget.h"
 #include "gtkcontainer.h"
@@ -19,6 +22,11 @@
 #include "gtkbox.h"
 #include "gtkvbox.h"
 #include "gtkhbox.h"
+#include "gtkmisc.h"
+#include "gtklabel.h"
+#include "gtkaccelgroup.h"
+#include "gtkrequisition.h"
+#include "gdkgeometry.h"
 #include "gtk_utils.h"
 
 KxObjectExtension kxgtkcheckbutton_extension;
@@ -28,11 +36,13 @@ static void kxgtkcheckbutton_free(KxObject *self)
 	//g_object_remove_toggle_ref(self->data.ptr);
 	//g_object_unref(self->data.ptr);
 	kxgtk_remove_wrapper(self);
+	//kxgtk_remove_wrapper(self);
 }
 
 static void kxgtkcheckbutton_mark(KxObject *self)
 {
-	kxgtk_mark_container(self);
+	kxgtk_mark_container(self->data.ptr);
+	kxgtk_mark_watched_closures(self->data.ptr);
 }
 
 void kxgtkcheckbutton_extension_init() {
@@ -69,6 +79,22 @@ kxgtkcheckbutton_new_prototype(KxObject *parent)
 KxObject *
 kxgtkcheckbutton_from(KxCore *core, GtkCheckButton* data)
 {
+	
+	KxObject *self = kxgtk_check_wrapper((GObject*)data);
+	if (self != NULL) {
+		return self;
+	}
+
+	KxObject *proto = kxcore_get_prototype(core, &kxgtkcheckbutton_extension);
+	self = kxobject_raw_clone(proto);
+	g_object_ref_sink(data);
+	self->data.ptr = data;
+
+	kxgtk_set_wrapper(self, G_OBJECT(data));
+
+	return self;
+
+/*
 	KxObject *self = kxgtk_check_wrapper((GObject*)data);
 	if (self != NULL) {
 		return self;
@@ -83,6 +109,7 @@ kxgtkcheckbutton_from(KxCore *core, GtkCheckButton* data)
 	kxgtk_set_wrapper(self, G_OBJECT(data));
 
 	return self;
+*/	
 }
 
 static KxObject *
@@ -97,13 +124,13 @@ static KxObject *
 kxgtkcheckbutton_cloneWithLabel_ (KxObject *self, KxMessage *message)
 {
 	KXPARAM_TO_CSTRING(param0,0);
-	return KXGTKCHECKBUTTON((GtkCheckButton*)gtk_check_button_new_with_label(param0));
+	return KXGTKCHECKBUTTON((GtkCheckButton*)gtk_check_button_new_with_label((gchar*)param0));
 }
 static KxObject *
 kxgtkcheckbutton_cloneWithMnemonic_ (KxObject *self, KxMessage *message)
 {
 	KXPARAM_TO_CSTRING(param0,0);
-	return KXGTKCHECKBUTTON((GtkCheckButton*)gtk_check_button_new_with_mnemonic(param0));
+	return KXGTKCHECKBUTTON((GtkCheckButton*)gtk_check_button_new_with_mnemonic((gchar*)param0));
 }
 
 

@@ -42,14 +42,14 @@ kxclosure_marshal(GClosure *closure,
 		GValue *value = (GValue *) &param_values[t];
 	//	printf("b) %i %i %s\n",t,n_param_values, g_type_name(G_VALUE_TYPE(value)));
 		message.params[t] = 
-			kxgtk_kxobject_from_gvalue(&param_values[t]);
-		kxobject_dump(message.params[t]);
+			kxgtk_kxobject_from_gvalue(KXCORE, &param_values[t]);
+//		kxobject_dump(message.params[t]);
 //		printf("end\n");
 
 	}
 	KxObject *return_obj = kxobject_evaluate_block(self, &message);
 	for (t = 0; t < n_param_values; t++) {
-		kxobject_dump(message.params[t]);
+	//	kxobject_dump(message.params[t]);
 		REF_REMOVE(message.params[t]);
 	}
 
@@ -59,6 +59,12 @@ kxclosure_marshal(GClosure *closure,
 	} else {
 		catch_failed_call(KXSTACK);
 	}
+}
+
+void
+kxclosure_mark(KxClosure *closure) 
+{
+	kxobject_mark(closure->callback);
 }
 
 void

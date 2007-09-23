@@ -9,7 +9,9 @@ if KX_XML_MODULE
 SUBDIRS+=xml
 endif
 
+if KX_GTK_MODULE
 SUBDIRS+=gtk
+endif
 
 noinst_SCRIPT= noinst_modules_gen.sh
 

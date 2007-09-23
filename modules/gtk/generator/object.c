@@ -4,8 +4,10 @@
 #include "kxobject.h"
 #include "kxcfunction.h"
 #include "kxinteger.h"
+#include "kxfloat.h"
 #include "kxstring.h"
 #include "kxexception.h"
+#include "gdkevent.h"
 
 //#include "%name%.h"
 
@@ -17,12 +19,13 @@ static void kx%name%_free(KxObject *self)
 {
 	//g_object_remove_toggle_ref(self->data.ptr);
 	//g_object_unref(self->data.ptr);
-	kxgtk_remove_wrapper(self);
+	%free%
+	//kxgtk_remove_wrapper(self);
 }
 
 static void kx%name%_mark(KxObject *self)
 {
-	kxgtk_mark_container(self);
+	%mark%
 }
 
 void kx%name%_extension_init() {
@@ -56,6 +59,8 @@ kx%name%_new_prototype(KxObject *parent)
 KxObject *
 kx%name%_from(KxCore *core, %ctype% data)
 {
+	%new_from%
+/*
 	KxObject *self = kxgtk_check_wrapper((GObject*)data);
 	if (self != NULL) {
 		return self;
@@ -70,6 +75,7 @@ kx%name%_from(KxCore *core, %ctype% data)
 	kxgtk_set_wrapper(self, G_OBJECT(data));
 
 	return self;
+*/	
 }
 
 %cfunctions%

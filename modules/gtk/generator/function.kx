@@ -49,7 +49,7 @@ GFunction = Object clone do: {
 		].
 		params join: (p collect: [ :param | 
 			
-			(generator findType: param).
+			(generator findType: param lineNumber: definition lineNumber).
 		]).
 	}.
 
@@ -71,7 +71,7 @@ GFunction = Object clone do: {
 		
 		list << #().
 		0 to: params size do: [ :i |
-			list add: "param",i
+			list add: "(", (params at: i) cname ,")param",i
 		].
 		^str,(list asStringDelimiter: ","),")".
 
@@ -101,7 +101,7 @@ GFunction = Object clone do: {
 		func definition: definition.
 		func generator: generator.
 		func addParams.
-		func returnType: (generator findType: definition returnType).
+		func returnType: (generator findType: definition returnType lineNumber: definition lineNumber).
 		^func.
 	}.
 }.
@@ -113,13 +113,15 @@ GFuncDefinition = Object clone do: {
 	call <- "".
 	returnType <- nil.
 	slotName <- nil.
+	lineNumber <- 0.
 
-
-	fromString: = { :aString |
+	fromString:atLine: = { :aString :aLineNumber |
 		|index names params|
+		lineNumber: aLineNumber.
 		index << aString find: "(".
 		index ifNil: [  
-			throw: (Exception clone message: "invalid function definition").
+			throw: (Exception clone message: 
+				aLineNumber asString, ": invalid function definition").
 		].
 		names << aString sliceTo: (aString find:"(").
 		params << aString sliceBetween: "(" and: ")".
@@ -133,7 +135,7 @@ GFuncDefinition = Object clone do: {
 		parts << callNameParts.
 		((params size > 0) and: [ (params at: 0) == classCName ]) ifTrue: [
 			(params size == 1) ifTrue: [
-				(parts first == "get") && 
+				(parts first == "get") /\ 
 				(returnType == "gboolean")  
 					ifTrue: [
 					^"is",(parts allButFirst asStringCapitalized).
