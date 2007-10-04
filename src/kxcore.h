@@ -63,6 +63,7 @@ typedef void(KxMarkFunction)(KxCore*);
 #endif // KX_THREADS_SUPPORT
 
 
+#define KXCORE_IS_BLOCKED(core) (core)->blocked
 
 
 struct KxCore  {
@@ -95,6 +96,8 @@ struct KxCore  {
 	int gc_countdown_init;*/
 
 	int doc_flag;
+
+	int blocked; // 1 if core is destorying and no KX code should be executed
 
 	#ifdef KX_THREADS_SUPPORT
 		int yield_counter;

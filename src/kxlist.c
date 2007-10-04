@@ -108,7 +108,7 @@ kxlist_mark(KxList *self)
 List *
 kxlist_to_list_of_cstrings(KxList *self)
 {
-	List *list = LIST_DATA(self);
+	List *list = KXLIST_DATA(self);
 	List *out = list_new_size(list->size);
 
 	int t;

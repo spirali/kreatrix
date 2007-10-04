@@ -16,9 +16,15 @@ typedef struct KxObject KxList;
 
 #define IS_KXLIST(kxobject) ((kxobject)->extension == &kxlist_extension)
 
-#define LIST_DATA(kxlist) (List *)((kxlist)->data.ptr)
+#define KXLIST_DATA(kxlist) (List *)((kxlist)->data.ptr)
+#define KXLIST_VALUE(kxlist) (List *)((kxlist)->data.ptr)
 
 #define KXLIST(list) (kxlist_new_with(KXCORE,list))
+
+#define KXPARAM_TO_LIST(list, param_id) \
+	List * list; { KxObject *tmp = message->params[param_id]; if (IS_KXLIST(tmp)) \
+	{ list = KXLIST_VALUE(tmp); } else { return kxobject_type_error(tmp, &kxlist_extension); }} 
+
 
 void kxlist_init_extension();
 

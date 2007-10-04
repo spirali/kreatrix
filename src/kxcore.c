@@ -241,10 +241,11 @@ kxcore_registered_exception_clean(Dictionary *dict)
 	dictionary_free(dict);
 }
 
-
 void
 kxcore_free(KxCore *self) 
 {
+	self->blocked = 1;
+
 	if (kx_verbose) {
 		printf("kxcore_free() ... \n");
 	}
@@ -255,11 +256,13 @@ kxcore_free(KxCore *self)
 	REF_REMOVE(self->lobby);
 
 
+	
 
 	int t;
 	for(t=0;t<KXDICTIONARY_SIZE;t++) {
 		REF_REMOVE(self->dictionary[t]);
 	}
+
 
 	for (t=0;t<KXPROTOS_COUNT;t++) {
 		kxobject_clean(self->basic_prototypes[t]);
@@ -272,7 +275,6 @@ kxcore_free(KxCore *self)
 	if (dictionary_size(self->prototypes) != 0) {
 		fprintf(stderr,"Warning! Prototypes dictionary isn't empty\n");
 	}
-
 
 	REF_REMOVE(self->object_stdout);
 	REF_REMOVE(self->object_stdin);
@@ -288,6 +290,11 @@ kxcore_free(KxCore *self)
 	dictionary_foreach_value(self->registered_exceptions, (ForeachFcn*) kxcore_registered_exception_clean);
 	
 	dictionary_free(self->registered_exceptions);
+
+
+	if (kx_verbose) {
+		printf("kxgc_cleanall()\n");
+	}
 
 	kxgc_cleanall(self);
 	if (kx_verbose)
