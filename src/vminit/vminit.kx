@@ -366,6 +366,13 @@ List do: {
 	fillWith: = { :anObject|
 		0 to: size do: [ :i | at: i put: anObject ].
 	}.
+
+
+	foreachPair: = { :aBlock | 
+		0 to: (size / 2) do: [ :i | 
+			aBlock value: (at: i * 2) value: (at: (i * 2) + 1).
+		].
+	}.
 }.
 
 Lobby Association = Object clone do: {

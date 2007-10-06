@@ -39,6 +39,21 @@ listTest = test TestCase clone do: {
 		assert: str equals: "abcd".
 	}.
 
+	testForeachPair = { |list list2|
+		list << #("a" "b" "c" "d").
+
+		list2 << #().
+		list foreachPair: [ :a :b | list2 add: #(a b) ].
+		(list2 == #( #("a" "b") #("c" "d") )) assertTrue.
+
+		list << #("a" "b" "c" "d" "e").
+
+		list2 << #().
+		list foreachPair: [ :a :b | list2 add: #(a b) ].
+		(list2 == #( #("a" "b") #("c" "d") )) assertTrue.
+
+	}.
+
 
 	testRemoveAt = { |list|
 		list << #(4 3 2 1).
