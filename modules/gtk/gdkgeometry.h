@@ -22,6 +22,12 @@
 	GdkGeometry* param_name; { KxObject *tmp = message->params[param_id]; if (IS_KXGDKGEOMETRY(tmp)) \
 	{ param_name = KXGDKGEOMETRY_DATA(tmp); } else { return kxobject_type_error(tmp,&kxgdkgeometry_extension); }} 
 
+#define KXPARAM_TO_GDKGEOMETRY_OR_NULL(param_name, param_id) \
+	GdkGeometry* param_name; { KxObject *tmp = message->params[param_id]; \
+	if(tmp == KXCORE->object_nil) { param_name = NULL; } else if (IS_KXGDKGEOMETRY(tmp)) \
+	{ param_name = KXGDKGEOMETRY_DATA(tmp); } else { return kxobject_type_error(tmp,&kxgdkgeometry_extension); }} 
+
+
 typedef struct KxObject KxGdkGeometry;
 
 KxGdkGeometry *kxgdkgeometry_new_prototype(KxObject *parent);

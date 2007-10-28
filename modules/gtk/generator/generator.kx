@@ -8,6 +8,7 @@ localImport: "class.kx".
 localImport: "struct.kx".
 localImport: "enum.kx".
 
+"Initalizing and reading configs ... " println.
 
 Constant = Object clone do: {
 	type = "Constant".
@@ -39,6 +40,9 @@ Generator = Object clone do: {
 		types add: aType.
 	}.
 
+	outputPrefix = "".
+
+
 	initTypes = { 
 		types = #(GTypeVoid).
 
@@ -52,6 +56,8 @@ Generator = Object clone do: {
 			name: "gboolean" cname: "gboolean" convertName: "gboolean").
 		types add: (GTypePrimitive clone 
 			name: "float" cname: "gdouble" convertName: "double").
+		types add: (GTypePrimitive clone 
+			name: "float" cname: "gfloat" convertName: "double").
 		types add: (GTypePrimitive clone 
 			name: "integer" cname: "guint32" convertName: "int").
 
@@ -93,6 +99,7 @@ Generator = Object clone do: {
 		class childrens: nil.
 	].*/
 
+	multiPartsNames <- #().
 
 
 	functions = #().
@@ -106,6 +113,8 @@ Generator = Object clone do: {
 	initialize = {
 		allWrappers join: (GStruct loadFromFileType1: "structs.txt" generator: self).
 		types join: (allWrappers collect: [ :wrapper | wrapper getType ]).
+
+		multiPartsNames: (findMultiPartsNameWrappers sort: [ :a :b | a size < b size ]) reversed.
 	}.
 
 	includeString = { 
@@ -122,8 +131,11 @@ Generator = Object clone do: {
 			linenumber << linenumber + 1.
 			line << line trim.
 			((line beginsWith: "//") \/ (line == "")) ifFalse: [
-				definition <<  (GFuncDefinition clone fromString: line atLine: linenumber).
-				functions add: (GFunction cloneWithDefinition: definition generator: self).
+				definition <<  GFuncDefinition clone.
+				definition generator: self.
+				definition fromString: line atLine: linenumber.
+				//functions add: (GFunction cloneWithDefinition: definition generator: self).
+				functions add: (definition createGFunctionGenerator: self).
 			].
 		].
 		file close.
@@ -135,10 +147,37 @@ Generator = Object clone do: {
 		].
 	}.
 
-	findType:lineNumber: = { :typeName :aLineNumber |
-		^types detect: [ :type | type cname == typeName ] ifNone: [ 
+	findType:lineNumber: = { :typeName :aLineNumber | |allowNil type|
+	//	types println.
+		allowNil << false.
+		(typeName endsWith: "_NULL*") ifTrue: [ 
+			typeName << (typeName sliceTo: (typeName size - 6)),"*".
+			allowNil << true.
+		].
+		type << types detect: [ :type | type cname == typeName ] ifNone: [ 
 			throw: (Exception clone message: "functions:",aLineNumber,":Unknown type '",typeName,"'").
 		].
+		
+		allowNil ifTrue: [ 
+			^type clone allowNil: true.
+		].
+		^type.
+	}.
+
+	findMultiPartsNameWrappers = { |list|
+		list << #().
+		(allWrappers foreach: [ :wrapper |  |pref count|
+			pref << wrapper functionsPrefix.
+			count << 0.
+			pref foreach: [ :char | char == '_' ifTrue: [ count << count + 1 ] ].
+			(count > 1) ifTrue: [ list add: pref ].
+				
+		]).
+		^list.
+	}.
+
+	findMultiPartsPrefix: = { :aString | 
+		^multiPartsNames detect: [ :each | aString beginsWith: each] ifNone: [ nil ].
 	}.
 
 	
@@ -155,17 +194,25 @@ Generator = Object clone do: {
 		].
 	}.*/
 
-	createMakefile = { |rep filenames|
+	createMakefile = { |rep filenames filenames_colon|
 		"Creating makefile ... " println.
 		filenames << (allWrappers collect: 
 				[ :class | 
 					class filenameH," \\\n", class filenameC," \\\n" 
 				]) asString.
 
+		filenames_colon << (allWrappers collect: 
+				[ :class | 
+					class filenameH,": kxgenerated.tmp\n", 
+					class filenameC,": kxgenerated.tmp\n" 
+				]) asString.
+
+
 
 		rep << Replacer clone loadTemplate: "Makefile-template.am".
 		rep replaceDictionary: #(
 			("%filenames%" => filenames)
+			("%filenames_colon%" => filenames_colon)
 		) asDictionary.
 		rep saveTo: "../Makefile.am".
 	}.
@@ -207,6 +254,19 @@ Generator = Object clone do: {
 		createModule.
 		allWrappers foreach: [ :class | class create ].
 	}.
+
+	findWrapperByFunctionPrefix: = { :aString | 
+		^allWrappers detect: [ :each | 
+			aString beginsWith: each functionsPrefix 
+		] ifNone: [ nil ].
+	}.
+
+	findWrapperByName: = { :aString | 
+		^allWrappers detect: [ :each | 
+			aString == each cname 
+		] ifNone: [ nil ].
+	}.
+
 
 }.
 

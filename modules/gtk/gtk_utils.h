@@ -33,12 +33,18 @@ typedef KxObject * (KxNewObjectFcn)(KxCore *, void *);
 void kxgtk_register_boxed_type(GType boxed_type,  KxObject *prototype);
 
 
-extern GQuark kxgtk_prototype_key;
-extern GQuark kxgtk_wrapper_key;
+
+extern GType KX_TYPE_OBJECT;
+//extern GQuark kxgtk_prototype_key;
+//extern GQuark kxgtk_wrapper_key;
 
 void kxgtk_mark_gobject(GObject *obj);
 void kxgtk_mark_watched_closures(GObject *obj);
 
 void kxgtk_utils_unload(KxCore *core);
+
+GType kxgtk_object_to_gtype(KxObject *self);
+void kxgtk_register_extension(GType gtype, KxObjectExtension *extension);
+
 
 #endif

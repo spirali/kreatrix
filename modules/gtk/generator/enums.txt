@@ -1,3 +1,25 @@
+
+typedef enum
+{
+  GTK_EXPAND,
+  GTK_SHRINK,
+  GTK_FILL
+} GtkAttachOptions;
+
+typedef enum
+{
+  GTK_POS_LEFT,
+  GTK_POS_RIGHT,
+  GTK_POS_TOP,
+  GTK_POS_BOTTOM
+} GtkPositionType;
+
+typedef enum
+{
+  GTK_PACK_START,
+  GTK_PACK_END
+} GtkPackType;
+
 typedef enum
 {
   GTK_WINDOW_TOPLEVEL,
@@ -166,3 +188,84 @@ typedef enum
   GDK_SCROLL_MASK,
   GDK_ALL_EVENTS_MASK
 } GdkEventMask;
+
+typedef enum
+{
+  GTK_TEXT_WINDOW_PRIVATE,
+  GTK_TEXT_WINDOW_WIDGET,
+  GTK_TEXT_WINDOW_TEXT,
+  GTK_TEXT_WINDOW_LEFT,
+  GTK_TEXT_WINDOW_RIGHT,
+  GTK_TEXT_WINDOW_TOP,
+  GTK_TEXT_WINDOW_BOTTOM
+} GtkTextWindowType;
+
+typedef enum
+{
+  GTK_WRAP_NONE,
+  GTK_WRAP_CHAR,
+  GTK_WRAP_WORD,
+  GTK_WRAP_WORD_CHAR
+} GtkWrapMode;
+
+typedef enum
+{
+  GTK_JUSTIFY_LEFT,
+  GTK_JUSTIFY_RIGHT,
+  GTK_JUSTIFY_CENTER,
+  GTK_JUSTIFY_FILL
+} GtkJustification;
+
+typedef enum {
+  GTK_TREE_VIEW_GRID_LINES_NONE,
+  GTK_TREE_VIEW_GRID_LINES_HORIZONTAL,
+  GTK_TREE_VIEW_GRID_LINES_VERTICAL,
+  GTK_TREE_VIEW_GRID_LINES_BOTH
+} GtkTreeViewGridLines;
+
+typedef enum
+{
+  GTK_TREE_VIEW_COLUMN_GROW_ONLY,
+  GTK_TREE_VIEW_COLUMN_AUTOSIZE,
+  GTK_TREE_VIEW_COLUMN_FIXED
+} GtkTreeViewColumnSizing;
+
+typedef enum
+{
+  GTK_POLICY_ALWAYS,
+  GTK_POLICY_AUTOMATIC,
+  GTK_POLICY_NEVER
+} GtkPolicyType;
+
+typedef enum
+{
+  GTK_CORNER_TOP_LEFT,
+  GTK_CORNER_BOTTOM_LEFT,
+  GTK_CORNER_TOP_RIGHT,
+  GTK_CORNER_BOTTOM_RIGHT
+} GtkCornerType;
+
+typedef enum
+{
+  GTK_SHADOW_NONE,
+  GTK_SHADOW_IN,
+  GTK_SHADOW_OUT,
+  GTK_SHADOW_ETCHED_IN,
+  GTK_SHADOW_ETCHED_OUT
+} GtkShadowType;
+
+typedef enum
+{
+  GTK_SELECTION_NONE,                             
+  GTK_SELECTION_SINGLE,
+  GTK_SELECTION_BROWSE,
+  GTK_SELECTION_MULTIPLE,
+  GTK_SELECTION_EXTENDED
+} GtkSelectionMode;
+
+typedef enum
+{
+  GTK_RESIZE_PARENT,  
+  GTK_RESIZE_QUEUE,
+  GTK_RESIZE_IMMEDIATE
+} GtkResizeMode;

@@ -163,9 +163,9 @@ sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 time_pkglibdir = ${pkglibdir}/time
 time_so_SOURCES = \
-	time.c \
-time_so_LDFLAGS = -module
+	time.c
 
+time_so_LDFLAGS = -module
 EXTRA_DIST = time.kx
 time_pkglib_DATA = time.kx
 all: all-am

@@ -23,4 +23,71 @@ Button do: {
 	}.
 }.
 
+Table do: {
+	resize: = { :aPoint | 
+		resizeRows: aPoint x columns: aPoint y.
+	}.
+
+	attach:from:to: = { :aWidget :from :to | 
+		attach: aWidget left: from x right: to x top: from y bottom: to y.
+	}.
+}.
+
+Notebook do: {
+	appendPage:labelText: = { :aWidget :aString | 
+		appendPage: aWidget label: (gtk Label clone text: aString).
+	}.
+}.
+
+ListStore do: {
+	appendValues: = { :aList | 
+		at: appendRow putValues: aList.
+	}.
+
+	prependValues: = { :aList | 
+		at: prependRow putValues: aList.
+	}.
+
+}.
+
+TreeStore do: {
+	appendValues:parent: = { :aList :aTreeIter | |iter|
+		iter << (appendRowInParent: aTreeIter).
+		at: iter putValues: aList.
+		^iter.
+	}.
+
+	prependValues:parent: = { :aList :aTreeIter |  |iter|
+		iter << (prependRowInParent: aTreeIter).
+		at: iter putValues: aList.
+		^iter.
+	}.
+
+}.
+
+
+TreeViewColumn do: {
+	renderer:attribute:column:expand: = { :aRenderer :aString :anInteger :aBoolean |  
+		packStart: aRenderer expand: aBoolean.
+		renderer: aRenderer addAttribute: aString column: anInteger
+	}.
+
+	renderer:attribute:column: = { :aRenderer :aString :anInteger | 
+		renderer: aRenderer attribute: aString column: anInteger expand: true.
+	}.
+
+	renderer:attributes:expand: = { :aRenderer :aList :aBoolean | 
+		packStart: aRenderer expand: aBoolean.
+		aList foreachPair: [ :attribute :column |
+			renderer: aRenderer addAttribute: attribute column: column
+		].
+	}.
+}.
+
+Window do: {
+	resize: = { :aPoint | 
+		resizeWidth: aPoint x height: aPoint y.
+	}.
+}.
+
 registerAs: #gtk.

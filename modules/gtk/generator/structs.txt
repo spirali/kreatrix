@@ -5,15 +5,24 @@ typedef struct {
 
 
 typedef struct {
-  gint min_width;
-  gint min_height;
-  gint max_width;
-  gint max_height;
-  gint base_width;
-  gint base_height;
-  gint width_inc;
-  gint height_inc;
-  gdouble min_aspect;
-  gdouble max_aspect;
-  GdkGravity win_gravity;
-} GdkGeometry;
+} GtkTextIter;
+
+typedef struct {
+} GtkTreeIter;
+
+typedef struct {
+	$gtk_tree_path_new()$
+} GtkTreePath;
+
+typedef struct {
+} GtkTextChildAnchor;
+
+typedef struct {
+  gint x;
+  gint y;
+  gint width;
+  gint height;
+} GdkRectangle;
+
+typedef struct {
+} GtkTextAttributes;

@@ -13,11 +13,41 @@ gtk_so_SOURCES= \
    kxclosure.c \
    kxclosure.h \
    gdkevent.c \
-   gdkevent.h
+   gdkevent.h \
+   gtktextbuffer_extra.c \
+   kxtree.c \
+   kxtree.h
 
 gtk_so_LDFLAGS= -module
 
-EXTRA_DIST = gtk.xml gtk.kx
+%filenames_colon%gtk.c: kxgenerated.tmp
+
+kxgenerated.tmp: generator/class.xml generator/structs.txt generator/enums.txt
+	sh $(srcdir)/generate.sh $(top_builddir) $(top_srcdir) $(srcdir)
+	
+MAINTAINERCLEANFILES=\
+	%filenames%gtk.c \
+	kxgenerated.tmp
+
+EXTRA_DIST = %filenames%gtk.c gtk.kx generate.sh kxgenerated.tmp \
+generator/structs.txt \
+generator/wrapper.kx \
+generator/functions.txt \
+generator/struct.kx \
+generator/function.kx \
+generator/enum.kx \
+generator/module.c \
+generator/structs.txt \
+generator/generator.kx \
+generator/Makefile-template.am \
+generator/type.kx \
+generator/object.c \
+generator/object.h \
+generator/class.xml \
+generator/enums.txt \
+generator/class.kx \
+generator/utils.kx
+
 
 gtk_pkglib_DATA=gtk.kx
 

@@ -3,6 +3,7 @@
 #include <stdio.h>
 
 #include "kxclosure.h"
+#include "kxglobals.h"
 #include "gtk_utils.h"
 
 static void
@@ -31,6 +32,13 @@ kxclosure_marshal(GClosure *closure,
 	
 	KxClosure *kxclosure = (KxClosure*) closure;
 	KxObject *self = kxclosure->callback;
+
+	if (KXCORE_IS_BLOCKED(KXCORE)) {
+		if (kx_verbose) {
+			printf("KxGtkClosure blocked by core\n");
+		} 
+		return;
+	}
 
 	/*KxObject *return_obj = 
 		kxobject_evaluate_block_simple(self);*/
@@ -64,7 +72,9 @@ kxclosure_marshal(GClosure *closure,
 void
 kxclosure_mark(KxClosure *closure) 
 {
-	kxobject_mark(closure->callback);
+	if (closure->callback) {
+		kxobject_mark(closure->callback);
+	}
 }
 
 void
@@ -84,8 +94,8 @@ kxclosure_new(KxObject *callback)
 		(KxClosure *) g_closure_new_simple(sizeof(KxClosure), NULL);
     g_closure_add_invalidate_notifier(
 		(GClosure*) closure, NULL, kxclosure_invalidate);
-	/*g_closure_add_finalize_notifier (
-		(GClosure*) closure, NULL, kxclosure_invalidate);*/
+	g_closure_add_finalize_notifier (
+		(GClosure*) closure, NULL, kxclosure_invalidate);
     g_closure_set_marshal((GClosure*)closure, kxclosure_marshal);
 
 	REF_ADD(callback);

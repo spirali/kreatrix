@@ -47,6 +47,12 @@ GStruct = GWrapper clone do: {
 
 	attributes <- #().
 
+	options <- "".
+
+	ownCloneCall <- nil.
+
+	isStruct = true.
+
 	init = {
 		resend init.
 		attributes: #().
@@ -56,21 +62,29 @@ GStruct = GWrapper clone do: {
 		|list|
 		list << (aString sliceBetween: "{" and: "}") asListBy: ";".
 		(list foreach: [ :str |  |list attr|
-			str trim isEmpty ifFalse: [ 
-				list << (str asListBy: " ").
-				attr << Attribute clone.
-				attr wrapper: self.
-				attr name: list last trim.
-				attr gtype: (generator findType: (list first trim)).
+			str << str trim.
+			(str beginsWith: "$") ifTrue: [ 
+				options: (str sliceBetween: "$" and: "$") trim.
+			] ifFalse: [ 
+				str isEmpty ifFalse: [ 
+					list << (str asListBy: " ").
+					attr << Attribute clone.
+					attr wrapper: self.
+					attr name: list last trim.
+					attr gtype: (generator findType: (list first trim)).
 
-				attributes add: attr.
-			]
+					attributes add: attr.
+				]
+			].
 		]).
+
+		options isEmpty ifFalse: [
+			ownCloneCall: options.
+		].
 	}.
 	
 	loadFromStringType1: = { :aString |
 		name: (aString sliceBetween: "}" and: ";") trim.
-		name println.
 		loadBodyFromString: aString.
 		^true.
 	}.
@@ -93,7 +107,15 @@ GStruct = GWrapper clone do: {
 	}.
 
 	initPrototypeCode = {
-		^ "self->data.ptr = calloc(sizeof(",name ,"),1);\n".
+		^ "self->data.ptr = ",cloneCallCode,"\n",
+		  "\tkxgtk_register_extension(", typeCName, ", &", extensionName, ");\n".
+	}.
+
+	cloneCallCode = {
+		ownCloneCall ifNotNil: [ 
+			^ownCloneCall,";\n".
+		].
+		^"calloc(sizeof(",name ,"),1);\n".
 	}.
 
 	cloneFunction = {
@@ -102,7 +124,7 @@ GStruct = GWrapper clone do: {
 		func slotName: "clone".
 		func wrapperCName: functionsPrefix,"_clone".
 		func codeString: ("\tKxObject *clone = kxobject_raw_clone(self);\n",
-						  "\tclone->data.ptr = calloc(sizeof(",name ,"),1);\n",
+						  "\tclone->data.ptr = ", cloneCallCode,
 						  "\treturn clone;"
 						  ). 
 		^func

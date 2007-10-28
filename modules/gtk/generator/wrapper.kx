@@ -12,6 +12,8 @@ GWrapper = Object clone do: {
 
 	generator <- nil.
 
+	isStruct = false.
+
 	functions <- #().
 
 	templateC = (File clone name: "object.c") openForReading contentAsString.
@@ -49,6 +51,13 @@ GWrapper = Object clone do: {
 		].
 		^list asString.
 	}.
+
+	typeCName = { |list|
+		list << (functionsPrefix asListBy: "_").
+		list insert: "TYPE" at: 1.
+		^(list asStringDelimiter: "_") asUppercase.
+	}.
+
 
 	write = {
 		|dict file|
@@ -91,6 +100,10 @@ GWrapper = Object clone do: {
 
 	newFromCode = "".
 
+	extraCode = "".
+
+	initExtensionCode = "".
+
 	replaceDictionary = {
 		^#( ("%name%" => name asLowercase)
 		   ("%Name%" => name)
@@ -104,6 +117,8 @@ GWrapper = Object clone do: {
 		   ("%mark%" => markCode)
 		   ("%free%" => freeCode)
 		   ("%new_from%" => newFromCode)
+		   ("%extra_code%" => extraCode)
+		   ("%init_extension%" => initExtensionCode)
 		) asDictionary.
 	}.
 

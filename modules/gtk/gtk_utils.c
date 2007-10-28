@@ -6,19 +6,21 @@
 
 #include "kxstring.h"
 #include "kxinteger.h"
+#include "kxfloat.h"
 #include "kxclosure.h"
 #include "kxexception.h"
+#include "kxglobals.h"
 
 KxObjectExtension gtkabstractclass_extension;
 
-GQuark kxgtk_prototype_key;
+GQuark kxgtk_extension_key;
 GQuark kxgtk_wrapper_key;
 GQuark kxgtk_constructor_key;
 GQuark kxgtk_closures_key;
 
+GType KX_TYPE_OBJECT = 0;
 
-
-KxObject * kxgtk_kxobject_from_boxed(const GValue *value);
+KxObject * kxgtk_kxobject_from_boxed(KxCore *core, const GValue *value);
 
 static void kxgtk_watch_closure(GObject *obj, KxClosure *closure);
 
@@ -37,7 +39,7 @@ kxgboolean_from(KxCore *core, gboolean value)
 static void 
 kxgtk_init_keys() 
 {
-    kxgtk_prototype_key = g_quark_from_static_string("KxGObject::prototype");
+    kxgtk_extension_key = g_quark_from_static_string("KxGObject::extension");
     kxgtk_wrapper_key = g_quark_from_static_string("KxGObject::wrapper");
     kxgtk_constructor_key = g_quark_from_static_string("KxGObject::constructor");
     kxgtk_closures_key = g_quark_from_static_string("KxGObject::closures");
@@ -57,8 +59,25 @@ kxgtk_mark_windows(KxCore *core)
 	}
 }
 
+static gpointer 
+kxgtk_object_copy(gpointer boxed)
+{
+	KxObject *self = boxed;
+
+	REF_ADD(self);
+	return self;
+}
+
+static void
+kxgtk_object_free(gpointer boxed)
+{
+	KxObject *self = boxed;
+	REF_REMOVE(self);
+}
+
 void kxgtk_utils_init(KxCore *core)
 {
+
 	kxgtk_init_keys();
 
 	// Init abstract class
@@ -66,20 +85,29 @@ void kxgtk_utils_init(KxCore *core)
 	gtkabstractclass_extension.type_name = "GtkAbstractClass";
 
 	kxcore_register_mark_function(core, kxgtk_mark_windows);
+
+	KX_TYPE_OBJECT = g_boxed_type_register_static("KxObject",
+						      kxgtk_object_copy,
+						      kxgtk_object_free);
 }
 
 void kxgtk_utils_unload(KxCore *core) 
 {
-	//printf("Module UNLOAD\n");
+	if (kx_verbose) {
+		printf("Unloading gtk module ...\n");
+	}
 	List *list = 
 		(List*) kxcore_get_global_data(core, "kxgtk-window-list");
-	kxcore_remove_global_data(core,"kxgtk-window-list");
 
-	int t;
-	for (t=0;t<list->size;t++) {
-		gtk_widget_destroy(GTK_WIDGET(list->items[t]));
+	if (list) {
+		kxcore_remove_global_data(core,"kxgtk-window-list");
+
+		int t;
+		for (t=0;t<list->size;t++) {
+			gtk_widget_destroy(GTK_WIDGET(list->items[t]));
+		}
+		list_free(list);
 	}
-	list_free(list);
 
 }
 
@@ -147,12 +175,26 @@ kxgtk_register_in_window_list(KxCore *core, GObject *gobject)
 }
 
 static void
+kxgtk_object_destroy_notify(GObject *gobject, gpointer data)
+{
+	//printf("destroy notify\n");
+	g_object_set_qdata(gobject, kxgtk_closures_key, NULL);
+}
+
+static void
 kxgtk_window_destroy_notify(GObject *window, gpointer data)
 {
+	kxgtk_object_destroy_notify(window, data);
 	KxCore *core = data;
 	List *list = kxcore_get_global_data(core, "kxgtk-window-list");
 	if (list)
 		list_remove_first(list, window);
+}
+
+void 
+kxgtk_register_extension(GType gtype, KxObjectExtension *extension)
+{
+	g_type_set_qdata(gtype, kxgtk_extension_key, extension);
 }
 
 void 
@@ -166,13 +208,19 @@ kxgtk_set_wrapper(KxObject *self, GObject *gobject)
 	REF_ADD(self);
 
 	if (g_type_is_a(G_OBJECT_TYPE(gobject),GTK_TYPE_WINDOW)) {
+
 		kxgtk_register_in_window_list(KXCORE, gobject);
-		g_object_connect(gobject, "signal::destroy", kxgtk_window_destroy_notify, KXCORE);
+		g_signal_connect(gobject, "destroy", G_CALLBACK(kxgtk_window_destroy_notify), KXCORE);
 	} else {
 		if (g_object_is_floating(gobject)) {
 			g_object_ref_sink(gobject);
+	//		g_object_unref(gobject);
 		}
-		g_object_unref(gobject);
+	//	printf("%s\n", g_type_name(G_OBJECT_TYPE(gobject)));
+
+		if (G_TYPE_CHECK_INSTANCE_TYPE(gobject, GTK_TYPE_OBJECT)) {
+			g_signal_connect(gobject, "destroy", G_CALLBACK(kxgtk_object_destroy_notify), KXCORE);
+		}
 	}
 
 	/*g_object_ref(gobject);
@@ -181,11 +229,11 @@ kxgtk_set_wrapper(KxObject *self, GObject *gobject)
 	//REF_ADD(self);
 }
 
-void
+/*void
 kxgtk_register_boxed_type(GType boxed_type, KxObject *prototype)
 {
 	g_type_set_qdata(boxed_type, kxgtk_prototype_key, prototype);
-}
+}*/
 
 
 void 
@@ -225,10 +273,28 @@ kxgtk_kxobject_from_gvalue(KxCore *core, const GValue *value)
 {
 	switch(G_TYPE_FUNDAMENTAL(G_VALUE_TYPE(value)))
 	{
+		case G_TYPE_STRING:
+			return kxstring_new_with(core, (char*) g_value_get_string(value));
+		case G_TYPE_INT:
+			return kxinteger_new_with(core, g_value_get_int(value));
+		case G_TYPE_DOUBLE:
+			return kxfloat_new_with(core, g_value_get_double(value));
+		case G_TYPE_BOOLEAN:
+			return kxgboolean_from(core, g_value_get_boolean(value));
+
+
 		case G_TYPE_OBJECT:
 			return kxgtk_kxobject_from_gobject(core, g_value_get_object(value));
 		case G_TYPE_BOXED: 
-			return kxgtk_kxobject_from_boxed(value);
+			if (G_VALUE_TYPE(value) == KX_TYPE_OBJECT) {
+				KxObject *self = g_value_get_boxed(value);
+				if (self == NULL) {
+					self = core->object_nil;
+				}
+				REF_ADD(self);
+				return self;
+			}
+			return kxgtk_kxobject_from_boxed(core, value);
 		case G_TYPE_PARAM:
 			printf("PARAM!\n");
 			abort();
@@ -256,23 +322,44 @@ kxgtk_kxobject_from_gobject(KxCore *core, GObject *gobject)
 		REF_ADD(self);
 		return self;
 	}
-	printf("Wrapper not found %p\n", gobject);
+	
+	GType gtype = G_TYPE_FROM_INSTANCE(gobject);
+	KxObjectExtension *extension = g_type_get_qdata(gtype, kxgtk_extension_key);
+
+	if (extension != NULL) {
+		KxObject *proto = kxcore_get_prototype(core, extension);
+		KxObject *self = kxobject_raw_clone(proto);
+		g_object_ref(gobject);
+		self->data.ptr = gobject;
+		kxgtk_set_wrapper(self, G_OBJECT(gobject));
+		return self;
+	}
+
+	GType type = G_TYPE_FROM_INSTANCE(gobject);
+	printf("Wrapper not found for %p/%s\n", gobject, g_type_name(type));
 	abort();
 }
 
 KxObject * 
-kxgtk_kxobject_from_boxed(const GValue *value)
+kxgtk_kxobject_from_boxed(KxCore *core, const GValue *value)
 {
-	gpointer boxed = g_value_get_boxed(value);
-	KxObject *proto = g_type_get_qdata(G_VALUE_TYPE(value), kxgtk_prototype_key);
+	gpointer boxed = g_value_dup_boxed(value);
+	//KxObject *proto = g_type_get_qdata(G_VALUE_TYPE(value), kxgtk_prototype_key);
+	
+	KxObjectExtension *extension = g_type_get_qdata(G_VALUE_TYPE(value), kxgtk_extension_key);
+
 	if (boxed == NULL) {
 		printf("oops boxed == NULL\n");
+		abort();
 	}
 
-	if (proto != NULL) {
-		KxObject *self = kxobject_raw_clone(proto);
-		self->data.ptr = boxed;
-		return self;
+	if (extension != NULL) {
+		KxObject *proto = kxcore_get_prototype(core, extension);
+		if (proto != NULL) {
+			KxObject *self = kxobject_raw_clone(proto);
+			self->data.ptr = boxed;
+			return self;
+		}
 	}
 
     printf("Cannot convert BOXED type %s/%s to KxObject\n",
@@ -282,18 +369,64 @@ kxgtk_kxobject_from_boxed(const GValue *value)
 	abort();
 }
 
+// 0 = ok, -1 = error
+int kxgtk_gvalue_from_object(KxObject *self, GValue *value)
+{
+    switch (G_TYPE_FUNDAMENTAL(G_VALUE_TYPE(value))) {
+ 	   case G_TYPE_INT:
+	   		if (IS_KXINTEGER(self)) {
+				g_value_set_int(value, KXINTEGER_VALUE(self));
+				break;
+			}
+			return -1;
+ 	   case G_TYPE_DOUBLE:
+	   		if (IS_KXFLOAT(self)) {
+				g_value_set_double(value, KXFLOAT_VALUE(self));
+				break;
+			}
+	   		if (IS_KXINTEGER(self)) {
+				g_value_set_double(value, KXINTEGER_VALUE(self));
+				break;
+			}
+			return -1;
+		case G_TYPE_STRING:
+			if (IS_KXSTRING(self)) {
+				g_value_set_string(value, KXSTRING_VALUE(self));
+				break;
+			}
+			return -1;
+		case G_TYPE_BOOLEAN:
+			if (KXCORE->object_true == self) {
+				g_value_set_boolean(value, TRUE);
+				break;
+			}
+			if (KXCORE->object_false == self) {
+				g_value_set_boolean(value, FALSE);
+				break;
+			}
+			return -1;
+
+		default:
+		 if (G_VALUE_TYPE(value) == KX_TYPE_OBJECT) { 
+	//		REF_ADD(self);
+			g_value_set_boxed(value, self);
+			break;
+		 }
+
+			return -1;
+	}
+
+	return 0;
+}
+
 static void kxgtk_mark_callback(GtkWidget *obj, gpointer data);
 
 void kxgtk_mark_container(GObject *obj)
 {
 	GType type = G_OBJECT_TYPE(obj);
-//	printf("container %s\n", g_type_name(type));
 	if (G_TYPE_CHECK_INSTANCE_TYPE(obj, GTK_TYPE_CONTAINER)) {
-//		printf("container OK\n");
 		gtk_container_forall(GTK_CONTAINER(obj), kxgtk_mark_callback, NULL);
-	}/* else {
-		printf("no\n");
-	}*/
+	}
 }
 
 static List *
@@ -356,3 +489,22 @@ kxgtk_mark_callback(GtkWidget *obj, gpointer data)
 }
 
 
+
+GType
+kxgtk_object_to_gtype(KxObject *self) 
+{
+	if (IS_KXINTEGER(self)) {
+		return G_TYPE_INT;
+	} else 
+	if (IS_KXSTRING(self)) {
+		return G_TYPE_STRING;
+	} else 
+	if (KXCORE->object_true == self || KXCORE->object_false == self) {
+		return G_TYPE_BOOLEAN;
+	}
+
+	/*printf("Cannot find GType for:");
+	kxobject_dump(self);
+	abort();*/
+	return KX_TYPE_OBJECT;
+}

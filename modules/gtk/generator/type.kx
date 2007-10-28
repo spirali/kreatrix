@@ -31,11 +31,25 @@ GBasicType = Object clone do: {
 GType = GBasicType clone do: {
 	type = "GType".
 
+	allowNil <- false.
+
 	codeForGettingParamId: = { :id |
-		^"\tKXPARAM_TO_", convertName asUppercase,"(param",id, ",",id,");".
+		//^"\tKXPARAM_TO_", convertName asUppercase,"(param",id, ",",id,");".
+		^codeForGettingParamId: id atPosition: id.
+	}.
+
+	codeForGettingParamId:atPosition: = { :id :position |
+		allowNil 
+			ifTrue: [ 	
+				^"\tKXPARAM_TO_", convertName asUppercase,"_OR_NULL(param",id, ",",position,");". 
+			]
+			ifFalse: [	
+				^"\tKXPARAM_TO_", convertName asUppercase,"(param",id, ",",position,");". 
+			]
 	}.
 
 }.
+
 
 GTypePrimitive = GType clone do: {
 	type = "GTypePrimitive".

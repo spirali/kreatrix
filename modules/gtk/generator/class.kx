@@ -9,8 +9,17 @@ GClass = GWrapper clone do: {
 	isAbstract <- false.
 
 	createParams <- "".
+	prototypeCreateCode <- nil.
+
+	cleanCode <- nil.
 
 	initPrototypeExtraCode <- "".
+
+	hasDefaultClone <- true.
+
+	ownMarkCode <- "".
+
+	unrefNew <- true.
 
 
 	/*init = {
@@ -28,6 +37,15 @@ GClass = GWrapper clone do: {
 		(anElement hasAttribute: "createp") ifTrue: [ createParams: (anElement attribute: "createp") ].
 		(anElement hasAttribute: "abstract") ifTrue: [ isAbstract: (anElement attribute: "abstract") == "true" ].
 		anElement ifHasAttribute: "init" do: [ :value | initPrototypeExtraCode: value ].
+		anElement ifHasAttribute: "defaultClone" do: [ :value | (value == "false") ifTrue: [ hasDefaultClone: false ] ].
+
+
+		anElement ifHasAttribute: "mark" do: [ :value | ownMarkCode: value ].
+
+		anElement ifHasAttribute: "prototype-create" do: [ :value | prototypeCreateCode: value ].
+		anElement ifHasAttribute: "clean" do: [ :value | cleanCode: value ].
+		anElement ifHasAttribute: "unref-new" do: [ :value | unrefNew: value == "true". ].
+		
 		loadChildrensFromElement: anElement.
 	}.
 
@@ -75,17 +93,52 @@ GClass = GWrapper clone do: {
 		p ifNil: [ ^"NULL" ].
 		^"&",p.
 	}.
+
+	initPrototypeDataCode = {
+		prototypeCreateCode ifNil: [ 
+			^"\n\tself->data.ptr = ", functionsPrefix,"_new(",createParams,");\n".
+			].
+		^prototypeCreateCode,"\n".
+	}.
+
 	
 	initPrototypeCode = {
 		isAbstract 
 			ifTrue: [ ^initPrototypeExtraCode, "\n\tself->extension = &gtkabstractclass_extension;" ]
 			ifFalse: [ 
-				^initPrototypeExtraCode,"\n\tself->data.ptr = ", functionsPrefix,"_new(",createParams,");\n",
-					"\tkxgtk_set_wrapper(self, self->data.ptr);\n".
+				^initPrototypeExtraCode,initPrototypeDataCode,
+					"\tkxgtk_set_wrapper(self, self->data.ptr);\n",
+					(unrefNew ifTrue: [ "\tg_object_unref(self->data.ptr);\n" ] ifFalse: [ "" ]),
+					"\tkxgtk_register_extension(", typeCName, ", &", extensionName, ");\n".
+
 			]
 	}.
 
 	
+	extraCode = {
+		|str|
+		str << resend extraCode.
+	
+		cleanCode ifNotNil: [ 
+			str << "void ",name asLowercase,"_ext_clean(KxObject *self) {\n\t", cleanCode, "\n}\n".
+
+		].
+		
+		^str.
+	}.
+
+	initExtensionCode = {
+		|str|
+		str << resend initExtensionCode.
+	
+		cleanCode ifNotNil: [ 
+			str << extensionName,".clean = ",name asLowercase,"_ext_clean;\n".
+
+		].
+		
+		^str.
+	}.
+
 
 
 	allClasses = {
@@ -113,21 +166,26 @@ GClass = GWrapper clone do: {
 
 	}.
 
-	implicitFunctions = { |list|
-		list << #().
-
-		isAbstract ifFalse: [
+	createDefaultCloneFunction = { 	
 			|func|
 			func << GRawFunction clone.
 			func slotName: "clone".
 			func wrapperCName: functionsPrefix,"_clone".
 			func codeString: ("\tKxObject *clone = kxobject_raw_clone(self);\n",
 							  "\tclone->data.ptr = ", functionsPrefix, "_new(",createParams,");\n",
-	//						  "\tg_object_ref_sink(clone->data.ptr);",
 							  "\tkxgtk_set_wrapper(clone, clone->data.ptr);\n",
-							  "\treturn clone;"
+							  (unrefNew ifTrue: [ "\tg_object_unref(clone->data.ptr);\n" ] ifFalse: [ "" ]),
+	//						  "\tg_object_ref_sink(clone->data.ptr);",
+							  "\treturn kxobject_send_message_init(clone);"
 							  ). 
-			list add: func.
+			^func
+	}.
+
+	implicitFunctions = { |list|
+		list << #().
+
+		isAbstract not /\ hasDefaultClone  ifTrue: [
+			list add: createDefaultCloneFunction.
 		].
 		^list.
 	}.
@@ -147,7 +205,8 @@ GClass = GWrapper clone do: {
 	}.
 
 	markCode = {
-		^"kxgtk_mark_container(self->data.ptr);\n\tkxgtk_mark_watched_closures(self->data.ptr);".
+		^"kxgtk_mark_container(self->data.ptr);\n\tkxgtk_mark_watched_closures(self->data.ptr);\n\t",
+		  ownMarkCode.
 	}.
 
 	newFromCode = {
@@ -159,11 +218,8 @@ GClass = GWrapper clone do: {
 
 	KxObject *proto = kxcore_get_prototype(core, &kx""",name asLowercase,"""_extension);
 	self = kxobject_raw_clone(proto);
-	g_object_ref_sink(data);
 	self->data.ptr = data;
-
 	kxgtk_set_wrapper(self, G_OBJECT(data));
-
 	return self;
 """ }.
 

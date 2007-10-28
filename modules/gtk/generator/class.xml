@@ -4,24 +4,66 @@
 		<class name="GtkWidget" abstract="true">
 			<class name="GtkContainer" abstract="true">
 				<class name="GtkBin" abstract="true">
-					<class name="GtkWindow" createp="0"/>
+					<class name="GtkWindow" createp="0" unref-new="false"/>
 					<class name="GtkButton">
 						<class name="GtkCheckButton">
 
 						</class>
+						<class name="GtkToggleButton"> <!--TODO-->
+							
+						</class>
+					</class>
+					<class name="GtkScrolledWindow" createp="NULL,NULL"/>
+					<class name="GtkComboBox">
+
 					</class>
 				</class>
 				<class name="GtkBox" abstract="true">
 					<class name="GtkVBox" createp="TRUE,0"/>
 					<class name="GtkHBox" createp="TRUE,0"/>
 				</class>
+				<class name="GtkTable" createp="1,1,FALSE"/>
+				<class name="GtkNotebook"/>
+				<class name="GtkTextView"/>
+				<class name="GtkTreeView" mark="kxgtktreeview_extra_mark(self);"/>
 			</class>
 			<class name="GtkMisc" abstract="true">
 				<class name="GtkLabel" createp='"Label"'/>
 			</class>
+			<class name="GtkEntry">
+
+			</class>
+		</class>
+		<class name="GtkAdjustment" createp="0,0,9,1,1,5"/> <!-- TODO  -->
+		<class name="GtkTreeViewColumn" mark="kxgtktreeviewcolumn_extra_mark(self);"/>
+		<class name="GtkCellRenderer" abstract="true"> <!-- TODO -->
+			<class name="GtkCellRendererText"/>	
+			<!-- TODO -->
 		</class>
 	</class>
 	<class name="GtkAccelGroup"/>
+	<class name="GtkTextBuffer" createp="NULL" init="kxgtktextbuffer_extra_init(self);"/>
+	<class name="GtkTextTagTable"/>
+	<class name="GtkTextTag" createp='""'/>
+	<class name="GtkTreeModel" abstract="true" init="kxgtktreemodel_extra_init(self);">
+		<class name="GtkListStore" 
+			   createp="1,G_TYPE_INT" 
+			   init="kxgtkliststore_extra_init(self);" 
+			   defaultClone="false"
+			   mark="kxgtktreemodel_extra_mark(self);"
+			   clean="gtk_list_store_clear(self->data.ptr);"
+			   />
+		<class name="GtkTreeStore" 
+			   createp="1,G_TYPE_INT" 
+			   init="kxgtktreestore_extra_init(self);" 
+			   defaultClone="false"
+			   mark="kxgtktreemodel_extra_mark(self);"
+			   clean="gtk_tree_store_clear(self->data.ptr);"
+			   />
+	</class>
+
+	<class name="GtkTreeSelection" defaultClone="false" init="kxgtktreeselection_extra_init(self);" prototype-create=""/>
+	<!-- Problems with GtkTextMark, wait for new version of gtk <class name="GtkTextMark" createp='NULL,TRUE' /> -->
 </class>
 
 </gtk>

@@ -52,7 +52,8 @@ kxgdkevent_new_prototype(KxCore *core)
 	
 	kxgdkevent_add_method_table(self);
 
-	kxgtk_register_boxed_type(GDK_TYPE_EVENT, self);
+	//kxgtk_register_boxed_type(GDK_TYPE_EVENT, self);
+	kxgtk_register_extension(GDK_TYPE_EVENT, &kxgdkevent_extension);
 	return self;
 }
 

@@ -52,11 +52,24 @@ PROGRAMS = $(gtk_pkglib_PROGRAMS)
 am_gtk_so_OBJECTS = gobject.$(OBJEXT) gtkobject.$(OBJEXT) \
 	gtkwidget.$(OBJEXT) gtkcontainer.$(OBJEXT) gtkbin.$(OBJEXT) \
 	gtkwindow.$(OBJEXT) gtkbutton.$(OBJEXT) \
-	gtkcheckbutton.$(OBJEXT) gtkbox.$(OBJEXT) gtkvbox.$(OBJEXT) \
-	gtkhbox.$(OBJEXT) gtkmisc.$(OBJEXT) gtklabel.$(OBJEXT) \
-	gtkaccelgroup.$(OBJEXT) gtkrequisition.$(OBJEXT) \
-	gdkgeometry.$(OBJEXT) gtk.$(OBJEXT) gtk_utils.$(OBJEXT) \
-	kxclosure.$(OBJEXT) gdkevent.$(OBJEXT)
+	gtkcheckbutton.$(OBJEXT) gtktogglebutton.$(OBJEXT) \
+	gtkscrolledwindow.$(OBJEXT) gtkcombobox.$(OBJEXT) \
+	gtkbox.$(OBJEXT) gtkvbox.$(OBJEXT) gtkhbox.$(OBJEXT) \
+	gtktable.$(OBJEXT) gtknotebook.$(OBJEXT) gtktextview.$(OBJEXT) \
+	gtktreeview.$(OBJEXT) gtkmisc.$(OBJEXT) gtklabel.$(OBJEXT) \
+	gtkentry.$(OBJEXT) gtkadjustment.$(OBJEXT) \
+	gtktreeviewcolumn.$(OBJEXT) gtkcellrenderer.$(OBJEXT) \
+	gtkcellrenderertext.$(OBJEXT) gtkaccelgroup.$(OBJEXT) \
+	gtktextbuffer.$(OBJEXT) gtktexttagtable.$(OBJEXT) \
+	gtktexttag.$(OBJEXT) gtktreemodel.$(OBJEXT) \
+	gtkliststore.$(OBJEXT) gtktreestore.$(OBJEXT) \
+	gtktreeselection.$(OBJEXT) gtkrequisition.$(OBJEXT) \
+	gtktextiter.$(OBJEXT) gtktreeiter.$(OBJEXT) \
+	gtktreepath.$(OBJEXT) gtktextchildanchor.$(OBJEXT) \
+	gdkrectangle.$(OBJEXT) gtktextattributes.$(OBJEXT) \
+	gtk.$(OBJEXT) gtk_utils.$(OBJEXT) kxclosure.$(OBJEXT) \
+	gdkevent.$(OBJEXT) gtktextbuffer_extra.$(OBJEXT) \
+	kxtree.$(OBJEXT)
 gtk_so_OBJECTS = $(am_gtk_so_OBJECTS)
 gtk_so_LDADD = $(LDADD)
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)
@@ -186,32 +199,265 @@ gtkbutton.h \
 gtkbutton.c \
 gtkcheckbutton.h \
 gtkcheckbutton.c \
+gtktogglebutton.h \
+gtktogglebutton.c \
+gtkscrolledwindow.h \
+gtkscrolledwindow.c \
+gtkcombobox.h \
+gtkcombobox.c \
 gtkbox.h \
 gtkbox.c \
 gtkvbox.h \
 gtkvbox.c \
 gtkhbox.h \
 gtkhbox.c \
+gtktable.h \
+gtktable.c \
+gtknotebook.h \
+gtknotebook.c \
+gtktextview.h \
+gtktextview.c \
+gtktreeview.h \
+gtktreeview.c \
 gtkmisc.h \
 gtkmisc.c \
 gtklabel.h \
 gtklabel.c \
+gtkentry.h \
+gtkentry.c \
+gtkadjustment.h \
+gtkadjustment.c \
+gtktreeviewcolumn.h \
+gtktreeviewcolumn.c \
+gtkcellrenderer.h \
+gtkcellrenderer.c \
+gtkcellrenderertext.h \
+gtkcellrenderertext.c \
 gtkaccelgroup.h \
 gtkaccelgroup.c \
+gtktextbuffer.h \
+gtktextbuffer.c \
+gtktexttagtable.h \
+gtktexttagtable.c \
+gtktexttag.h \
+gtktexttag.c \
+gtktreemodel.h \
+gtktreemodel.c \
+gtkliststore.h \
+gtkliststore.c \
+gtktreestore.h \
+gtktreestore.c \
+gtktreeselection.h \
+gtktreeselection.c \
 gtkrequisition.h \
 gtkrequisition.c \
-gdkgeometry.h \
-gdkgeometry.c \
+gtktextiter.h \
+gtktextiter.c \
+gtktreeiter.h \
+gtktreeiter.c \
+gtktreepath.h \
+gtktreepath.c \
+gtktextchildanchor.h \
+gtktextchildanchor.c \
+gdkrectangle.h \
+gdkrectangle.c \
+gtktextattributes.h \
+gtktextattributes.c \
 gtk.c \
    gtk_utils.c \
    gtk_utils.h \
    kxclosure.c \
    kxclosure.h \
    gdkevent.c \
-   gdkevent.h
+   gdkevent.h \
+   gtktextbuffer_extra.c \
+   kxtree.c \
+   kxtree.h
 
 gtk_so_LDFLAGS = -module
-EXTRA_DIST = gtk.xml gtk.kx
+MAINTAINERCLEANFILES = \
+	gobject.h \
+gobject.c \
+gtkobject.h \
+gtkobject.c \
+gtkwidget.h \
+gtkwidget.c \
+gtkcontainer.h \
+gtkcontainer.c \
+gtkbin.h \
+gtkbin.c \
+gtkwindow.h \
+gtkwindow.c \
+gtkbutton.h \
+gtkbutton.c \
+gtkcheckbutton.h \
+gtkcheckbutton.c \
+gtktogglebutton.h \
+gtktogglebutton.c \
+gtkscrolledwindow.h \
+gtkscrolledwindow.c \
+gtkcombobox.h \
+gtkcombobox.c \
+gtkbox.h \
+gtkbox.c \
+gtkvbox.h \
+gtkvbox.c \
+gtkhbox.h \
+gtkhbox.c \
+gtktable.h \
+gtktable.c \
+gtknotebook.h \
+gtknotebook.c \
+gtktextview.h \
+gtktextview.c \
+gtktreeview.h \
+gtktreeview.c \
+gtkmisc.h \
+gtkmisc.c \
+gtklabel.h \
+gtklabel.c \
+gtkentry.h \
+gtkentry.c \
+gtkadjustment.h \
+gtkadjustment.c \
+gtktreeviewcolumn.h \
+gtktreeviewcolumn.c \
+gtkcellrenderer.h \
+gtkcellrenderer.c \
+gtkcellrenderertext.h \
+gtkcellrenderertext.c \
+gtkaccelgroup.h \
+gtkaccelgroup.c \
+gtktextbuffer.h \
+gtktextbuffer.c \
+gtktexttagtable.h \
+gtktexttagtable.c \
+gtktexttag.h \
+gtktexttag.c \
+gtktreemodel.h \
+gtktreemodel.c \
+gtkliststore.h \
+gtkliststore.c \
+gtktreestore.h \
+gtktreestore.c \
+gtktreeselection.h \
+gtktreeselection.c \
+gtkrequisition.h \
+gtkrequisition.c \
+gtktextiter.h \
+gtktextiter.c \
+gtktreeiter.h \
+gtktreeiter.c \
+gtktreepath.h \
+gtktreepath.c \
+gtktextchildanchor.h \
+gtktextchildanchor.c \
+gdkrectangle.h \
+gdkrectangle.c \
+gtktextattributes.h \
+gtktextattributes.c \
+gtk.c \
+	kxgenerated.tmp
+
+EXTRA_DIST = gobject.h \
+gobject.c \
+gtkobject.h \
+gtkobject.c \
+gtkwidget.h \
+gtkwidget.c \
+gtkcontainer.h \
+gtkcontainer.c \
+gtkbin.h \
+gtkbin.c \
+gtkwindow.h \
+gtkwindow.c \
+gtkbutton.h \
+gtkbutton.c \
+gtkcheckbutton.h \
+gtkcheckbutton.c \
+gtktogglebutton.h \
+gtktogglebutton.c \
+gtkscrolledwindow.h \
+gtkscrolledwindow.c \
+gtkcombobox.h \
+gtkcombobox.c \
+gtkbox.h \
+gtkbox.c \
+gtkvbox.h \
+gtkvbox.c \
+gtkhbox.h \
+gtkhbox.c \
+gtktable.h \
+gtktable.c \
+gtknotebook.h \
+gtknotebook.c \
+gtktextview.h \
+gtktextview.c \
+gtktreeview.h \
+gtktreeview.c \
+gtkmisc.h \
+gtkmisc.c \
+gtklabel.h \
+gtklabel.c \
+gtkentry.h \
+gtkentry.c \
+gtkadjustment.h \
+gtkadjustment.c \
+gtktreeviewcolumn.h \
+gtktreeviewcolumn.c \
+gtkcellrenderer.h \
+gtkcellrenderer.c \
+gtkcellrenderertext.h \
+gtkcellrenderertext.c \
+gtkaccelgroup.h \
+gtkaccelgroup.c \
+gtktextbuffer.h \
+gtktextbuffer.c \
+gtktexttagtable.h \
+gtktexttagtable.c \
+gtktexttag.h \
+gtktexttag.c \
+gtktreemodel.h \
+gtktreemodel.c \
+gtkliststore.h \
+gtkliststore.c \
+gtktreestore.h \
+gtktreestore.c \
+gtktreeselection.h \
+gtktreeselection.c \
+gtkrequisition.h \
+gtkrequisition.c \
+gtktextiter.h \
+gtktextiter.c \
+gtktreeiter.h \
+gtktreeiter.c \
+gtktreepath.h \
+gtktreepath.c \
+gtktextchildanchor.h \
+gtktextchildanchor.c \
+gdkrectangle.h \
+gdkrectangle.c \
+gtktextattributes.h \
+gtktextattributes.c \
+gtk.c gtk.kx generate.sh kxgenerated.tmp \
+generator/structs.txt \
+generator/wrapper.kx \
+generator/functions.txt \
+generator/struct.kx \
+generator/function.kx \
+generator/enum.kx \
+generator/module.c \
+generator/structs.txt \
+generator/generator.kx \
+generator/Makefile-template.am \
+generator/type.kx \
+generator/object.c \
+generator/object.h \
+generator/class.xml \
+generator/enums.txt \
+generator/class.kx \
+generator/utils.kx
+
 gtk_pkglib_DATA = gtk.kx
 all: all-am
 
@@ -280,25 +526,51 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdkevent.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdkgeometry.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdkrectangle.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gobject.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtk.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtk_utils.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtkaccelgroup.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtkadjustment.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtkbin.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtkbox.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtkbutton.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtkcellrenderer.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtkcellrenderertext.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtkcheckbutton.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtkcombobox.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtkcontainer.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtkentry.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtkhbox.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtklabel.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtkliststore.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtkmisc.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtknotebook.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtkobject.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtkrequisition.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtkscrolledwindow.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtktable.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtktextattributes.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtktextbuffer.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtktextbuffer_extra.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtktextchildanchor.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtktextiter.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtktexttag.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtktexttagtable.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtktextview.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtktogglebutton.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtktreeiter.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtktreemodel.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtktreepath.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtktreeselection.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtktreestore.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtktreeview.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtktreeviewcolumn.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtkvbox.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtkwidget.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtkwindow.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/kxclosure.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/kxtree.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	if $(COMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
@@ -381,6 +653,7 @@ distclean-tags:
 	-rm -f TAGS ID GTAGS GRTAGS GSYMS GPATH tags
 
 distdir: $(DISTFILES)
+	$(mkdir_p) $(distdir)/generator
 	@srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`; \
 	topsrcdirstrip=`echo "$(top_srcdir)" | sed 's|.|.|g'`; \
 	list='$(DISTFILES)'; for file in $$list; do \
@@ -438,6 +711,7 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
+	-test -z "$(MAINTAINERCLEANFILES)" || rm -f $(MAINTAINERCLEANFILES)
 clean: clean-am
 
 clean-am: clean-generic clean-gtk_pkglibPROGRAMS mostlyclean-am
@@ -501,6 +775,91 @@ uninstall-am: uninstall-gtk_pkglibDATA uninstall-gtk_pkglibPROGRAMS \
 	uninstall-am uninstall-gtk_pkglibDATA \
 	uninstall-gtk_pkglibPROGRAMS uninstall-info-am
 
+
+gobject.h: kxgenerated.tmp
+gobject.c: kxgenerated.tmp
+gtkobject.h: kxgenerated.tmp
+gtkobject.c: kxgenerated.tmp
+gtkwidget.h: kxgenerated.tmp
+gtkwidget.c: kxgenerated.tmp
+gtkcontainer.h: kxgenerated.tmp
+gtkcontainer.c: kxgenerated.tmp
+gtkbin.h: kxgenerated.tmp
+gtkbin.c: kxgenerated.tmp
+gtkwindow.h: kxgenerated.tmp
+gtkwindow.c: kxgenerated.tmp
+gtkbutton.h: kxgenerated.tmp
+gtkbutton.c: kxgenerated.tmp
+gtkcheckbutton.h: kxgenerated.tmp
+gtkcheckbutton.c: kxgenerated.tmp
+gtktogglebutton.h: kxgenerated.tmp
+gtktogglebutton.c: kxgenerated.tmp
+gtkscrolledwindow.h: kxgenerated.tmp
+gtkscrolledwindow.c: kxgenerated.tmp
+gtkcombobox.h: kxgenerated.tmp
+gtkcombobox.c: kxgenerated.tmp
+gtkbox.h: kxgenerated.tmp
+gtkbox.c: kxgenerated.tmp
+gtkvbox.h: kxgenerated.tmp
+gtkvbox.c: kxgenerated.tmp
+gtkhbox.h: kxgenerated.tmp
+gtkhbox.c: kxgenerated.tmp
+gtktable.h: kxgenerated.tmp
+gtktable.c: kxgenerated.tmp
+gtknotebook.h: kxgenerated.tmp
+gtknotebook.c: kxgenerated.tmp
+gtktextview.h: kxgenerated.tmp
+gtktextview.c: kxgenerated.tmp
+gtktreeview.h: kxgenerated.tmp
+gtktreeview.c: kxgenerated.tmp
+gtkmisc.h: kxgenerated.tmp
+gtkmisc.c: kxgenerated.tmp
+gtklabel.h: kxgenerated.tmp
+gtklabel.c: kxgenerated.tmp
+gtkentry.h: kxgenerated.tmp
+gtkentry.c: kxgenerated.tmp
+gtkadjustment.h: kxgenerated.tmp
+gtkadjustment.c: kxgenerated.tmp
+gtktreeviewcolumn.h: kxgenerated.tmp
+gtktreeviewcolumn.c: kxgenerated.tmp
+gtkcellrenderer.h: kxgenerated.tmp
+gtkcellrenderer.c: kxgenerated.tmp
+gtkcellrenderertext.h: kxgenerated.tmp
+gtkcellrenderertext.c: kxgenerated.tmp
+gtkaccelgroup.h: kxgenerated.tmp
+gtkaccelgroup.c: kxgenerated.tmp
+gtktextbuffer.h: kxgenerated.tmp
+gtktextbuffer.c: kxgenerated.tmp
+gtktexttagtable.h: kxgenerated.tmp
+gtktexttagtable.c: kxgenerated.tmp
+gtktexttag.h: kxgenerated.tmp
+gtktexttag.c: kxgenerated.tmp
+gtktreemodel.h: kxgenerated.tmp
+gtktreemodel.c: kxgenerated.tmp
+gtkliststore.h: kxgenerated.tmp
+gtkliststore.c: kxgenerated.tmp
+gtktreestore.h: kxgenerated.tmp
+gtktreestore.c: kxgenerated.tmp
+gtktreeselection.h: kxgenerated.tmp
+gtktreeselection.c: kxgenerated.tmp
+gtkrequisition.h: kxgenerated.tmp
+gtkrequisition.c: kxgenerated.tmp
+gtktextiter.h: kxgenerated.tmp
+gtktextiter.c: kxgenerated.tmp
+gtktreeiter.h: kxgenerated.tmp
+gtktreeiter.c: kxgenerated.tmp
+gtktreepath.h: kxgenerated.tmp
+gtktreepath.c: kxgenerated.tmp
+gtktextchildanchor.h: kxgenerated.tmp
+gtktextchildanchor.c: kxgenerated.tmp
+gdkrectangle.h: kxgenerated.tmp
+gdkrectangle.c: kxgenerated.tmp
+gtktextattributes.h: kxgenerated.tmp
+gtktextattributes.c: kxgenerated.tmp
+gtk.c: kxgenerated.tmp
+
+kxgenerated.tmp: generator/class.xml generator/structs.txt generator/enums.txt
+	sh $(srcdir)/generate.sh $(top_builddir) $(top_srcdir) $(srcdir)
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

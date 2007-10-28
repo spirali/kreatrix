@@ -7,6 +7,49 @@ List asStringCapitalized = {
 	^(collect: [ :string | string capitalized ]) asString.
 }.
 
+GRawFunction = Object clone do: {
+	type = "GRawFunction".
+
+	
+	numberOfParameters <- 0.
+
+
+	codeString <- "KXRETURN(self)".
+
+	slotName <- "returnSelf".
+
+	wrapperCName <- "kx_return_self".
+
+	code = {
+		^"static KxObject *\n",wrapperCName,
+		 " (KxObject *self, KxMessage *message)\n{\n",	
+		 codeString,"\n}\n".
+	}.
+
+
+
+}.
+
+/*GBasicFunction = GRawFunction clone do: {
+	type = "GBasicFunction".
+
+	generator <- nil.
+	definition <- nil.
+
+	initialize = {}.
+
+	classCName = {
+		^definition classCName.
+	}.
+
+	className = {
+		^definition className.
+	}.
+
+
+}.*/
+
+
 
 GFunction = Object clone do: {
 	type = "GFunction".
@@ -23,7 +66,7 @@ GFunction = Object clone do: {
 	}.
 
 	call = { ^definition call }.
-	slotName = { ^definition slotName }.
+	slotName <- "<unknown>".
 
 	className = {
 		^definition className.
@@ -81,30 +124,168 @@ GFunction = Object clone do: {
 		^params size.
 	}.
 
+	/*returnCode = {
+		(definition options == "addRef") ifTrue: [ ^"KxObject *_ret = " ].
+		^"return ".
+	}.
+
+	returnCodeEnd = {
+		(definition options == "addRef") ifTrue: [ ^";\n\tKXRETURN(_ret)" ].
+		^"".
+	}.*/
+
+	hasOption: = { :aString | 
+		^definition hasOption: aString.
+	}.
+
+
 	code = { |str|
 		str << "static KxObject *\n",wrapperCName,
 		 " (KxObject *self, KxMessage *message)\n{\n",codeGetParams,"\n\t".
 		returnType ignoreResult 
 			ifTrue: [ str << str,codeCall,";\n\tKXRETURN(self);" ]
 			ifFalse: [
-				str << str,"return KX",
-					returnType name asUppercase,"((",returnType cname,")",codeCall,");".
+				|call|
+				call << "KX",
+						returnType name asUppercase,"((",returnType cname,")",codeCall,");".
 
+				(hasOption: "new") ifTrue: [ 
+					str << str,"KxObject *_ret = ", call,"\n\tg_object_unref(_ret->data.ptr);\n\treturn _ret;".
+				] ifFalse: [
+					str << str,"return ", call.
+				].
+	
 			].
 		
 		^str,"\n}\n".
 	}.
 
-	cloneWithDefinition:generator: = { :definition :generator |
+	/*cloneWithDefinition:generator: = { :definition :generator |
 		|func|
 		func << GFunction clone.
 		func definition: definition.
 		func generator: generator.
-		func addParams.
+		func initialize.
 		func returnType: (generator findType: definition returnType lineNumber: definition lineNumber).
 		^func.
+	}.*/
+
+	getSlotName = {
+		definition hasSlotName ifTrue: [ 
+			^definition slotName.
+		].
+		^generateSlotName.
 	}.
+
+	generateSlotName = { 
+		|parts params|
+		params << definition params.
+		parts << definition callNameParts.
+		((params size > 0) and: [ (params at: 0) == classCName ]) ifTrue: [
+			(params size == 1) ifTrue: [
+				(parts first == "get") ifTrue: [ 
+					^(parts allButFirst asStringCamelCase)		
+				].
+
+				(parts first == "get") /\ 
+				(returnType == "gboolean")  
+					ifTrue: [
+					^"is",(parts allButFirst asStringCapitalized).
+				].
+				^parts asStringCamelCase.
+
+			].
+			(params size == 2) ifTrue: [
+				(parts first == "set") ifTrue: [
+					^(parts allButFirst asStringCamelCase),":".
+				].
+				^(parts asStringCamelCase),":".
+			].
+		].
+
+	/*	classCName println.
+		params println.*/
+	//	callNameParts println.
+		^onNoAutomaticName.
+	}.
+
+
+	onNoAutomaticName = {
+		("No automatic name for:", call) println.
+		^"unknown".
+	}.
+
+	isFunctionForDefinition:generator: = true.
+
+	initializeReturnType = {
+		returnType: 
+			(generator findType: definition returnType lineNumber: definition lineNumber).
+	}.
+
+	initialize = {
+		slotName: getSlotName.
+		addParams.
+		initializeReturnType.
+	}.
+
 }.
+
+GStructReader = GFunction clone do: { 
+	type = "GFunction".
+
+	isFunctionForDefinition:generator: = { :definition :generator |
+		(definition options == "structReader") ifTrue: [ ^true ].
+	 	^(definition returnType == "void") and: [ 
+			(definition params size >= 2) /\ ((definition call contains: "get")) and: [ 
+				(definition params first == definition classCName) and: [ |wrapper|
+					wrapper << generator findWrapperByName: (definition params at: 1).
+
+					wrapper isNil ifTrue: [ false ] 
+								  ifFalse: [ wrapper isStruct ].
+				].
+			]
+		].
+	}.
+
+	returnStruct <- nil.
+	
+	initialize = {
+		resend initialize.
+		returnStruct: (generator findWrapperByName: (definition params at: 1)).
+	}.
+
+	codeGetParams = { |id|
+		id << (0).
+		^((params allButFirst collect: [ :param | 
+			id << id + 1.
+			param codeForGettingParamId: id atPosition: (id - 1).
+		]) reject: [ :string | string isEmpty ]) asStringDelimiter: "\n".
+	}.
+
+
+	code = { |str|
+		str << "static KxObject *\n",wrapperCName,
+		 " (KxObject *self, KxMessage *message)\n{\n",codeGetParams,"\n\t".
+		str << str,"void *param0 = malloc(sizeof(",returnStruct name,
+			")); ALLOCTEST(param0);\n\t".
+		str << str,codeCall,";\n".
+		str << str,"\treturn KX",
+					returnStruct name asUppercase,"(param0);".
+
+		^str,"\n}\n".
+	}.
+
+	generateSlotName = {
+		^onNoAutomaticName.
+	}.
+
+	numberOfParameters = {
+		^params size - 1.
+	}.
+
+
+}.
+
 
 GFuncDefinition = Object clone do: {
 	type = "GFuncDefinition".
@@ -112,8 +293,27 @@ GFuncDefinition = Object clone do: {
 	params <- #().
 	call <- "".
 	returnType <- nil.
+
 	slotName <- nil.
 	lineNumber <- 0.
+
+	options <- "".
+
+	gfunctionPrototypes = #(GStructReader GFunction).
+
+	generator <- nil.
+
+	prefix <- "<unset>".
+
+	createGFunctionGenerator: = { :generator | |func proto|
+		proto << gfunctionPrototypes detect: [ :proto | proto 
+			isFunctionForDefinition: self generator: generator ].
+		func << proto clone.
+		func generator: generator.
+		func definition: self.
+		func initialize.
+		^func.
+	}.
 
 	fromString:atLine: = { :aString :aLineNumber |
 		|index names params|
@@ -130,44 +330,39 @@ GFuncDefinition = Object clone do: {
 		namesFromString: names.
 	}.
 
-	generateSlotName = { 
-		|parts|
-		parts << callNameParts.
-		((params size > 0) and: [ (params at: 0) == classCName ]) ifTrue: [
-			(params size == 1) ifTrue: [
-				(parts first == "get") /\ 
-				(returnType == "gboolean")  
-					ifTrue: [
-					^"is",(parts allButFirst asStringCapitalized).
-				].
-				^parts asStringCamelCase.
+	getOptionsFromString: = { :aString |  |pos|
+		(aString first == '$') ifFalse: [ ^aString ].
+		options: (aString sliceBetween: "$" and: "$").
+		pos << aString find: "$" from: 1.
+		^(aString sliceFrom: pos+1).
+	}.
 
-			].
-			(params size == 2) ifTrue: [
-				(parts first == "set") ifTrue: [
-					^(parts allButFirst asStringCamelCase),":".
-				].
-				^(parts asStringCamelCase),":".
-			].
+	initPrefix = {
+		|px|
+		px << generator findMultiPartsPrefix: call.
+		px isNil ifFalse: [ 
+			prefix: px.
+		] ifTrue: [ |list|
+			list << call asListBy: "_".
+			prefix: list first, "_", (list at: 1).
 		].
-		
-		("No automatic name for:", call) println.
-		//parts asStringCamelCase println.
-		^"unknown".
 	}.
 
 	namesFromString: = { :aString | |list|
+		aString << getOptionsFromString: aString.
 		list << aString asListBy: " ".
 		(list size == 3) ifTrue: [ 
 			slotName: (list at: 0).
 			returnType: (list at: 1).
 			call: (list at: 2).
+			initPrefix.
 			^self.
 		].
 
 		returnType: (list at: 0).
 		call: (list at: 1).
-		slotName: (generateSlotName).
+		initPrefix.
+	//	slotName: (generateSlotName).
 	}.
 
 	hasSlotName = { 
@@ -175,7 +370,7 @@ GFuncDefinition = Object clone do: {
 	}.
 
 	callNameParts = {
-		^(call asListBy: "_") allButFirst: 2.
+		^(callWithoutPrefix asListBy: "_").
 	}.
 	/*generateAutomaticSlotName = {
 		(params size > 2) ifTrue: [ 
@@ -194,37 +389,46 @@ GFuncDefinition = Object clone do: {
 
 	className = { |parts|
 		// HACK!
-		(call beginsWith: "gtk_check") ifTrue: [
+	/*	(call beginsWith: "gtk_check") ifTrue: [
 			^"GtkCheckButton".
 		].
-		parts << call asListBy: "_".
-		^((parts at: 0) capitalized),((parts at: 1) capitalized).
-		//^ (parts collect: [ :string | string capitalized ]) asString println.
+
+		(call beginsWith: "gtk_text_buffer") ifTrue: [
+			^"GtkTextBuffer".
+		].
+
+		(call beginsWith: "gtk_text_view") ifTrue: [
+			^"GtkTextView".
+		].
+
+		(call beginsWith: "gtk_list_store") ifTrue: [
+			^"GtkListStore".
+		].
+
+	/*	(call beginsWith: "gtk_list_view") ifTrue: [
+			^"GtkListView".
+		].*/
+
+	/*	(call beginsWith: "gtk_tree_view") ifTrue: [
+			^"GtkTreeView".
+		].*/
+	//	(call, " : ", prefix) println.
+		^((prefix asListBy: "_") asStringCapitalized).// println.
+	}.
+
+	callWithoutPrefix = {
+		^call sliceFrom: (prefix size).
 	}.
 
 	classCName = {
 		^className,"*".
 	}.
 
-}.
-
-
-GRawFunction = Object clone do: {
-	type = "GRawFunction".
-
-	
-	numberOfParameters <- 0.
-
-	codeString <- "KXRETURN(self)".
-
-	slotName <- "returnSelf".
-
-	wrapperCName <- "kx_return_self".
-
-	code = {
-		^"static KxObject *\n",wrapperCName,
-		 " (KxObject *self, KxMessage *message)\n{\n",	
-		 codeString,"\n}\n".
+	hasOption: = { :aString |
+		^options == aString.
 	}.
 
 }.
+
+
+

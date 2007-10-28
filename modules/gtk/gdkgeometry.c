@@ -19,14 +19,39 @@
 #include "gtkwindow.h"
 #include "gtkbutton.h"
 #include "gtkcheckbutton.h"
+#include "gtktogglebutton.h"
+#include "gtkscrolledwindow.h"
+#include "gtkcombobox.h"
 #include "gtkbox.h"
 #include "gtkvbox.h"
 #include "gtkhbox.h"
+#include "gtktable.h"
+#include "gtknotebook.h"
+#include "gtktextview.h"
+#include "gtktreeview.h"
 #include "gtkmisc.h"
 #include "gtklabel.h"
+#include "gtkentry.h"
+#include "gtkadjustment.h"
+#include "gtktreeviewcolumn.h"
+#include "gtkcellrenderer.h"
+#include "gtkcellrenderertext.h"
 #include "gtkaccelgroup.h"
+#include "gtktextbuffer.h"
+#include "gtktexttagtable.h"
+#include "gtktexttag.h"
+#include "gtktreemodel.h"
+#include "gtkliststore.h"
+#include "gtktreestore.h"
+#include "gtktreeselection.h"
 #include "gtkrequisition.h"
 #include "gdkgeometry.h"
+#include "gtktextiter.h"
+#include "gtktreeiter.h"
+#include "gtktreepath.h"
+#include "gtktextchildanchor.h"
+#include "gdkrectangle.h"
+#include "gtktextattributes.h"
 #include "gtk_utils.h"
 
 KxObjectExtension kxgdkgeometry_extension;
@@ -44,13 +69,15 @@ static void kxgdkgeometry_mark(KxObject *self)
 	
 }
 
+
+
 void kxgdkgeometry_extension_init() {
 	kxobjectext_init(&kxgdkgeometry_extension);
 	kxgdkgeometry_extension.type_name = "GdkGeometry";
 	kxgdkgeometry_extension.parent = NULL;
 	kxgdkgeometry_extension.free = kxgdkgeometry_free;
 	kxgdkgeometry_extension.mark = kxgdkgeometry_mark;
-//%init_extension%
+    
 }
 
 
@@ -67,6 +94,8 @@ kxgdkgeometry_new_prototype(KxObject *parent)
 	kxgdkgeometry_add_method_table(self);
 
 	self->data.ptr = calloc(sizeof(GdkGeometry),1);
+
+	kxgtk_register_extension(GDK_TYPE_GEOMETRY, &kxgdkgeometry_extension);
 
 
 	return self;
@@ -199,23 +228,23 @@ gdk_geometry_height_inc_ (KxObject *self, KxMessage *message)
 static KxObject *
 gdk_geometry_min_aspect (KxObject *self, KxMessage *message)
 {
-	return KXINTEGER( ((GdkGeometry*) self->data.ptr)->min_aspect);
+	return KXFLOAT( ((GdkGeometry*) self->data.ptr)->min_aspect);
 }
 static KxObject *
 gdk_geometry_min_aspect_ (KxObject *self, KxMessage *message)
 {
-	KXPARAM_TO_INT(param0,0);
+	KXPARAM_TO_DOUBLE(param0,0);
 	((GdkGeometry*) self->data.ptr)->min_aspect = param0;
 }
 static KxObject *
 gdk_geometry_max_aspect (KxObject *self, KxMessage *message)
 {
-	return KXINTEGER( ((GdkGeometry*) self->data.ptr)->max_aspect);
+	return KXFLOAT( ((GdkGeometry*) self->data.ptr)->max_aspect);
 }
 static KxObject *
 gdk_geometry_max_aspect_ (KxObject *self, KxMessage *message)
 {
-	KXPARAM_TO_INT(param0,0);
+	KXPARAM_TO_DOUBLE(param0,0);
 	((GdkGeometry*) self->data.ptr)->max_aspect = param0;
 }
 static KxObject *
