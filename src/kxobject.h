@@ -124,6 +124,9 @@ KxObject *kxobject_need_boolean(KxObject *self);
 
 int kxobject_check_type(KxObject *self, KxObjectExtension *extension);
 
+KxObject *kxobject_send_message_init(KxObject *self);
+
+
 
 /** Only for 'foreach' constructions */
 void kxobject_ref_remove(void *self);

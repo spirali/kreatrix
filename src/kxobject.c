@@ -201,29 +201,15 @@ kxobject_remove_all_parents(KxObject *self)
 }
 
 KxObject *
-kxobject_clone(KxObject *self)
+kxobject_send_message_init(KxObject *self) 
 {
-	
 	KxMessage msg;
 	msg.params_count = 0;
+	msg.target = self;
 
 	msg.message_name = KXCORE->dictionary[KXDICT_INIT];
 	REF_ADD(msg.message_name);
 
-	if (self->extension) {
-		if (self->extension->clone) 
-			msg.target = self->extension->clone(self);
-		else {
-			REF_REMOVE(msg.message_name);
-			KxObject *str = kxobject_type_name(self);
-			KxException *excp = kxexception_new_with_text(KXCORE,
-				"Object '%s' cannot be cloned", str->data.ptr);
-			REF_REMOVE(str);
-			KXTHROW(excp);
-		}
-	} else {
-		 msg.target = kxobject_raw_clone(self);
-	}	
 	msg.start_search = msg.target;
 	REF_ADD2(msg.target);
 
@@ -239,6 +225,30 @@ kxobject_clone(KxObject *self)
 		REF_REMOVE(obj);
 	}
 	return msg.target;
+
+
+}
+
+KxObject *
+kxobject_clone(KxObject *self)
+{
+	
+
+	KxObject *target;
+	if (self->extension) {
+		if (self->extension->clone) 
+			target = self->extension->clone(self);
+		else {
+			KxObject *str = kxobject_type_name(self);
+			KxException *excp = kxexception_new_with_text(KXCORE,
+				"Object '%s' cannot be cloned", str->data.ptr);
+			REF_REMOVE(str);
+			KXTHROW(excp);
+		}
+	} else {
+		 target = kxobject_raw_clone(self);
+	}	
+	return kxobject_send_message_init(target);
 }
 
 void
