@@ -134,7 +134,7 @@ sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
-TESTS_ENVIRONMENT = KREATRIX_MODULES_PATH="$(top_srcdir)/src/modules" ../src/kreatrix
+TESTS_ENVIRONMENT = KREATRIX_MODULES_PATH="$(top_srcdir)/modules" ../src/kreatrix
 TESTS = test_integer.kx \
 	test_baseobject.kx \
 	test_list.kx \

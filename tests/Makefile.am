@@ -1,5 +1,5 @@
 
-TESTS_ENVIRONMENT = KREATRIX_MODULES_PATH="$(top_srcdir)/src/modules" ../src/kreatrix
+TESTS_ENVIRONMENT = KREATRIX_MODULES_PATH="$(top_srcdir)/modules" ../src/kreatrix
 
 TESTS=	test_integer.kx \
 	test_baseobject.kx \
