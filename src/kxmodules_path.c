@@ -39,6 +39,12 @@ kxmodules_path_init()
 
 	if (env != NULL) {
 		size++;
+		char *str = env;
+		while( (*str) != 0) {
+			if ( (*str) == ':')
+				size++;
+			str++;
+		}
 	}
 	
 	kxmodules_path = malloc(sizeof(char*) * (size+1));
@@ -46,7 +52,28 @@ kxmodules_path_init()
 	int pos = 0;
 
 	if (env != NULL) {
-		kxmodules_path[pos++] = env;
+		char *str = env;
+		char *end = env;
+		while( (*end) != 0) {
+			if (*end == ':') {
+				*end = 0;
+				
+				kxmodules_path[pos++] = strdup(str);
+				
+				*end = ':';
+				str = end + 1;
+			} 
+			end++;
+			
+		}
+
+		if (str == env) {
+			kxmodules_path[pos++] = env;
+		} else {
+			if (str != 0) {
+				kxmodules_path[pos++] = strdup(str);
+			}
+		}
 	}
 
 	kxmodules_path[pos++] = PKGLIBDIR;
