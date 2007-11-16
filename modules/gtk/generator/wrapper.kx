@@ -24,7 +24,10 @@ GWrapper = Object clone do: {
 	filenameC = { ^filename,".c" }.
 	filenameH = { ^filename,".h" }.
 
-	slotName = { ^name sliceFrom: 3 }.
+	slotName = { 
+		(name beginsWith: "Gtk")  ifTrue: [ ^name sliceFrom: 3 ].
+		^name.
+	}.
 
 	extensionName = {
 		^"kx",name asLowercase,"_extension".

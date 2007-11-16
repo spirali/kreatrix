@@ -21,7 +21,7 @@ Constant = Object clone do: {
 	}.
 
 	getCode = { 
-		^"\tkxobject_set_slot_no_ref2(self, KXSYMBOL(\"",name,"\"),",valueCode,");\n".
+		^"\tkxobject_set_slot_no_ref2(constants, KXSYMBOL(\"",name,"\"),",valueCode,");\n".
 	}.
 }.
 

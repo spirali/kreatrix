@@ -35,7 +35,12 @@ kxmodule_main(KxModule *self, KxMessage *message)
 
 %init_prototypes%
 
+	KxObject *constants = kxcore_clone_base_object(KXCORE);
+
 %constants%
+	
+	kxobject_add_parent(self, constants);
+	kxobject_set_slot_no_ref2(self, KXSYMBOL("contants"), constants);
 
 	kxgtk_add_method_table(self);
 	KXRETURN(self);
