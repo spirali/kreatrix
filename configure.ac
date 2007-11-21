@@ -34,6 +34,7 @@ AC_CONFIG_FILES([
 		modules/time/Makefile
 		modules/pool/Makefile
 		modules/cgi/Makefile
+		modules/random/Makefile
 		modules/threads/Makefile
 		modules/xml/Makefile
 		modules/gtk/Makefile

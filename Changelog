@@ -1,6 +1,7 @@
 0.10
 	+ Module "gtk" added
 	+ Module "time" added
+	+ Module "random" added
 	+ Fixed few bugs in module xml
 	+ Slots && and || in true/false was renamed to /\ and \/
 	+ Slots with modules have been moved into separated parent of Lobby

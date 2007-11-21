@@ -1,0 +1,16 @@
+
+(isLoaded: #random) ifTrue: [ ^getModule: #random ].
+
+loadCLibrary: "random".
+
+List do: {
+	/** [random] pick random item from list (from module "random") */
+	pickRandom: = { :aRandom | 
+		isEmpty ifTrue: [ ^throw: 
+			(Exception clone message: "List is empty")  
+		].
+		^at: (aRandom getInteger: size).
+	}
+}.
+
+registerAs: #random.

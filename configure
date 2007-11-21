@@ -3449,7 +3449,7 @@ fi
 
 ac_config_headers="$ac_config_headers config.h"
 
-ac_config_files="$ac_config_files Makefile src/Makefile src/utils/Makefile src/compiler/Makefile src/tools/Makefile src/tools/kx2carray/Makefile src/tools/docgen/Makefile src/tools/objgen/Makefile src/tools/wrapgen/Makefile src/vminit/Makefile modules/Makefile modules/test/Makefile modules/system/Makefile modules/sockets/Makefile modules/time/Makefile modules/pool/Makefile modules/cgi/Makefile modules/threads/Makefile modules/xml/Makefile modules/gtk/Makefile tests/Makefile docs/Makefile docs/examples/Makefile"
+ac_config_files="$ac_config_files Makefile src/Makefile src/utils/Makefile src/compiler/Makefile src/tools/Makefile src/tools/kx2carray/Makefile src/tools/docgen/Makefile src/tools/objgen/Makefile src/tools/wrapgen/Makefile src/vminit/Makefile modules/Makefile modules/test/Makefile modules/system/Makefile modules/sockets/Makefile modules/time/Makefile modules/pool/Makefile modules/cgi/Makefile modules/random/Makefile modules/threads/Makefile modules/xml/Makefile modules/gtk/Makefile tests/Makefile docs/Makefile docs/examples/Makefile"
 
 
 #AC_DEFINE_UNQUOTED([SHARE_EXT],["$shrext_cmds"],[Extension of modules])
@@ -4584,6 +4584,7 @@ do
     "modules/time/Makefile") CONFIG_FILES="$CONFIG_FILES modules/time/Makefile" ;;
     "modules/pool/Makefile") CONFIG_FILES="$CONFIG_FILES modules/pool/Makefile" ;;
     "modules/cgi/Makefile") CONFIG_FILES="$CONFIG_FILES modules/cgi/Makefile" ;;
+    "modules/random/Makefile") CONFIG_FILES="$CONFIG_FILES modules/random/Makefile" ;;
     "modules/threads/Makefile") CONFIG_FILES="$CONFIG_FILES modules/threads/Makefile" ;;
     "modules/xml/Makefile") CONFIG_FILES="$CONFIG_FILES modules/xml/Makefile" ;;
     "modules/gtk/Makefile") CONFIG_FILES="$CONFIG_FILES modules/gtk/Makefile" ;;
