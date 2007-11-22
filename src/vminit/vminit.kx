@@ -500,33 +500,34 @@ Exception do: {
 
 }.
 
+
+
 Module do: {
-	_loadedModules = Dictionary clone.
+	/*_loadedModules = Dictionary clone.*/
 	
+	(hasSlot: #modulesPool) ifFalse: [
+		Module modulesPool = Object clone.
+		Lobby addParent: modulesPool.
+	].
+
 	registerAs: = { :aModuleName | 
-		Lobby slot: aModuleName set: self.
-		_loadedModules at: aModuleName put: self.
+		modulesPool slot: aModuleName set: self.
 		VM docFlag ifTrue: [ 
-			Lobby __slot: aModuleName doc: "[Modules]".
+			modulesPool __slot: aModuleName doc: "[Modules]".
 		].
 	}.
 
 	isLoaded: = { :aModuleName | 
-		^ _loadedModules hasKey: aModuleName.
+		^ modulesPool hasSlot: aModuleName.
 	}.
 
 	getModule: = { :aModuleName | 
-		^ _loadedModules at: aModuleName
+		^ modulesPool slot: aModuleName
 	}
 }.
 
 /** [Actions] Imports module */
 Lobby import: = { :aModuleName | 
-	/*slotName << aModuleName asSymbol.
-	(Lobby hasSlot: slotName) ifTrue: [ ^Lobby slot: slotName ].
-	module << Module clone load: aModuleName.
-	Lobby slot: slotName set: module.
-	^module.*/
 	^Module clone load: aModuleName.
 }.
 

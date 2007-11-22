@@ -272,9 +272,6 @@ kxcore_free(KxCore *self)
 		REF_REMOVE(self->basic_prototypes[t]);
 	}
 
-	if (dictionary_size(self->prototypes) != 0) {
-		fprintf(stderr,"Warning! Prototypes dictionary isn't empty\n");
-	}
 
 	REF_REMOVE(self->object_stdout);
 	REF_REMOVE(self->object_stdin);
@@ -306,12 +303,20 @@ kxcore_free(KxCore *self)
 
 	list_free(self->symbol_table);
 
+	if (dictionary_size(self->prototypes) != 0) {
+		fprintf(stderr,"Warning! Prototypes dictionary isn't empty\n");
+		dictionary_foreach_value(self->prototypes, (ForeachFcn*) kxobject_dump);
+	}
+
+
 	dictionary_free(self->prototypes);
 	dictionary_free(self->global_data);
 
 	if (self->mark_functions) {
 		list_free(self->mark_functions);
 	}
+
+
 
 	if (kx_verbose || self->objects_count)
 		printf("core->objects_count = %i\n", self->objects_count);

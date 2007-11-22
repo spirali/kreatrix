@@ -1,9 +1,10 @@
 0.10
 	+ Module "gtk" added
 	+ Module "time" added
-	+ ObjectExtensions now supports inheritance
 	+ Fixed few bugs in module xml
 	+ Slots && and || in true/false was renamed to /\ and \/
+	+ Slots with modules have been moved into separated parent of Lobby
+	+ ObjectExtensions now supports inheritance
 
 0.9 
 	+ New compiler front-end
