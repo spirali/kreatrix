@@ -224,6 +224,11 @@ void kxgtktreeview_extra_mark(KxObject *self)
 	GtkTreeModel *model = gtk_tree_view_get_model(data);
 	if (model)
 		kxgtk_mark_gobject(G_OBJECT(model));
+
+	GtkTreeSelection *selection = gtk_tree_view_get_selection(data);
+	if (selection)
+		kxgtk_mark_gobject(G_OBJECT(selection));
+
 	
 	GList *list = gtk_tree_view_get_columns(data);
 	g_list_foreach(list, (GFunc) kxgtk_mark_gobject_list_callback, NULL);

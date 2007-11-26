@@ -24,7 +24,9 @@
 				</class>
 				<class name="GtkTable" createp="1,1,FALSE"/>
 				<class name="GtkNotebook"/>
-				<class name="GtkTextView"/>
+				<class name="GtkTextView">
+					<extra-mark cfunction="gtk_text_view_get_buffer"/>
+				</class>
 				<class name="GtkTreeView" mark="kxgtktreeview_extra_mark(self);"/>
 			</class>
 			<class name="GtkMisc" abstract="true">

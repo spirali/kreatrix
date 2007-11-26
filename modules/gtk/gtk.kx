@@ -63,6 +63,15 @@ TreeStore do: {
 		^iter.
 	}.
 
+	appendRootValues: = { :aList | 
+		^appendValues: aList parent: nil.
+	}.
+
+	prependRootValues: = { :aList | 
+		^prependValues: aList parent: nil.
+	}.
+
+
 }.
 
 

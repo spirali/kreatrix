@@ -21,6 +21,8 @@ GClass = GWrapper clone do: {
 
 	unrefNew <- true.
 
+	extraMarkCFunctions <- #().
+
 
 	/*init = {
 		childrens: #().
@@ -45,6 +47,10 @@ GClass = GWrapper clone do: {
 		anElement ifHasAttribute: "prototype-create" do: [ :value | prototypeCreateCode: value ].
 		anElement ifHasAttribute: "clean" do: [ :value | cleanCode: value ].
 		anElement ifHasAttribute: "unref-new" do: [ :value | unrefNew: value == "true". ].
+
+		extraMarkCFunctions: ((anElement childrens: "extra-mark") collect: [ :element | 
+			element attribute: "cfunction".	
+		]).
 		
 		loadChildrensFromElement: anElement.
 	}.
@@ -204,8 +210,19 @@ GClass = GWrapper clone do: {
 		functions: (implicitFunctions join: list).
 	}.
 
+	extraMarkCode = { |list|
+		extraMarkCFunctions isEmpty ifTrue: [ ^"" ].
+		list << #("GObject *gobject;\n").
+		extraMarkCFunctions foreach: [ :each |
+			list add: "\tgobject = G_OBJECT(",each,"(self->data.ptr));\n".
+			list add: "\tif (gobject) \n\t\tkxgtk_mark_gobject(G_OBJECT(gobject));\n".
+		]. 
+		^list asString.
+	}.
+
 	markCode = {
 		^"kxgtk_mark_container(self->data.ptr);\n\tkxgtk_mark_watched_closures(self->data.ptr);\n\t",
+		  extraMarkCode,
 		  ownMarkCode.
 	}.
 
