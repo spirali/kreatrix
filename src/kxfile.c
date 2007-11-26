@@ -6,8 +6,7 @@
 
 /*KXobject Base File
   [I/O] Prototype of file.
-  This object serves for accessing to files on filesystem or to standart 
-  streams.
+  This object serves for accessing to files.
 */
 
 
