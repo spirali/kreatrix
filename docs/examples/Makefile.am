@@ -10,4 +10,8 @@ EXTRA_DIST=\
 	basics/03_conditions.kx\
 	basics/04_cycles.kx\
 	basics/05_class.kx \
-	xml/example1.kx
+	xml/example1.kx \
+	gtk/gtkhelloworld.kx \
+	gtk/gtkbuttons.kx \
+	gtk/gtktextview.kx \
+	gtk/gtktreeview.kx

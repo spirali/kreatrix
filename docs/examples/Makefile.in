@@ -145,7 +145,11 @@ EXTRA_DIST = \
 	basics/03_conditions.kx\
 	basics/04_cycles.kx\
 	basics/05_class.kx \
-	xml/example1.kx
+	xml/example1.kx \
+	gtk/gtkhelloworld.kx \
+	gtk/gtkbuttons.kx \
+	gtk/gtktextview.kx \
+	gtk/gtktreeview.kx
 
 all: all-am
 
@@ -188,7 +192,7 @@ CTAGS:
 
 
 distdir: $(DISTFILES)
-	$(mkdir_p) $(distdir)/basics $(distdir)/kxweb $(distdir)/xml
+	$(mkdir_p) $(distdir)/basics $(distdir)/gtk $(distdir)/kxweb $(distdir)/xml
 	@srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`; \
 	topsrcdirstrip=`echo "$(top_srcdir)" | sed 's|.|.|g'`; \
 	list='$(DISTFILES)'; for file in $$list; do \
