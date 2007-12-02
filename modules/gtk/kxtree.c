@@ -80,9 +80,12 @@ kxgtkliststore_at_set_values (KxObject *self, KxMessage *message)
 	int t;
 	for (t = 0; t < list->size; t++) {
 		KxObject *obj = list->items[t];
+
+		GValue value = { 0 };
+
 	 	g_value_init(&value,
     	             gtk_tree_model_get_column_type(GTK_TREE_MODEL(self->data.ptr),
-        	         	t));
+        	         t));
 	
 		if (kxgtk_gvalue_from_object(obj, &value)) {
 			KxObject *typestr = kxobject_type_name(obj);
@@ -91,13 +94,13 @@ kxgtkliststore_at_set_values (KxObject *self, KxMessage *message)
 				KXSTRING_VALUE(typestr), 
 				g_type_name(G_TYPE_FUNDAMENTAL(G_VALUE_TYPE(&value))));
 			REF_REMOVE(typestr);
+			g_value_unset(&value);
 			KXTHROW(excp);
 		}
 		gtk_list_store_set_value(GTK_LIST_STORE(self->data.ptr), iter, t, &value);
+
+		g_value_unset(&value);
 	}
-
-
-	g_value_unset(&value);
 	KXRETURN(self);
 }
 
@@ -174,8 +177,6 @@ kxgtktreestore_at_set_values (KxObject *self, KxMessage *message)
 
 	int t;
 
-
-
 	for (t = 0; t < list->size; t++) {
 		KxObject *obj = list->items[t];
 
@@ -183,7 +184,7 @@ kxgtktreestore_at_set_values (KxObject *self, KxMessage *message)
 
 	 	g_value_init(&value,
     	             gtk_tree_model_get_column_type(GTK_TREE_MODEL(self->data.ptr),
-        	         	t));
+        	         t));
 	
 		if (kxgtk_gvalue_from_object(obj, &value)) {
 			KxObject *typestr = kxobject_type_name(obj);
@@ -192,6 +193,7 @@ kxgtktreestore_at_set_values (KxObject *self, KxMessage *message)
 				KXSTRING_VALUE(typestr), 
 				g_type_name(G_TYPE_FUNDAMENTAL(G_VALUE_TYPE(&value))));
 			REF_REMOVE(typestr);
+			g_value_unset(&value);
 			KXTHROW(excp);
 		}
 		gtk_tree_store_set_value(GTK_TREE_STORE(self->data.ptr), iter, t, &value);

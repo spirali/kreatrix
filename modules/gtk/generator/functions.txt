@@ -310,7 +310,7 @@ void                gtk_text_buffer_end_user_action     (GtkTextBuffer *buffer);
 // ------- GtkTextView -----------
 
 //O GtkWidget*          gtk_text_view_new                   (void);
-$new$ cloneWithBuffer: GtkWidget*          gtk_text_view_new_with_buffer       (GtkTextBuffer *buffer);
+$new$ cloneWithBuffer: GtkTextView*          gtk_text_view_new_with_buffer       (GtkTextBuffer *buffer);
 void                gtk_text_view_set_buffer            (GtkTextView *text_view,GtkTextBuffer *buffer);
 buffer GtkTextBuffer*      gtk_text_view_get_buffer            (GtkTextView *text_view);
 //! void                gtk_text_view_scroll_to_mark        (GtkTextView *text_view,GtkTextMark *mark,gdouble within_margin,gboolean use_align,gdouble xalign,gdouble yalign);
