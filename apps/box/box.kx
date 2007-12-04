@@ -1,0 +1,19 @@
+
+import: "gtk".
+
+box = Object clone.
+
+localImport: "browser.kx".
+
+do: { |browser|
+	
+	browser << box Browser clone.
+	browser onDestroyQuitGtk.
+
+	browser object: Lobby name: "Lobby".
+	browser show.
+	
+	gtk main.
+
+}.
+

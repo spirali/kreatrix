@@ -1,0 +1,131 @@
+
+
+box Browser = gtk Window clone do: {
+	type = "box Browser".
+
+	treeview <- nil.
+	textview <- nil.
+
+	rootObject <- Lobby.
+	rootObjectName <- "Lobby".
+
+	onDestroyQuitGtk = {
+		signal: "destroy" connect: [ :w | gtk mainQuit ].
+	}.
+
+	object:name: = { :anObject :aString | |model path|
+		title: "Browser: ",aString.
+		rootObject <- anObject.
+
+		model << _createInitModel.
+		treeview model: model.
+	}.
+
+	init = { |box scrolled|
+		resize: 300@400.
+	//	borderWidth: 5.
+
+		box << gtk VBox clone.
+		add: box.
+		box spacing: 5.
+
+		scrolled << gtk ScrolledWindow clone.
+		box packStart: scrolled.
+		scrolled policyHorizontal: gtk POLICY_AUTOMATIC 
+		         policyVertical: gtk POLICY_AUTOMATIC.
+
+
+		treeview: _createView.
+		scrolled add: treeview.
+
+		scrolled << gtk ScrolledWindow clone.
+		box packStart: scrolled.
+		scrolled policyHorizontal: gtk POLICY_AUTOMATIC 
+		         policyVertical: gtk POLICY_AUTOMATIC.
+
+		textview: gtk TextView clone.
+		scrolled add: textview.
+
+		box showAll.
+
+	}.
+
+	_onRowExpand: = { :aTreeIter | |isInTree|
+		isInTree << treeview model valueAt: aTreeIter column: 2.
+		isInTree ifFalse: [ |obj slotName model child|
+			model << treeview model.
+
+
+			obj << model valueAt: aTreeIter column: 0.
+			slotName << model valueAt: aTreeIter column: 1.
+			model at: aTreeIter putValues: #(obj slotName true).
+			_fillStore: treeview model parent: aTreeIter withSlotsOf: obj.
+
+			child << model childrenOf: aTreeIter.
+			model remove: child.
+
+		].
+	}.
+
+	_onSelectRow: = { :aTreeIter | |obj slotName list|
+		obj << treeview model valueAt: aTreeIter column: 0.
+		list << #( ("Type: ", obj type)
+		   ("Parent: ", obj parent type)) .
+
+		setText: (list asStringDelimiter: "\n").
+	}.
+
+	_createView = { |column view|
+		view << gtk TreeView clone.
+		
+		column << gtk TreeViewColumn clone.
+		column title: "Objects".
+		column renderer: gtk CellRendererText clone
+		       attributes: #("text" 1)
+			   expand: true.
+
+		view appendColumn: column.
+
+		view signal: "row-expanded" connect:
+			[ :w :iter :path | 
+				_onRowExpand: iter.
+			].
+
+		view signal: "cursor-changed" connect: [ :w | 
+			|iter model child|
+			iter << treeview selection selectedIter.
+			_onSelectRow: iter.
+		].
+
+
+		^view.
+	}.
+
+	_fillStore:parent:withSlotsOf: = { :store :aTreeIter :anObject | |slots|
+		slots << anObject slots.
+		slots << slots reject: [ :slot | slot asString beginsWith: "__" ].
+		slots sort.
+		slots foreach: [ :slot | |obj iter|
+			obj << anObject slot: slot.
+			
+			iter << store appendValues: #(obj (slot asString) false)
+						  parent: aTreeIter.
+
+			obj slots isEmpty ifFalse: [ 
+				store appendValues: #(nil "" false) parent: iter.
+			].
+		].
+	}.
+
+	_createInitModel = { |model iter|
+		model << gtk TreeStore cloneWithColumns: #(Object String false).
+		iter << model appendValues: #(rootObject rootObjectName true) 
+					  parent: nil.
+		_fillStore: model parent: iter withSlotsOf: rootObject.
+		^model.
+	}.
+
+	setText: = { :aString | 
+		textview buffer text: aString.
+	}
+}.

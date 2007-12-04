@@ -2,10 +2,11 @@
 	+ Module "gtk" added
 	+ Module "time" added
 	+ Module "random" added
-	+ Fixed few bugs in module xml
+	+ Fixed few bugs in module "xml"
 	+ Slots && and || in true/false was renamed to /\ and \/
 	+ Slots with modules have been moved into separated parent of Lobby
 	+ ObjectExtensions now supports inheritance
+	+ KREATRIX_MODULES_PATH can now contains more paths (seperated by colon)
 
 0.9 
 	+ New compiler front-end
