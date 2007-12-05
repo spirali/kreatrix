@@ -1,0 +1,26 @@
+import: "gtk".
+
+AppWindow = gtk Window clone do: {
+	|view|
+	
+	title: "Kreatrix GTK example".
+	resize: 300@300.
+	
+	notebook = gtk Notebook clone.
+	add: notebook.
+
+	view << gtk TextView clone.
+	buffer =  view buffer.
+	notebook appendPage: view labelText: "TextView1".
+
+	view << gtk TextView cloneWithBuffer: buffer.
+	notebook appendPage: view labelText: "TextView2".
+
+	buffer text: "Two views on same buffer.".
+
+	// Quit app when window is closed
+	signal: "destroy" connect: [ :w | gtk mainQuit ].
+}.
+
+AppWindow showAll.
+gtk main.

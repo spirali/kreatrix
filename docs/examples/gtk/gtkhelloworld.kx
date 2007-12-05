@@ -1,0 +1,21 @@
+import: "gtk".
+
+initWindow = { 
+	|window label|
+	
+	window << gtk Window clone.
+	window title: "Kreatrix GTK example".
+	
+	label << gtk Label clone.
+	label text: "Hello world".
+
+	window add: label.
+	window resize: 200@200.
+	window showAll.
+
+	// Quit app when window is closed
+	window signal: "destroy" connect: [ :w | gtk mainQuit ].
+}.
+
+initWindow.
+gtk main.

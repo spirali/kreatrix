@@ -1,0 +1,59 @@
+import: "gtk".
+
+AppWindow = gtk Window clone do: {
+	|view scrolled|
+	
+	title: "Kreatrix GTK example".
+	resize: 250@300.
+	
+
+	createModel = {  |store|
+		store << gtk ListStore cloneWithColumns: #(String Integer).
+
+		#("Point" 0
+		  "Line" 1
+		  "Square"  2
+		  "Cube" 3
+		  "Hypercube" 4
+		) foreachPair: [ :a :b | 
+			store appendValues: #(a (b)).
+		].
+
+		^store.
+	}.
+
+	createView = {  |view column|
+		view << gtk TreeView clone.
+		
+		column << gtk TreeViewColumn clone.
+		column title: "Object".
+		column 
+			renderer: gtk CellRendererText clone 
+			attribute: "text" 
+			column: 0.
+		view appendColumn: column.
+
+		column << gtk TreeViewColumn clone.
+		column title: "Dimension".
+		column 
+			renderer: gtk CellRendererText clone 
+			attribute: "text" 
+			column: 1.
+		view appendColumn: column.
+		^view.
+	}.
+
+	scrolled << gtk ScrolledWindow clone.
+	add: scrolled. 
+
+	view << createView.
+	view model: createModel.
+	scrolled add: view.
+
+
+	// Quit app when window is closed
+	signal: "destroy" connect: [ :w | gtk mainQuit ].
+}.
+
+AppWindow showAll.
+gtk main.
