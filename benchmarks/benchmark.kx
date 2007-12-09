@@ -19,7 +19,7 @@ Benchmark = Object clone do: {
 	  ).
 
 */
-list = #("t2_graph.kx").
+list = #("basic/mdispatch.kx").
 
 list foreach: [ :filename | 
 	|benchmark| 
