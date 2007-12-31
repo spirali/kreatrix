@@ -52,8 +52,6 @@ typedef struct KxCore KxCore;
 						kxcore_switch_to_stack(KXCORE, __stack); }
 typedef void(KxGILFcn)(KxCore*);
 
-typedef void(KxMarkFunction)(KxCore*);
-
 #else
 
 #define KX_THREADS_BEGIN 
@@ -62,9 +60,9 @@ typedef void(KxMarkFunction)(KxCore*);
 
 #endif // KX_THREADS_SUPPORT
 
-
 #define KXCORE_IS_BLOCKED(core) (core)->blocked
 
+typedef void(KxMarkFunction)(KxCore*);
 
 struct KxCore  {
 	KxStack *stack;
