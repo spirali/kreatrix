@@ -660,7 +660,7 @@ Point = Object clone do: {
 
 	== = { :aPoint |
 		(aPoint isKindOf: Point) ifTrue: [
-			^(aPoint x == aPoint x) /\ (aPoint y == aPoint y).
+			^(x == aPoint x) /\ (y == aPoint y).
 		].
 		^false.
 	}.
