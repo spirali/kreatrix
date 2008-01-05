@@ -3,8 +3,24 @@ cd `dirname %0`
 export KREATRIX_MODULES_PATH="../modules"
 
 KREATRIX=../src/kreatrix
-TEST_RUNS=10
+
+if [ "$#" \< 1 ]; then
 MAIN_RUNS=10
+else
+MAIN_RUNS=$1
+fi
+
+if [ "$#" \< 2 ]; then
+TEST_RUNS=10
+else
+TEST_RUNS=$2
+fi
+
+
+echo MAIN_RUNS ... $MAIN_RUNS
+echo TEST_RUNS ... $TEST_RUNS
+
+LIST="test.list"
 
 echo "Version ... `$KREATRIX -c "VM version println"`";
 echo "Threads ... `$KREATRIX -c "(VM hasSupport: \\"threads\\") println"`";
@@ -21,4 +37,4 @@ for ((i=2;i<=MAIN_RUNS;i++)) do
 	mv tmp3 tmp1
 done
 
-paste list tmp1 -d ':' > result
+paste $LIST tmp1 -d ':' > result
