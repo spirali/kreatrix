@@ -79,6 +79,28 @@ kxvm_get_registered_exception(KxObject *self, KxMessage *message)
 	return excp;
 }
 
+static KxObject *
+kxvm_push_local_import_path(KxObject *self, KxMessage *message)
+{
+	KXPARAM_TO_CSTRING(filename,0);
+	kxcore_push_local_import_path(KXCORE,strdup(filename));
+	KXRETURN(self);
+}
+
+static KxObject *
+kxvm_pop_local_import_path(KxObject *self, KxMessage *message)
+{
+	kxcore_pop_local_import_path(KXCORE);
+	KXRETURN(self);
+}
+
+static KxObject *
+kxvm_top_local_import_path(KxObject *self, KxMessage *message)
+{
+	return KXSTRING(kxcore_top_local_import_path(KXCORE));
+}
+
+
 KxObject *
 kxvm_new(KxCore *core)
 {
@@ -95,6 +117,9 @@ kxvm_new(KxCore *core)
 		{"objectsCount",0, kxvm_objects_count},
 		{"gcTreshold",0, kxvm_gc_treshold},
 		{"inGroup:exception:", 2, kxvm_get_registered_exception},
+		{"pushLocalImportPath:", 1, kxvm_push_local_import_path},
+		{"popLocalImportPath", 0, kxvm_pop_local_import_path},
+		{"topLocalImportPath", 0, kxvm_top_local_import_path},
 		{NULL,0, NULL}
 	};
 

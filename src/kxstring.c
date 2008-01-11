@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <libgen.h>
 //#include <regex.h>
 
 #include "kxstring.h"
@@ -691,6 +692,24 @@ kxstring_println(KxString *self, KxMessage *message)
 }*/
 
 
+static KxObject *
+kxstring_dirname(KxString *self, KxMessage *message) 
+{
+	char *copy = strdup(KXSTRING_VALUE(self));
+	KxString *string = KXSTRING(dirname(copy));
+	free(copy);
+	return string;
+}
+
+static KxObject *
+kxstring_basename(KxString *self, KxMessage *message) 
+{
+	char *copy = strdup(KXSTRING_VALUE(self));
+	KxString *string = KXSTRING(basename(copy));
+	free(copy);
+	return string;
+}
+
 
 
 static void 
@@ -728,6 +747,8 @@ kxstring_add_method_table(KxString *self)
 		{"asIntegerInBase:",1, kxstring_as_integer_in_base},
 		{"replace:to:",2, kxstring_replace_to},
 		{"copy",0, kxstring_copy},
+		{"dirname",0, kxstring_dirname},
+		{"basename",0, kxstring_basename},
 		{NULL,0, NULL}
 	};
 	kxobject_add_methods(self, table);

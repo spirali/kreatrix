@@ -112,6 +112,8 @@ struct KxCore  {
 	Dictionary *global_data;
 
 	List *mark_functions;
+
+	List *local_import_paths;
 };
 
 KxCore *kxcore_new();
@@ -160,6 +162,10 @@ void* kxcore_get_global_data(KxCore *core, char *key);
 void kxcore_remove_global_data(KxCore *core, char *key);
 
 void kxcore_register_mark_function(KxCore *core, KxMarkFunction *function);
+
+void kxcore_push_local_import_path(KxCore *core, char *path);
+void kxcore_pop_local_import_path(KxCore *core);
+char * kxcore_top_local_import_path(KxCore *core);
 
 #ifdef KX_THREADS_SUPPORT
 	void kxcore_reset_yield_counter(KxCore *core);

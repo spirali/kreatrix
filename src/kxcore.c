@@ -102,6 +102,7 @@ kxcore_new()
 
 	core->symbol_table = list_new();
 	core->stack_list = list_new();
+	core->local_import_paths = list_new();
 
 	core->prototypes = dictionary_new();
 	core->registered_exceptions = dictionary_new();
@@ -316,7 +317,12 @@ kxcore_free(KxCore *self)
 		list_free(self->mark_functions);
 	}
 
+	for (t=0;t<self->local_import_paths->size;t++) {
+		free(self->local_import_paths->items[t]);
+	}
 
+	list_free(self->local_import_paths);
+	
 
 	if (kx_verbose || self->objects_count)
 		printf("core->objects_count = %i\n", self->objects_count);
@@ -623,5 +629,25 @@ void kxcore_register_mark_function(KxCore *core, KxMarkFunction *function)
 		core->mark_functions = list_new();
 	}
 	list_append(core->mark_functions, function);
+}
+
+
+void kxcore_push_local_import_path(KxCore *core, char *path) 
+{
+	list_append(core->local_import_paths, path);
+}
+
+
+void kxcore_pop_local_import_path(KxCore *core)
+{
+	char *str;
+	str = list_pop(core->local_import_paths);
+	if (str)
+		free(str);
+}
+
+char * kxcore_top_local_import_path(KxCore *core)
+{
+	return list_top(core->local_import_paths);
 }
 

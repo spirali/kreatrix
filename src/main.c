@@ -357,17 +357,16 @@ main(int argc, char **argv)
 	kxobject_set_slot_no_ref2(core->lobby,kxcore_get_symbol(core,"args"),kxlist_new_with(core,list));
 
 	if (script_filename) {
-		kxobject_set_slot_no_ref2(
+	/*	kxobject_set_slot_no_ref2(
 			core->lobby, 
 			kxcore_get_symbol(core, "localImportPath"), 
 			kxstring_new_with(core, dirname(script_filename))
-		);
+		); */
+		char *fname = strdup(script_filename);
+		kxcore_push_local_import_path(core, strdup(dirname(fname)));
+		free(fname);
 	} else {
-		kxobject_set_slot_no_ref2(
-			core->lobby, 
-			kxcore_get_symbol(core, "localImportPath"), 
-			kxstring_new_with(core, dirname("."))
-		);
+		kxcore_push_local_import_path(core, strdup("."));
 	}
 	
 	PDEBUG("-- vm inited --\n");

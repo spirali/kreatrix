@@ -399,6 +399,14 @@ kxinteger_negated(KxInteger *self, KxMessage *message)
 }
 
 static KxObject *
+kxinteger_bit_negated(KxInteger *self, KxMessage *message)
+{
+	long selfint = KXINTEGER_VALUE(self);
+	return KXINTEGER(~selfint);
+}
+
+
+static KxObject *
 kxinteger_exp(KxInteger *self, KxMessage *message)
 {
 	// TODO: Need implementation 
@@ -542,6 +550,7 @@ kxinteger_add_method_table(KxInteger *self)
 		{"isNotZero",0, kxinteger_is_not_zero},
 		{"isZero",0, kxinteger_is_zero},
 		{"negated",0, kxinteger_negated},
+		{"bitNegated",0, kxinteger_bit_negated},
 		{"abs", 0, kxinteger_abs},
 		{NULL,0, NULL}
 	};

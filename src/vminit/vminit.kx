@@ -95,6 +95,7 @@ Integer do: {
 	@ = { :y | 	
 		^(Point clone x: self) y: y.
 	}.
+
 }.
 
 Float do: {
@@ -532,8 +533,12 @@ Lobby import: = { :aModuleName |
 }.
 
 /** [Actions] Import local file */
-Lobby localImport: = { :aFilename |
-	^doFile: (localImportPath joinPath: aFilename).
+Lobby localImport: = { :aFilename | |obj path|
+	path << VM topLocalImportPath.
+	VM pushLocalImportPath: aFilename dirname.
+	obj << doFile: (path joinPath: aFilename).
+	VM popLocalImportPath.
+	^obj.
 }.
 
 Compiler do: {
@@ -665,6 +670,11 @@ Point = Object clone do: {
 		^false.
 	}.
 
+	hash = {
+		/** TODO: Need better hash function */
+		^(x hash shiftLeft: 16) + y hash.
+	}.
+
 	asString = { ^x asString,"@",y }.
 
 	* = { :aNumber | |p| 
@@ -686,6 +696,7 @@ Point = Object clone do: {
 	asFloatPoint = {
 		^x asFloatPoint @ y asFloatPoint.
 	}.
+
 }.
 
 Array2d do: {
@@ -729,4 +740,10 @@ Array2d do: {
 		].
 		^str,"]".
 	}.
+
+	isPositionInside: = { :aPoint | 
+		^isInsideX: aPoint x 
+		         y: aPoint y.
+	}.
+
 }.

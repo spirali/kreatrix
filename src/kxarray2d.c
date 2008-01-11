@@ -356,6 +356,19 @@ kxarray2d_height(KxArray2d *self, KxMessage *message)
 	return KXINTEGER(data->sizey);
 }
 
+static KxObject *
+kxarray2d_is_inside_x_y(KxArray2d *self, KxMessage *message)
+{
+	KXPARAM_TO_LONG(x, 0);
+	KXPARAM_TO_LONG(y, 1);
+	KxArray2dData *data = KXARRAY2D_DATA(self);
+
+	if (x < 0 || y < 0 || x >= data->sizex || y >= data->sizey) {
+		KXRETURN(KXCORE->object_false);
+	} else {
+		KXRETURN(KXCORE->object_true);
+	}
+}
 
 
 static void
@@ -370,6 +383,7 @@ kxarray2d_add_method_table(KxArray2d *self)
 		{"forColumn:do:",2, kxarray2d_for_column_do },
 		{"atX:y:put:",3, kxarray2d_at_put},
 		{"atX:y:",2, kxarray2d_at},
+		{"isInsideX:y:",2, kxarray2d_is_inside_x_y},
 		{"fillWith:",1, kxarray2d_fill},
 		{NULL,0, NULL}
 	};
