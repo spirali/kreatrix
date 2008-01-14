@@ -18,8 +18,8 @@
 
 
 /*KXobject Base Compiler
-  Kreatrix compiler & interpreter.
-  Object that represents Kreatrix compiler. Main purpose is compiling and interpreting bytecode.
+  Compiler of Kreatrix code
+  Object that represents compiler. Main purpose is compiling Kreatrix code to bytecode.
 */
 
 char * create_kxc_filename(char *kxfilename);
