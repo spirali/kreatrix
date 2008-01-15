@@ -1,0 +1,269 @@
+
+SGF = Object clone do: {
+
+	/* Public */
+
+	Node = Object clone do: { 
+		type = "SGFNode".
+
+		nodes <- #().
+
+		init = { 
+			nodes: #().
+		}.
+
+		addNode: = { :aNode | nodes add: aNode }.
+	}.
+
+	Variant = Node clone do: {
+		type = "SGFVariant".
+
+		firstNode = { ^ nodes first }.
+
+		nodeAt: = { :aNumber | 
+			^nodes at: aNumber.
+		}.
+	}.
+
+	PropertyList = Node clone do: {
+		type = "SGFPropertyList".
+
+		property:ifAbsent: = { :aPropertyName :aBlock | 
+			^(nodes detect: [ :node | node name == aPropertyName ] ifNone: 
+				[ ^aBlock value ]) values first.
+		}.
+
+		propertyValues:ifAbsent: = { :aPropertyName :aBlock | 
+			^(nodes detect: [ :node | node name == aPropertyName ] ifNone: 
+				[ ^aBlock value ]) values.
+		}.
+
+	}.
+
+	Property = {
+		type = "SGFProperty".
+
+		name <- "".
+		values <- #("").
+
+		asString = { ^name,"=",values printString }.
+	}.
+
+
+	type = "SGF".
+
+	filename <- "".
+
+	rootVariant <- Node.
+
+	load = {
+		|file tokenizer parser|
+		file << (File clone name: filename) openForReading.
+
+		tokenizer << _Tokenizer clone.
+		tokenizer file: file.
+		tokenizer filename: filename.
+
+		parser << _Parser clone.
+		parser tokenizer: tokenizer.
+		parser nextToken.
+		rootVariant: parser parseVariant.
+
+	//	[ |t| t << tokenizer nextToken. t isEof ] whileFalse.
+		
+		file close.
+	}.
+
+
+	ParseException = { 
+		type = "SGFParseException".
+
+	}.
+
+	/* Protected */
+
+	_Parser = Object clone do: {
+		type = "SGFParser".
+
+		tokenizer <- nil.
+		token <- nil.
+
+		checkChar: = { :char | 
+			(token == char) ifFalse: [ 
+				throw: (tokenizer createParseException: "Character '", 
+						 char, "' expected") ].
+			nextToken.
+		}.
+
+		nextToken = { 
+			token: tokenizer nextToken.
+	//		token println.
+			^token.
+		}.
+
+		parseProperty = {
+			|prop list|
+			prop << SGF Property clone.
+			token isProperty ifFalse: [ 
+				throw: (tokenizer createParseException: "Property expected").
+			].
+			prop name: token string.
+			nextToken.
+
+			token isValue ifFalse: [ 
+				throw: (tokenizer createParseException: 
+					"Value of property expected").
+			].
+
+			list << #((token string)).
+
+			[ nextToken isValue ] whileTrue: [ 
+				list add: (token string).
+			].
+
+			prop values: list.
+			^prop.
+		}.
+
+		parsePropertyList = {
+			|plist|
+			plist << SGF PropertyList clone.
+			[ token isProperty ] whileTrue: [ 
+				plist addNode: parseProperty.
+			].
+			^plist.
+		}.
+
+		parseVariant = { |node|
+			node << SGF Variant clone.
+			checkChar: '('.
+			[ 
+				checkChar: ';'.
+				(token == ')') ifTrue: [ ^node ].
+	//			(token == '(') ifTrue: [ node addSubnode: parseNode ].
+				node addNode: parsePropertyList.
+				(token == ')') ifTrue: [ ^node ].
+			] loop.
+		}.
+
+	}.
+
+
+	_Tokenizer = Object clone do: {
+
+		_TokenString = Object clone do: {
+			type = "SGFTokenString".
+
+			string <- "".
+
+			isEof = false.
+			isValue = false.
+			isProperty = false.
+
+			asString = { ^type,"::",string }.
+		}.
+
+		_TokenProperty = _TokenString clone do: {
+			type = "SGFTokenProperty".
+			isProperty = true.
+		}.
+
+		_TokenValue = _TokenString clone do: {
+			type = "SGFTokenValue".
+			isValue = true.
+		}.
+
+
+		_EOF = Object clone do: { 
+			type = "EOF".
+			isEof = true.
+
+			asString = "EOF".
+		}.
+
+		Character isEof = false.
+		Character isValue = false.
+		Character isProperty = false.
+
+		type = "SGFTokenizer".
+
+		file <-	stdin.
+		filename <- "<stdin>".
+		linenumber <- 1.
+
+		cachedChar <- nil.
+
+		charTokens =  #( '(' ';' ')' '[' ']' )  asSet.
+
+
+		readCharacter = { |char|
+			cachedChar ifNotNil: [ 
+				char << cachedChar.
+				cachedChar: nil.
+				^char.
+			].
+			char << file readCharacterIfEof: [ ^_EOF ].
+			(char == '\n') ifTrue: [ linenumber: linenumber + 1 ].
+			^char.
+		}.
+	
+		readValueCharacter = { |char|
+			char << readCharacter.
+			char isEof ifTrue:
+				[ throw: (createParseException: "Unterminated value"). ].
+			^char.
+		}.
+
+
+		parseValue = {  |list char value|
+			list << #().
+			[ char << readValueCharacter.
+				 [ char == '\\' ] whileTrue: [ 
+					list add: readValueCharacter.
+					char << readValueCharacter.
+				  ].
+			  char == ']'.
+			] whileFalse: [ list add: char ].
+
+			value << _TokenValue clone.
+			value string: list asString.
+			^value.
+		}.
+
+		parseProperty = { |list char prop|
+			list << #().
+			[ char << readCharacter. 
+			  (charTokens contains: char) \/ ( char == '\n' )
+			] whileFalse: [ list add: char ].
+			
+			cachedChar: char.
+			prop << _TokenProperty clone.
+			prop string: list asString.
+			^prop.
+		}.
+
+		createParseException: = { :aMessage | 
+			^Exception clone message: 
+				#(filename ":" linenumber ": " aMessage) asString.
+		}.
+
+		nextToken = { 
+			|char|
+
+			char << readCharacter.
+
+			(char == '\n') ifTrue: [ ^nextToken ].
+			char isEof ifTrue: [ ^char ].
+
+			(char == '[') ifTrue: [ ^parseValue ].
+			(charTokens contains: char) ifTrue: [ ^char ].
+
+			cachedChar: char.
+			^parseProperty.
+		}.
+		
+	}.
+
+
+
+}

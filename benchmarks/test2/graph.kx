@@ -160,7 +160,7 @@ Benchmark clone do: {
 				result hasCycle ifTrue: [ result popEdge ].
 			].
 
-			result edges println.
+	//		result edges println.
 			^result
 		}.
 	}.
@@ -303,11 +303,11 @@ Benchmark clone do: {
 		graph addEdgeFrom: 24 to: 37 cost: 7. // 17
 	
 
-		graph matrix println.
+	//	graph matrix println.
 
 		graph edges foreach: [ :edge | (edge start asString,"-",edge end,",") print ].
 
-		"" println.
+	//	"" println.
 
 	/*	graph numberOfVertexes: 3.
 		graph addEdgeFrom: 0 to: 1 cost: 10.
@@ -326,5 +326,6 @@ Benchmark clone do: {
 
 
 		result edges foreach: [ :edge | (edge start asString,"-",edge end,",") print ].
+		"" println.
 	}.
 }.

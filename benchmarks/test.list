@@ -1,0 +1,9 @@
+./test1/t1_sum.kx
+./test1/t1_sort.kx
+./test1/gc.kx
+./test1/t1_recursive.kx
+./test1/mdispatch.kx
+./test2/graph.kx
+./test2/world.kx
+./test2/wcounter.kx
+./test3/sgfplayer/bechmark.kx

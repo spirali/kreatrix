@@ -2,12 +2,15 @@
 
 Benchmark clone do: {
 
+	path = VM topLocalImportPath.
+
 	run = {
 		|words file list|
 
 		words << Dictionary clone.
 
-		file << (File clone name: "data.txt") openForReading.
+		file << (File clone name: 
+					(path joinPath: "data.txt") ) openForReading.
 	
 		file foreachLine: [ :line | 
 			(line asListBy: " ,.!?\n:;") foreach: [ :word | |count|
@@ -18,8 +21,8 @@ Benchmark clone do: {
 		list << words asList.
 		list sort: [ :a :b | a value < b value ].
 		(list last: 10) println.
-		list size println.
-		list println.
+	/*	list size println.
+		list println.*/
 		//words asList println.
 	}.
 }.

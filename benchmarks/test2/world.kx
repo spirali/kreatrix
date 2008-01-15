@@ -1,0 +1,511 @@
+
+import: "random".
+
+Benchmark clone do: {
+
+	Lobby addParent: self.
+	
+	GameTimer = Object clone do: {
+		type = "GameTimer".
+		
+		time <- 0.
+
+		lock: = { :timeout | 
+			time: timeout + World actualTime.
+		}.
+
+		isLocked = {
+			^time > World actualTime.
+		}.
+
+		isOpen = {
+			^time <= World actualTime.
+		}.
+
+		ifOpen: = { :aBlock |
+			isOpen ifTrue: aBlock.
+		}.
+
+	}.
+
+	Direction = Object clone.
+	Direction do: {
+		type = "Directions_container".
+
+		north = Object clone.
+		south = Object clone.
+		west = Object clone.
+		east = Object clone.
+
+		directions = #(north south west east).
+
+		north do: {
+			type = "DirNorth".
+
+			inFrontOf: = { :aPoint | 
+				^(aPoint x)@(aPoint y - 1)
+			}.
+
+			behindOf: = { :aPoint | 
+				^(aPoint x)@(aPoint y + 1)
+			}.
+
+			atLeft = Direction west.
+			atRight = Direction east.
+
+			char = 'N'.
+
+		}.
+
+		south do: {
+			type = "DirSouth".
+
+			inFrontOf: = { :aPoint | 
+				^(aPoint x)@(aPoint y + 1)
+			}.
+
+			behindOf: = { :aPoint | 
+				^(aPoint x)@(aPoint y - 1)
+			}.
+
+			atLeft = Direction east.
+			atRight = Direction west.
+
+
+			char = 'S'.
+		}.
+
+		west do: {
+			type = "DirWest".
+
+			inFrontOf: = { :aPoint | 
+				^(aPoint x - 1)@(aPoint y)
+			}.
+
+			behindOf: = { :aPoint | 
+				^(aPoint x + 1)@(aPoint y)
+			}.
+
+			atLeft = Direction south.
+			atRight = Direction north.
+
+			char = 'W'.
+		}.
+
+		east do: {
+			type = "DirEast".
+
+			inFrontOf: = { :aPoint | 
+				^(aPoint x + 1)@(aPoint y)
+			}.
+
+			behindOf: = { :aPoint | 
+				^(aPoint x - 1)@(aPoint y)
+			}.
+
+			atLeft = Direction north.
+			atRight = Direction south.
+
+			char = 'E'.
+		}.
+
+		randomDirection = { ^directions pickRandom: World random }.
+	}.
+
+	World = Object clone do: {
+		type = "World".
+
+		maps <- #().
+
+		openNewMap = {
+			maps add: Map clone.
+		}.
+
+		newTimer = { 
+			^GameTimer clone
+		}.
+		
+		actualTime = 0.
+
+		tick = {
+			actualTime = actualTime + 1.
+			maps foreach: [ :map | map onTick ].
+		}.
+
+		random <- nil.
+		
+		initRandom = {
+			random: Lobby random Random clone.
+			random seed: 212234.
+		}.
+
+		dumpMaps = {
+			maps foreach: [ :each | each dumpMap ].
+		}.
+	}.
+
+	Map = Object clone do: {
+		type = "Map".
+
+		objects <- nil.
+		removeList <- nil.
+
+		size <- 100@45.
+
+		surface <- nil.
+
+		randomPoint = { |x y|
+			x << World random getInteger: size x.
+			y << World random getInteger: size y.
+			^x@y.
+		}.
+
+		generateSurface = {
+			|array|
+			array << Array2d clone size: size.
+			
+			array fillWith: SurfaceType surfaceFree.
+
+			((size x * size y) / 10) repeat: [
+				array at: randomPoint put: SurfaceType surfaceBlock.
+			].
+
+			^array.
+		}.
+
+		placeRandomNPCs = {
+			|count|
+			count << (World random getInteger: 50) + 15.
+		//	count << 1.
+
+			count repeat: [ 
+				|npc| 
+				npc << NPC clone.
+				npc direction: Direction randomDirection.
+				npc position: randomPoint.
+				addObject: npc.
+			].
+		}.
+
+
+		init = { 
+			objects: #().
+			removeList: #().
+			surface: generateSurface.
+			placeRandomNPCs.
+		}.
+
+		addObject: = { :aMapObject |
+			aMapObject map: self.
+			objects add: aMapObject.
+		}.
+
+		removeObject: = { :aMapObject | 
+			//objects remove: aMapObject.
+			removeList add: aMapObject.
+		}.
+
+		cleanRemoveList = {
+			removeList foreach: [ :each | 
+				objects remove: each 
+			].
+			removeList clean.
+		}.
+
+		newSegmentAt: = { :aPoint | 
+			|segm|
+			segm << MapSegment clone.
+			segments at: aPoint put: segm.
+			^segm.
+		}.
+
+		segmentAt: = { :aPoint | 
+			(segments hasKey: aPoint) at: aPoint ifAbsent: [ ^newSegmentAt: aPoint ].
+		}.
+
+		segmentFromPosition: = { :aPoint | 
+			^segmentAt: (aPoint x / segmentWidth) @ (aPoint y/ segmentWidth).
+		}.
+
+		surfaceAt: = { :aPosition | 
+			^segmentFromPostion 
+		}.
+
+		onTick = {
+			objects foreach: [ :mapObject | mapObject onTick ].
+			cleanRemoveList.
+		}.
+
+		checkBounds: = { :aPosition | 
+			^surface isPositionInside: aPosition.
+		}.
+
+		isFreePositionAt: = { :aPosition | 
+			(checkBounds: aPosition) ifFalse: [ ^false ].
+			(surface at: aPosition) isFree ifFalse: [ ^false ].
+			objects foreach: [ :each | 
+				(each block and: [ each position == aPosition]) ifTrue: [ 
+					^false 
+				].
+			].
+			^true.
+		}.
+
+		emitEvent:param: = { :aSymbol :anObject | 
+			objects foreach: [ :each | 
+				each onEvent: aSymbol param: anObject.
+			].
+		}.
+
+		objectAt: = { :aPosition | 
+			objects foreach: [ :each | 
+				(each position == aPosition) ifTrue: [ ^each ].
+			].
+			^nil.
+		}.
+
+		objectAt:ifAbsent: = { :aPosition :aBlock | |obj|
+			obj << objectAt: aPosition.
+			^obj isNil ifTrue: aBlock ifFalse: [ obj ].
+		}.
+
+		dumpMap = {
+			size print.
+			":" print.
+			objects size println.
+		}.
+
+		printMap = {
+			0 to: size y do: [ :y | 
+				0 to: size x do: [ :x | 
+					|pos|
+					pos << x@y.
+					(objectAt: pos ifAbsent: [ surface at: pos ]) mapChar print.
+				].
+				"" println.
+			].
+
+		}.
+	}.
+
+	SurfaceType = {
+		type = "Surface_container".
+		surfaceFree = Object clone do: {
+			type = "SurfaceFree".
+
+			isFree = true.
+			isBlock = false.
+
+			mapChar = '.'.
+		}.
+
+		surfaceBlock = Object clone do: {
+			type = "SurfaceFree".
+
+			isFree = false.
+			isBlock = true.
+
+			mapChar = '#'.
+		}.
+
+	}.
+	
+	MapObject = Object clone do: {
+		type = "MapObject".
+		name <- "UnknownMapObject".
+		map <- nil.
+		position <- 0@0.
+		direction <- Direction north.
+		block <- false.
+
+		onTick = {}.
+
+		mapChar = { ^ direction char }.
+
+		onAttack: = { :damage | 
+		}.
+
+		onEvent:param: = { :eventName :param | }.
+		emitEvent: = { :eventName | 
+			map emitEvent: eventName param: self 
+		}.
+	}.
+
+	MovableObject = MapObject clone do: {
+
+		moveTimer <- nil.
+
+		moveTime <- 10.
+		turnTime <- 5.
+
+		init = { 
+			moveTimer: World newTimer.
+		}.
+
+		moveToPosition: = { :aPosition | 
+			(map isFreePositionAt: aPosition) ifFalse: [ ^false ].
+			position: aPosition.
+			moveTimer lock: moveTime.
+
+			emitEvent: #onMove.
+			^true.
+		}.
+
+		positionInFrontOfMe = { ^direction inFrontOf: position }.
+
+		moveForward = {
+			^moveToPosition: (direction inFrontOf: position).
+		}.
+
+		moveBackward = {
+			^moveToPosition: (direction behindOf: position).
+		}.
+
+		turnLeft = {
+			direction: direction atLeft.
+			moveTimer lock: turnTime.
+		}.
+
+		turnRight = {
+			direction: direction atRight.
+			moveTimer lock: turnTime.
+		}.
+
+	}.
+
+	GameCharacter = MovableObject clone do: {
+		type = "GameCharacter".
+
+		hp <- 10.
+		damage <- 2.
+		attackTime <- 5.
+		block: true.
+
+		attackTimer <- nil.
+
+		init = {
+			resend init.
+			attackTimer: World newTimer.
+		}.
+
+	}.
+
+	NPC = GameCharacter clone do: {
+		type = "NPC".
+
+		tryMoveForwardOrTurn = {
+			moveForward ifFalse: [ 
+				randomTurn.
+			].
+		}.
+
+		randomTurn = {
+			perform: (#( #turnLeft #turnRight ) pickRandom: World random).
+		}.
+
+		onTick = {
+			|i|
+			i << World random getInteger: 50.
+			(i == 0) ifTrue: [ fireProjectile ].
+
+			moveTimer isOpen ifTrue: [
+				|i| 
+				i << World random getInteger: 13.
+				(i <= 7) ifTrue: [ ^tryMoveForwardOrTurn ].
+				(i <=  10) ifTrue: [ ^randomTurn ].
+				moveTimer lock: 3. // Waiting ...
+			].
+		}.
+
+		fireProjectile = {
+			attackTimer ifOpen: [ 
+				|p|
+				p << Projectile clone.
+				p position: positionInFrontOfMe.
+				p direction: direction.
+				p damage: damage.
+				p owner: self.
+				map addObject: p.
+				attackTimer lock: attackTime.
+			].
+		}.
+
+		onEvent:param: = { :eventName :param |
+			(eventName == #onMove) ifTrue: [ |dx dy|
+				(param == self) ifTrue: [ ^self ].
+				dx << (position x - param position x) abs.
+				dy << (position y - param position y) abs.
+				( (dx < 3) /\ (dy < 3) ) ifTrue: [ 
+					fireProjectile.
+				].
+				
+				^self.
+			].
+			^resend onEvent: eventName param: param.
+		}.
+	}.
+
+	Projectile = MovableObject clone do: {
+		type = "Projectile".
+
+		moveTime: 1.
+		damage <- 1.
+		owner <- nil.
+
+		moveToPosition: = { :aPosition | 
+			(map isFreePositionAt: aPosition) ifFalse: [ 
+				|obj|
+				obj << map objectAt: aPosition.
+				obj ifNotNil: [ 
+	/*				"ATTACK" println.
+					owner println.
+					obj println.
+					obj onAttack: damage.*/
+				].
+				^false 
+			].
+			position: aPosition.
+			moveTimer lock: moveTime.
+
+			emitEvent: #onMove.
+			^true.
+		}.
+
+
+		onTick = { 
+			moveForward ifFalse: [ 
+				map removeObject: self.
+			].
+		}.
+	}.
+
+	closeBenchmark = {
+		Lobby removeParent: self.
+	}.
+
+
+	initRun = { |map npc|
+		World initRandom.
+		World openNewMap.
+		World openNewMap.
+		World openNewMap.
+		World openNewMap.
+		World openNewMap.
+	
+		World dumpMaps.
+		//World maps first printMap.
+	}.
+
+	run = {
+ 		100 repeat: [ 
+		//	(World maps inject: 0 into: [ :a :map | a + map objects size ]) println.
+		//	World maps first objects size println.
+		//	"--------------------------------" println.
+	//		World maps first printMap.
+	//		World maps first objects first position println.
+			World tick.
+		].
+	}.
+	
+
+}.

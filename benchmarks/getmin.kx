@@ -1,0 +1,33 @@
+
+
+(args size < 2) ifTrue: [ 
+	"usage: gemin <file1> <file2>" println.
+	VM quit.
+].
+
+valuesFromFile: = { :filename |  |file list|
+	file << File clone name: filename.
+	file openForReading.
+	list << #().
+	file foreachLine: [ :line | 
+		list add: line trimEnd asInteger.
+	].
+	file close.
+	^list.
+}.
+
+main = { |list1 list2|
+	list1 << valuesFromFile: (args at: 0).
+	list2 << valuesFromFile: (args at: 1).
+	(list2 size != list1 size) ifTrue: [ 
+		throw: (Exception clone 
+			message: "Files has different count of lines").
+		
+	].
+	0 to: list1 size do: [ :i | |a b|
+		a << (list1 at: i).
+		b << list2 at: i.
+		(a < b) ifTrue: [ a println ] ifFalse: [ b println ].
+	].
+}.
+main.

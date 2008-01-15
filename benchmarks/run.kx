@@ -1,0 +1,31 @@
+import: "time".
+
+args isEmpty ifTrue: [ 
+	stderr writeln: "usage: brunner <benchmark>".
+	VM quit.
+].
+
+Benchmark = Object clone do: {
+	type = "Benchmark".
+
+	initBenchmark = {}.
+	closeBenchmark = {}.
+
+	initRun = {}.
+	run = {}.
+
+}.
+
+do: {  
+	|benchmark tm| 
+	benchmark << localImport: (args first).
+	
+	benchmark initBenchmark.
+	benchmark initRun.
+	
+	tm << (time timeOfRun: [ benchmark run. ]) asMilliseconds.
+	("<%%% Time: ",tm," %%%>") println.
+
+	benchmark closeBenchmark.
+}.
+

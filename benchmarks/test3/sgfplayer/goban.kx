@@ -1,0 +1,197 @@
+
+
+Goban = Object clone do: {
+
+	type = "Goban".
+
+	/* Public */
+
+	size: = { :anInteger | 
+		_array size: anInteger@anInteger.
+		_array fillWith: _EmptyPlace.
+	}.
+
+	size = {
+		^_array width.
+	}.
+
+	playBlack: = { :aPoint |
+		_playAt: aPoint stone: _BlackStone.
+	}.
+
+	playWhite: = { :aPoint | 
+		_playAt: aPoint stone: _WhiteStone.
+	}.
+
+	placeBlackStone: = { :aPoint | 
+		_placeAt: aPoint stone: _BlackStone.
+	}.
+
+	placeWhiteStone: = { :aPoint | 
+		_placeAt: aPoint stone: _WhiteStone.
+	}.
+
+	asString = {
+		|list|
+
+	/*	(_findGroupAt: 0@1) println.
+		(_freedomsOfGroup: (_findGroupAt: 0@1)) println.*/
+
+		list << #().
+
+		(size + 1) repeat: [ list add: "=-" ].
+		list add: '\n'.
+
+		0 to: size do: [ :i |
+			list add: '|'.
+			_array forRow: i do: [ :place |
+				list add: (place boardChar).
+				list add: ' '.
+			].
+			list add: "|\n".
+		].
+
+		(size + 1) repeat: [ list add: "-=" ].
+		list add: '\n'.
+		^list asString.
+	}.
+
+	/* Protected */
+
+	_Place = Object clone do: {
+		type = "GobanPlace".
+	}.
+
+	_EmptyPlace = _Place clone do: {
+		type = "GobanEmptyPlace".
+		isStone = false.
+		isBlack = false.
+		isWhite = false.
+
+		boardChar = ' '.
+	}.
+
+	_BlackStone = _Place clone do: {
+		type = "GobanBlackStone".
+		isStone = true.
+		isBlack = true.
+		isWhite = false.
+
+		boardChar = 'X'.
+	}.
+
+	_WhiteStone = _Place clone do: {
+		type = "GobanBlackStone".
+		isStone = true.
+		isBlack = false.
+		isWhite = true.
+
+		boardChar = 'O'.
+	}.
+
+	_BlackStone	opponent = _WhiteStone.
+	_WhiteStone	opponent = _BlackStone.
+
+	_array <- nil.
+
+	init = {
+		_array: Array2d clone.
+	}.
+
+	_placeAt:stone: = { :aPosition :aStone | 
+		_array at: aPosition put: aStone.
+	}.
+
+
+	_playAt:stone: = { :aPosition :aStone |  |group|
+		_placeAt: aPosition stone: aStone.
+		group << _findGroupAt: aPosition.
+		
+		(_fourPlacesAround: aPosition) foreach: [ :pos |
+			(_array isPositionInside: pos) ifTrue: [ 
+				_checkGroupAt: pos.
+			].
+		].
+
+		((_freedomsOfGroup: group) == 0) ifTrue: [ 
+			_resetPosition: aPosition.
+			println.
+			("Invalid move: ",aPosition) println.
+			group println.
+			throw: (Exception clone message: "Invalid move").
+		].
+
+	}.
+
+	_resetPosition: = { :aPosition |
+		_array at: aPosition put: _EmptyPlace.
+	}.
+
+	_fourPlacesAround: = { :aPoint | 
+		^#( (aPoint + (0@1) )
+		    (aPoint - (0@1) )
+			(aPoint + (1@0) )
+			(aPoint - (1@0) )).
+	}.
+
+	_findGroupAt: = { :aPoint | 
+		|queue set stone|
+		stone << _array at: aPoint.
+		queue << #(aPoint).
+		set << Set clone.
+		set add: aPoint.
+
+		[ queue isEmpty ] whileFalse: [
+			|pos|
+			
+			pos << queue pop.
+			(_fourPlacesAround: pos) foreach: [ :position | 
+				(_array isPositionInside: position) ifTrue: [ 
+					(set contains: position) ifFalse: [
+						|place|
+						place << _array at: position.
+						(place == stone) ifTrue: [ 
+							set add: position.
+							queue add: position.
+						].
+					].
+				].
+			].
+		].
+		^set.
+	}.
+
+	_freedomsOfGroup: = { :aSet | |set|
+		set << Set clone.
+		aSet foreach: [ :position|
+			(_fourPlacesAround: position) foreach: [ :pos |
+				(_array isPositionInside: pos) ifTrue: [ 
+					(_array at: pos) isStone ifFalse: [
+						set add: pos.
+					].
+				].
+			].
+		].
+		^set size.
+	}.
+
+	_checkGroupAt: = { :aPosition |  |group|
+		(_array at: aPosition) isStone ifTrue: [ 
+			group << _findGroupAt: aPosition.
+				((_freedomsOfGroup: group) == 0) ifTrue: [ 		
+				_removeGroup: group.
+			].
+		].
+	}.
+
+	_replaceGroup:with: = { :aSet :place | 
+		aSet foreach: [ :position | 
+			_array at: position put: place.
+		].
+	}.
+
+	_removeGroup: = { :aSet | 
+		_replaceGroup: aSet with: _EmptyPlace.
+	}.
+
+}.

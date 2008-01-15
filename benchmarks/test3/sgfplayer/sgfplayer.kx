@@ -1,0 +1,91 @@
+
+
+SGFPlayer = Object clone do: {
+	type = "SGFPlayer".
+	sgf <- nil.
+	goban <- nil.
+
+	rules <- "".
+	blackPlayer <- "".
+	whitePlayer <- "".
+
+	variant <- nil.
+	nodePosition <- 0.
+
+	init = {
+		goban: Goban clone.
+	}.
+
+	loadFile: = { :aFilename | 
+		sgf: SGF clone.
+		sgf filename: aFilename.
+		sgf load.
+		readSettings.
+
+		variant: sgf rootVariant.
+		nodePosition: 1.
+	}.
+
+	readSettings = {
+		|node|
+		node << sgf rootVariant firstNode.
+		rules: (node property: "RU" ifAbsent: [ "" ]).
+		blackPlayer: (node property: "PB" ifAbsent: [ "<Black player>" ]).
+		whitePlayer: (node property: "PW" ifAbsent: [ "<White player>" ]).
+		goban size: (node property: "SZ" ifAbsent: [ "19" ]) asInteger.
+
+		placeStones: node.
+	}.
+
+	parsePosition: = { :aString |  |x y|
+		(aString == "") ifTrue: [ ^nil ].
+		x << ((aString at: 0) asInteger - 97).
+		y << ((aString at: 1) asInteger - 97).
+		^ x @ y.
+	}.
+
+	placeBlackStone: = { :aPoint | 
+		goban placeBlackStone: aPoint.
+	}.
+
+	placeStones: = { :node | 
+		(node propertyValues: "AB" ifAbsent: [ ^self ]) foreach: [ :pos |
+			placeBlackStone: (parsePosition: pos).
+		].
+	}.
+
+	playBlack: = { :aPoint | 
+		aPoint ifNotNil: [ goban playBlack: aPoint. ].
+	}.
+
+	playWhite: = { :aPoint | 
+		aPoint ifNotNil: [ goban playWhite: aPoint ].
+	}.
+
+	playMoveFromNode: = { :node |
+		|pos|
+		pos << node property: "W" ifAbsent: [ nil ].
+		pos ifNotNil: [ ^playWhite: (parsePosition: pos) ].
+
+		pos << node property: "B" ifAbsent: [ nil ].
+		pos ifNotNil: [ ^playBlack: (parsePosition: pos) ].
+
+		throw: (Exception clone message: "Invalid move").
+	}.
+
+	playMove = { |node|
+		node << variant nodeAt: nodePosition.
+		nodePosition: nodePosition + 1.
+		playMoveFromNode: node.
+	}.
+
+	isAtEnd = {
+		^(variant nodes size == nodePosition) 
+	}.
+
+	playAll = {
+		[ isAtEnd ] whileFalse: [ playMove ].
+	}.
+
+
+}.
