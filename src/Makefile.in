@@ -104,8 +104,7 @@ AUTOMAKE = @AUTOMAKE@
 AWK = @AWK@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
-CFLAGS = @CFLAGS@ -Wall -rdynamic -std=c99 \
-	-DPKGLIBDIR="\"$(pkglibdir)\"" \
+CFLAGS = @CFLAGS@ -Wall -rdynamic -DPKGLIBDIR="\"$(pkglibdir)\"" \
 	-DPKGINCLUDEDIR="\"$(pkgincludedir)\""
 CPPFLAGS = @CPPFLAGS@
 CYGPATH_W = @CYGPATH_W@

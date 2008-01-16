@@ -116,7 +116,7 @@ static KxObject *
 kxcharacter_is_blank(KxCharacter *self, KxMessage *message) 
 {
 	int c = self->data.charval;
-	KXRETURN_BOOLEAN(isblank(c));
+	KXRETURN_BOOLEAN( (c == ' ') || (c == '\t') || (c == '\n') );
 }
 
 static KxObject *

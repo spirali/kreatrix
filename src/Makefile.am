@@ -5,7 +5,7 @@ SUBDIRS = utils compiler tools vminit .
 
 bin_PROGRAMS = kreatrix
 
-CFLAGS+=-Wall -rdynamic -std=c99
+CFLAGS+=-Wall -rdynamic
 CFLAGS+=-DPKGLIBDIR="\"$(pkglibdir)\""
 CFLAGS+=-DPKGINCLUDEDIR="\"$(pkgincludedir)\""
 #-DLIBEXT="\"$(EXEEXT)\"" 
