@@ -1,0 +1,14 @@
+
+
+Benchmark clone do: {
+
+	Integer factorial = {
+		(self < 1) ifTrue: [ ^1 ].
+		^self * (self - 1) factorial.
+	}.
+
+	run = {
+		10 factorial println.
+	}.
+
+}.

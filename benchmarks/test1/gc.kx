@@ -1,0 +1,18 @@
+
+Benchmark clone do: {
+
+	list <- nil.
+	
+	initBenchmark = {
+		list: List clone.
+		
+		0 to: 100000 do: [ :i |
+			list add: i.
+		].
+	}.
+
+	run = {
+		800 repeat: [ VM collect ].
+	}.
+
+}.

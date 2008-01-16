@@ -1,0 +1,13 @@
+
+
+Benchmark clone do: {
+
+
+	run = {
+		|list|
+		list << #().
+		3000 repeat: [ :i | list add: i ].
+		list reversed sort.
+	}.
+
+}.

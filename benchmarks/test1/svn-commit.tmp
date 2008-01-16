@@ -1,0 +1,9 @@
+Test1 added into benchmarks
+--This line, and those below, will be ignored--
+
+A    t1_rfact.kx
+A    t1_sum.kx
+A    gc.kx
+A    t1_recursive.kx
+A    t1_sort.kx
+M    mdispatch.kx

@@ -1,0 +1,11 @@
+
+
+Benchmark clone do: {
+	
+	run = {
+		|sum|
+		sum << 0.
+		1 to: 500000 do: [ :i | sum << sum + i ].
+	}.
+
+}.
