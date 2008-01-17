@@ -94,28 +94,28 @@ kxcharacter_as_integer(KxCharacter *self, KxMessage *message)
 static KxObject *
 kxcharacter_is_alpha_numeric(KxCharacter *self, KxMessage *message) 
 {
-	char c = self->data.charval;
+	int c = self->data.charval;
 	KXRETURN_BOOLEAN(isalnum(c));
 }
 
 static KxObject *
 kxcharacter_is_alpha(KxCharacter *self, KxMessage *message) 
 {
-	char c = self->data.charval;
+	int c = self->data.charval;
 	KXRETURN_BOOLEAN(isalpha(c));
 }
 
 static KxObject *
 kxcharacter_is_digit(KxCharacter *self, KxMessage *message) 
 {
-	char c = self->data.charval;
+	int c = self->data.charval;
 	KXRETURN_BOOLEAN(isdigit(c));
 }
 
 static KxObject *
 kxcharacter_is_blank(KxCharacter *self, KxMessage *message) 
 {
-	char c = self->data.charval;
+	int c = self->data.charval;
 	KXRETURN_BOOLEAN(isblank(c));
 }
 
@@ -150,28 +150,28 @@ kxcharacter_hash(KxCharacter *self, KxMessage *message)
 static KxObject *
 kxcharacter_as_lowercase(KxCharacter *self, KxMessage *message)
 {
-	char c = self->data.charval;
+	int c = self->data.charval;
 	return KXCHARACTER(tolower(c));
 }
 
 static KxObject *
 kxcharacter_as_uppercase(KxCharacter *self, KxMessage *message)
 {
-	char c = self->data.charval;
+	int c = self->data.charval;
 	return KXCHARACTER(toupper(c));
 }
 
 static KxObject *
 kxcharacter_is_uppercase(KxCharacter *self, KxMessage *message)
 {
-	char c = self->data.charval;
+	int c = self->data.charval;
 	KXRETURN_BOOLEAN(isupper(c));
 }
 
 static KxObject *
 kxcharacter_is_lowercase(KxCharacter *self, KxMessage *message)
 {
-	char c = self->data.charval;
+	int c = self->data.charval;
 	KXRETURN_BOOLEAN(islower(c));
 }
 
