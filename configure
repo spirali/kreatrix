@@ -1260,6 +1260,7 @@ Optional Features:
   --disable-dependency-tracking  speeds up one-time build
   --enable-dependency-tracking   do not reject slow dependency extractors
   --enable-debug-gc   If this option is enabled, GC runs before every activation of CodeBlock
+  --enable-vm-log   Debug option. Activities of VM is logged
   --disable-threads   Disable threads support
   --disable-xml   Disable building xml module
   --disable-gtk   Disable building GTK module
@@ -3477,6 +3478,21 @@ echo "$as_me: DEBUG OPTIONS: gc-debug enabled" >&6;}
 fi
 
 
+# Check whether --enable-vm-log was given.
+if test "${enable_vm_log+set}" = set; then
+  enableval=$enable_vm_log;
+
+cat >>confdefs.h <<_ACEOF
+#define KX_LOG 1
+_ACEOF
+
+{ echo "$as_me:$LINENO: DEBUG OPTIONS: vm-log enabled" >&5
+echo "$as_me: DEBUG OPTIONS: vm-log enabled" >&6;}
+
+fi
+
+
+
 # Threads support
 # Check whether --enable-threads was given.
 if test "${enable_threads+set}" = set; then
@@ -3744,7 +3760,7 @@ Alternatively, you may set the environment variables libxml_CFLAGS
 and libxml_LIBS to avoid the need to call pkg-config.
 See the pkg-config man page for more details.
 
-To get pkg-config, see <http://www.freedesktop.org/software/pkgconfig>.
+To get pkg-config, see <http://pkg-config.freedesktop.org/>.
 See \`config.log' for more details." >&5
 echo "$as_me: error: The pkg-config script could not be found or is too old.  Make sure it
 is in your PATH or set the PKG_CONFIG environment variable to the full
@@ -3754,7 +3770,7 @@ Alternatively, you may set the environment variables libxml_CFLAGS
 and libxml_LIBS to avoid the need to call pkg-config.
 See the pkg-config man page for more details.
 
-To get pkg-config, see <http://www.freedesktop.org/software/pkgconfig>.
+To get pkg-config, see <http://pkg-config.freedesktop.org/>.
 See \`config.log' for more details." >&2;}
    { (exit 1); exit 1; }; }
 else
@@ -3900,7 +3916,7 @@ Alternatively, you may set the environment variables gtk_CFLAGS
 and gtk_LIBS to avoid the need to call pkg-config.
 See the pkg-config man page for more details.
 
-To get pkg-config, see <http://www.freedesktop.org/software/pkgconfig>.
+To get pkg-config, see <http://pkg-config.freedesktop.org/>.
 See \`config.log' for more details." >&5
 echo "$as_me: error: The pkg-config script could not be found or is too old.  Make sure it
 is in your PATH or set the PKG_CONFIG environment variable to the full
@@ -3910,7 +3926,7 @@ Alternatively, you may set the environment variables gtk_CFLAGS
 and gtk_LIBS to avoid the need to call pkg-config.
 See the pkg-config man page for more details.
 
-To get pkg-config, see <http://www.freedesktop.org/software/pkgconfig>.
+To get pkg-config, see <http://pkg-config.freedesktop.org/>.
 See \`config.log' for more details." >&2;}
    { (exit 1); exit 1; }; }
 else

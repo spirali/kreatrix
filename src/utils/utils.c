@@ -54,10 +54,10 @@ utils_path_join(char *path, char *filename)
 	int next;
 	char *out;
 	if (path[path_size-1] == '/') {
-		out = malloc(sizeof(char) * (path_size + filename_size+1));
+		out = kxmalloc(sizeof(char) * (path_size + filename_size+1));
 		next = path_size;
 	} else {
-		out = malloc(sizeof(char) * (path_size + filename_size+2));
+		out = kxmalloc(sizeof(char) * (path_size + filename_size+2));
 		out[path_size] = '/';
 		next = path_size + 1;
 	}

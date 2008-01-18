@@ -289,6 +289,9 @@ compile_and_save(char *source_filename)
 int 
 main(int argc, char **argv)
 {
+	#ifdef KX_LOG
+		kx_log_init();
+	#endif
 
  /*   if (!setlocale(LC_CTYPE, "")) {
       fprintf(stderr, "Can't set the specified locale! "

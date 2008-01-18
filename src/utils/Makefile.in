@@ -51,7 +51,8 @@ ARFLAGS = cru
 libkxutils_a_AR = $(AR) $(ARFLAGS)
 libkxutils_a_LIBADD =
 am_libkxutils_a_OBJECTS = list.$(OBJEXT) hash.$(OBJEXT) \
-	utils.$(OBJEXT) bytearray.$(OBJEXT) dictionary.$(OBJEXT)
+	utils.$(OBJEXT) bytearray.$(OBJEXT) dictionary.$(OBJEXT) \
+	log.$(OBJEXT)
 libkxutils_a_OBJECTS = $(am_libkxutils_a_OBJECTS)
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
@@ -175,7 +176,9 @@ libkxutils_a_SOURCES = \
 			bytearray.h \
 			bytearray.c \
 			dictionary.c \
-			dictionary.h
+			dictionary.h \
+			log.c \
+			log.h
 
 utils_pkginclude_HEADERS = \
 	list.h \
@@ -235,6 +238,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dictionary.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hash.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/list.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/log.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/utils.Po@am__quote@
 
 .c.o:

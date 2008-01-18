@@ -57,6 +57,14 @@ AC_DEFINE_UNQUOTED([KX_DEBUG_GC],[1],[DEBUG! Run GC after every instruction])
 AC_MSG_NOTICE([DEBUG OPTIONS: gc-debug enabled])
 ],[])
 
+AC_ARG_ENABLE(vm-log,
+[  --enable-vm-log   Debug option. Activities of VM is logged ],
+[
+AC_DEFINE_UNQUOTED([KX_LOG],[1],[DEBUG! Activities of VM is logged])
+AC_MSG_NOTICE([DEBUG OPTIONS: vm-log enabled])
+],[])
+
+
 # Threads support
 AC_ARG_ENABLE(threads,
 [  --disable-threads   Disable threads support ],

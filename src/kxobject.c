@@ -19,6 +19,7 @@
 #include "kxcharacter.h"
 #include "kxexception.h"
 #include "kxinteger.h"
+#include "kxglobals.h"
 
 static KxParentSlot * 
 kxparentslot_new(KxObject *parent) 
@@ -51,6 +52,10 @@ kxobject_new()
 KxObject *
 kxobject_new_from(KxObject *self) 
 {
+	KX_LOG_WRITE1("NO",
+					self, 
+					self->extension?self->extension->type_name:"");
+
 	KxObject *object = kxobject_new();
 
 	object->core = self->core;
@@ -83,6 +88,8 @@ kxobject_ref_add(void *self)
 void
 kxobject_free(KxObject *self) 
 {
+	KX_LOG_WRITE("FO",self);
+
 	/* When GC call this function, ref_count shouldn't be zero
 	 * and when hashtable is unreferenced, another object can be deleted
 	 * and change reference to this object and free would be called twice 

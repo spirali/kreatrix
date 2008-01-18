@@ -6,6 +6,9 @@
 /* DEBUG! Run GC after every instruction */
 #undef KX_DEBUG_GC
 
+/* DEBUG! Activities of VM is logged */
+#undef KX_LOG
+
 /* Support threads in VM */
 #undef KX_THREADS_SUPPORT
 

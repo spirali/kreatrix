@@ -7,7 +7,7 @@
 Dictionary * 
 dictionary_new() 
 {
-	Dictionary *self = malloc(sizeof(Dictionary));
+	Dictionary *self = kxmalloc(sizeof(Dictionary));
 	ALLOCTEST(self);
 
 	self->keys = list_new();
@@ -22,7 +22,7 @@ dictionary_free(Dictionary *self)
 {
 	list_free(self->keys);
 	list_free(self->values);
-	free(self);
+	kxfree(self);
 }
 
 
@@ -152,7 +152,7 @@ dictionary_size(Dictionary *self)
 Dictionary *
 dictionary_copy(Dictionary *self) 
 {
-	Dictionary *copy = malloc(sizeof(Dictionary));
+	Dictionary *copy = kxmalloc(sizeof(Dictionary));
 	ALLOCTEST(copy);
 	copy->keys = list_copy(self->keys);
 	copy->values = list_copy(self->values);

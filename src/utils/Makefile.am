@@ -13,7 +13,9 @@ libkxutils_a_SOURCES =  \
 			bytearray.h \
 			bytearray.c \
 			dictionary.c \
-			dictionary.h
+			dictionary.h \
+			log.c \
+			log.h
 
 utils_pkginclude_HEADERS =\
 	list.h \

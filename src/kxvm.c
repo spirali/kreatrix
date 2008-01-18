@@ -13,6 +13,7 @@
 #include "kxgc.h"
 #include "kxglobals.h"
 #include "kxinteger.h"
+#include "kxlist.h"
 
 extern int kx_doc_flag;
 
@@ -61,9 +62,32 @@ kxvm_has_support(KxObject *self, KxMessage *message)
 	if (kx_threads_support && !strcmp("threads",param)) {
 		KXRETURN_TRUE;
 	}
+	
+	#ifdef KX_LOG
+		if (!strcmp("log",param)) {
+			KXRETURN_TRUE;
+		}
+	#endif // KX_LOG
 
 	KXRETURN_FALSE;
 }
+
+static KxObject *
+kxvm_support_list(KxObject *self, KxMessage *message)
+{
+	List *list = list_new();
+
+	if (kx_threads_support) {
+		list_append(list, KXSTRING("threads"));
+	}
+	
+	#ifdef KX_LOG
+	list_append(list, KXSTRING("log"));
+	#endif // KX_LOG
+
+	return KXLIST(list);
+}
+
 
 static KxObject *
 kxvm_get_registered_exception(KxObject *self, KxMessage *message)
@@ -100,6 +124,17 @@ kxvm_top_local_import_path(KxObject *self, KxMessage *message)
 	return KXSTRING(kxcore_top_local_import_path(KXCORE));
 }
 
+static KxObject *
+kxvm_log_write(KxObject *self, KxMessage *message)
+{
+	#ifndef KX_LOG 
+		KXRETURN(self);
+	#else 
+		KXPARAM_TO_CSTRING(string,0);
+		kx_log_write_raw(string);
+		KXRETURN(self);
+	#endif // KX_LOG
+}
 
 KxObject *
 kxvm_new(KxCore *core)
@@ -120,6 +155,8 @@ kxvm_new(KxCore *core)
 		{"pushLocalImportPath:", 1, kxvm_push_local_import_path},
 		{"popLocalImportPath", 0, kxvm_pop_local_import_path},
 		{"topLocalImportPath", 0, kxvm_top_local_import_path},
+		{"logWrite:", 1, kxvm_log_write},
+		{"supportList", 0, kxvm_support_list},
 		{NULL,0, NULL}
 	};
 

@@ -3,6 +3,7 @@
 #ifndef __UTILS_H
 #define __UTILS_H
 
+#include "log.h"
 
 #define ALLOCTEST(x) if((!x)) utils_out_of_memory(__FILE__,__LINE__)
 
@@ -16,6 +17,7 @@
 
 //#define PDEBUG printf
 #define PDEBUG  if(0) printf 
+
 
 
 typedef void(ForeachFcn)(void *);
