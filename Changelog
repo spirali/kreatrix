@@ -1,5 +1,6 @@
 0.10.1
 	+ Local import improved
+	+ VM log support
 
 0.10
 	+ Module "gtk" added
