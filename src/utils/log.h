@@ -12,8 +12,8 @@
 #define kxcalloc(count, size) \
 	    kx_log_calloc((count),(size), __FILE__, __LINE__)
 
-#define kxrealloc(old, new_size) realloc((old), (new_size))
-#define kxfree(ptr) free(ptr)
+#define kxrealloc(old, new_size) kx_log_realloc((old), (new_size))
+#define kxfree(ptr) kx_log_free(ptr)
 
 
 void kx_log_init();
@@ -23,6 +23,8 @@ void kx_log_write1(char *action, void *id, char *param);
 
 void * kx_log_malloc(int size, char *file, int linenum);
 void * kx_log_calloc(int size, int count, char *file, int linenum);
+void kx_log_free(void *ptr);
+void * kx_log_realloc(void *ptr, int new_size);
 
 #define KX_LOG_WRITE(action, id) \
 		kx_log_write(action, id)

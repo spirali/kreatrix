@@ -40,19 +40,41 @@ void kx_log_write1(char *action, void *id, char *param)
 
 void * kx_log_malloc(int size, char *file, int linenum)
 {
+	void *ptr = malloc(size);
 	if (kx_log) {
-		fprintf(kx_log,"MA:%i:%s#%i\n", size, file, linenum);
+		fprintf(kx_log,"MA:%i:%p:%s#%i\n", size, ptr, file, linenum);
 	}
-	return malloc(size);
+	return ptr;
 }
 
 void * kx_log_calloc(int count, int size, char *file, int linenum)
 {
+	void *ptr = calloc(count, size);
 	if (kx_log) {
-		fprintf(kx_log,"CA:%i:%s#%i\n", size * count, file, linenum);
+		fprintf(kx_log,"CA:%i:%p:%s#%i\n", size * count, ptr, file, linenum);
 	}
-	return calloc(size, count);
+	return ptr;
 }
+
+void * kx_log_realloc(void *ptr, int new_size)
+{
+	void *n = realloc(ptr, new_size);
+	if (kx_log) {
+		fprintf(kx_log,"RA:%p:%i:%p\n", ptr, new_size, n);
+	}
+	return n;
+}
+
+void kx_log_free(void *ptr)
+{
+	if (kx_log) {
+		fprintf(kx_log,"FR:%p\n", ptr);
+	}
+	free(ptr);
+}
+
+
+
 
 
 #endif // KX_LOG
