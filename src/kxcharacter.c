@@ -99,6 +99,27 @@ kxcharacter_is_alpha_numeric(KxCharacter *self, KxMessage *message)
 }
 
 static KxObject *
+kxcharacter_is_alpha(KxCharacter *self, KxMessage *message) 
+{
+	char c = self->data.charval;
+	KXRETURN_BOOLEAN(isalpha(c));
+}
+
+static KxObject *
+kxcharacter_is_digit(KxCharacter *self, KxMessage *message) 
+{
+	char c = self->data.charval;
+	KXRETURN_BOOLEAN(isdigit(c));
+}
+
+static KxObject *
+kxcharacter_is_blank(KxCharacter *self, KxMessage *message) 
+{
+	char c = self->data.charval;
+	KXRETURN_BOOLEAN(isblank(c));
+}
+
+static KxObject *
 kxcharacter_eq(KxCharacter *self, KxMessage *message) 
 {
 	if (IS_KXCHARACTER(message->params[0])) {
@@ -164,6 +185,9 @@ kxcharacter_add_method_table(KxCharacter *self)
 		{"print",0, kxcharacter_print },
 		{"asString",0, kxcharacter_as_string },
 		{"isAlphaNumeric",0, kxcharacter_is_alpha_numeric },
+		{"isAlpha",0, kxcharacter_is_alpha },
+		{"isDigit",0, kxcharacter_is_digit },
+		{"isBlank",0, kxcharacter_is_blank },		
 		{"asLowercase",0, kxcharacter_as_lowercase },
 		{"asUppercase",0, kxcharacter_as_uppercase },
 		{"isLowercase",0, kxcharacter_is_lowercase },
