@@ -40,7 +40,7 @@ kxscopedblock_clone_with(KxScopedBlock *self, KxCodeBlock *codeblock, struct KxA
 {
 	KxObject *object = kxobject_raw_clone(self);
 	
-	KxScopedBlockData *data = malloc(sizeof(KxScopedBlockData));
+	KxScopedBlockData *data = kxmalloc(sizeof(KxScopedBlockData));
 	ALLOCTEST(data);
 
 	scope->ref_count++;
@@ -86,7 +86,7 @@ kxscopedblock_free(KxScopedBlock *self)
 		kxactivation_free(data->scope);
 	}
 
-	free(data);
+	kxfree(data);
 }
 
 static void
@@ -101,7 +101,7 @@ kxscopedblock_clean(KxScopedBlock *self)
 	if (data->scope->ref_count == 0)  {
 		kxactivation_free(data->scope);
 	}
-	free(data);
+	kxfree(data);
 	self->data.ptr = NULL;
 }
 

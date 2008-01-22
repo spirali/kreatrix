@@ -14,13 +14,13 @@
 KxBaseSet * 
 kxbaseset_new() 
 {
-	KxBaseSet *s = malloc(sizeof(KxBaseSet));
+	KxBaseSet *s = kxmalloc(sizeof(KxBaseSet));
 	ALLOCTEST(s);
 
 	s->array_size = KXBASESET_DEFAULT_ARRAY_SIZE;
 	s->items_count = 0;
 
-	s->array = calloc(1,sizeof(void*) * KXBASESET_DEFAULT_ARRAY_SIZE);
+	s->array = kxcalloc(1,sizeof(void*) * KXBASESET_DEFAULT_ARRAY_SIZE);
 	ALLOCTEST(s->array);
 	return s;
 }
@@ -34,8 +34,8 @@ kxbaseset_free(KxBaseSet *self)
 		if (array[t])
 			REF_REMOVE(array[t]);
 	}
-	free(array);
-	free(self);
+	kxfree(array);
+	kxfree(self);
 }
 
 void 
@@ -55,13 +55,13 @@ kxbaseset_clean(KxBaseSet *self)
 KxBaseSet *
 kxbaseset_copy(KxBaseSet *self)
 {
-	KxBaseSet *s = malloc(sizeof(KxBaseSet));
+	KxBaseSet *s = kxmalloc(sizeof(KxBaseSet));
 	ALLOCTEST(s);
 
 	s->array_size = self->array_size;
 	s->items_count = self->items_count;
 
-	s->array = malloc(sizeof(void*) * self->array_size);
+	s->array = kxmalloc(sizeof(void*) * self->array_size);
 	ALLOCTEST(s->array);
 
 	int t;
@@ -139,7 +139,7 @@ kxbaseset_grow(KxBaseSet *self)
 {
 	int old_size = self->array_size;
 	int new_size = old_size * 2 + 1;
-	KxObject **new_array = calloc(1,new_size * sizeof(KxObject*));
+	KxObject **new_array = kxcalloc(1,new_size * sizeof(KxObject*));
 	ALLOCTEST(new_array);
 
 	KxObject **array = self->array;
@@ -150,7 +150,7 @@ kxbaseset_grow(KxBaseSet *self)
 	for (t=0;t<old_size;t++) {
 		if (array[t]) {
 			if (!kxobject_get_hash(array[t],&hash)) {
-				free(new_array);
+				kxfree(new_array);
 				return 0;
 			}
 			index = hash % new_size;
@@ -172,7 +172,7 @@ kxbaseset_grow(KxBaseSet *self)
 			}
 		}
 	}
-	free(array);
+	kxfree(array);
 	self->array = new_array;
 	self->array_size = new_size;
 	return 1;

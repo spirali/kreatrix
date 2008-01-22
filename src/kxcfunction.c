@@ -35,9 +35,9 @@ kxcfunction_free(KxCFunction *self)
 			REF_REMOVE(*obj);
 			obj++;
 		}
-		free(data->objects);
+		kxfree(data->objects);
 	}
-	free(data);
+	kxfree(data);
 }
 
 KxObject *
@@ -55,7 +55,7 @@ kxcfunction_new_prototype(KxCore *core)
 
 	object->extension = &kxcfunction_extension;
 	
-	KxCFunctionData *data = malloc(sizeof(KxCFunctionData));
+	KxCFunctionData *data = kxmalloc(sizeof(KxCFunctionData));
 	ALLOCTEST(data);
 
 	data->type_extension = NULL;
@@ -75,7 +75,7 @@ kxcfuntion_clone_with(KxCFunction *self, KxObjectExtension *type_ext, int params
 {
 	KxCFunction *child = kxobject_raw_clone(self);
 	
-	KxCFunctionData *data = malloc(sizeof(KxCFunctionData));
+	KxCFunctionData *data = kxmalloc(sizeof(KxCFunctionData));
 	ALLOCTEST(data);
 
 	data->type_extension = type_ext;
@@ -120,7 +120,7 @@ kxcfunction_objects_set_one(KxCFunction *self, KxObject *object)
 {
 	KxCFunctionData *data = self->data.ptr;
 	
-	KxSymbol **objs = malloc(sizeof(KxSymbol *) * 2);
+	KxSymbol **objs = kxmalloc(sizeof(KxSymbol *) * 2);
 	ALLOCTEST(objs);
 
 	data->objects = objs;
@@ -137,7 +137,7 @@ kxcfunction_objects_set_array(KxCFunction *self, KxObject **array, int size)
 {
 	KxCFunctionData *data = self->data.ptr;
 	
-	KxSymbol **objs = malloc(sizeof(KxSymbol *) * (size+1));
+	KxSymbol **objs = kxmalloc(sizeof(KxSymbol *) * (size+1));
 	ALLOCTEST(objs);
 
 	data->objects = objs;

@@ -55,13 +55,13 @@ char * create_kxc_filename(char *kxfilename)
 	char *kxcfilename;
 
 	if (size> 3 && !strcmp(kxfilename+size-3,".kx")) {
-		kxcfilename = malloc(size+2);
+		kxcfilename = kxmalloc(size+2);
 		ALLOCTEST(kxcfilename);
 		strcpy(kxcfilename, kxfilename);
 		kxcfilename[size] = 'c';
 		kxcfilename[size+1] = '\0';
 	} else {
-		kxcfilename = malloc(size+5);
+		kxcfilename = kxmalloc(size+5);
 		ALLOCTEST(kxcfilename);
 		strcpy(kxcfilename, kxfilename);
 		strcpy(kxcfilename+size, ".kxc");
@@ -255,7 +255,7 @@ static int run_interactive(KxCore *core, KxStack *stack)
 	char *bytecode_pos = bytecode;
 	KxCodeBlock *codeblock;
 	codeblock = kxcodeblock_new_from_bytecode(core, &bytecode_pos, "<built-in>");
-	free(bytecode);
+	kxfree(bytecode);
 
 	KxSymbol *msg_name = kxcore_get_symbol(core, "run_interactive");
 
@@ -275,7 +275,7 @@ compile_and_save(char *source_filename)
 	}
 
 	List *errors = kxc_compile_and_save_file(source_filename, output_filename, kx_doc_flag);
-	free(output_filename);
+	kxfree(output_filename);
 
 	if (errors) {
 		list_print_strings(errors);
@@ -314,7 +314,7 @@ main(int argc, char **argv)
 		List *errors;
 		errors = kxc_compile_string(evaluate_commands,source_filename,kx_doc_flag, &bytecode, &size);
 		if (errors) {
-			free(source_filename);
+			kxfree(source_filename);
 			list_print_strings(errors);
 			list_free_all(errors);
 			return -1;
@@ -367,7 +367,7 @@ main(int argc, char **argv)
 		); */
 		char *fname = strdup(script_filename);
 		kxcore_push_local_import_path(core, strdup(dirname(fname)));
-		free(fname);
+		kxfree(fname);
 	} else {
 		kxcore_push_local_import_path(core, strdup("."));
 	}
@@ -384,8 +384,8 @@ main(int argc, char **argv)
 		KxCodeBlock *codeblock;
 		codeblock = kxcodeblock_new_from_bytecode(core, &bytecode_pos, source_filename);
 
-		free(source_filename);
-		free(bytecode);
+		kxfree(source_filename);
+		kxfree(bytecode);
 
 
 		KxSymbol *init_message = kxcore_get_symbol(core,"main");

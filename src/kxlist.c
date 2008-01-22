@@ -583,7 +583,7 @@ kxlist_as_string(KxList *self, KxMessage *message)
 		len += strlen(strings[t]);
 	};
 
-	char *string = malloc(len+1);
+	char *string = kxmalloc(len+1);
 	char *pos = string;
 	ALLOCTEST(string);
 	for (t=0;t<list->size;t++) {

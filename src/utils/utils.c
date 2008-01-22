@@ -36,7 +36,7 @@ utils_file_exists_in_paths(struct List *list, char *filename)
 		char *full_path = utils_path_join((char*)list->items[t],filename);
 //		printf("path test: %s\n", full_path);
 		int ret = utils_file_exist(full_path);
-		free(full_path);
+		kxfree(full_path);
 		if (ret)
 			return t;
 	}

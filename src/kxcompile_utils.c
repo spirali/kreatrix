@@ -32,7 +32,7 @@ kxcompile_do_file(char *filename, KxObject *target, KxSymbol *message_name, int 
 	}
 	KxObject * retobj =  kxcompile_run_bytecode(bytecode,target, filename, message_name);
 	
-	free(bytecode);
+	kxfree(bytecode);
 	return retobj;
 
 }

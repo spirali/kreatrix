@@ -238,7 +238,7 @@ kxmessage_send_no_hook_and_exception(KxMessage *self, int *slot_not_found)
 
 KxMessage 
 *kxmessage_new(KxSymbol *message_name, KxObject *slot_holder) {
-	KxMessage *self = calloc(1,sizeof(KxMessage));
+	KxMessage *self = kxcalloc(1,sizeof(KxMessage));
 	ALLOCTEST(self);
 	
 	REF_ADD(message_name);
@@ -252,7 +252,7 @@ void
 kxmessage_free(KxMessage *self) 
 {
 	REF_REMOVE(self->message_name);
-	free(self);
+	kxfree(self);
 }
 
 void

@@ -15,7 +15,7 @@ void
 kxobject_slots_init(KxObject *self)
 {
 	self->slots_capacity = KXSLOTS_DEFAULT_SIZE;
-	self->slots = malloc(sizeof(KxSlot) * KXSLOTS_DEFAULT_SIZE);
+	self->slots = kxmalloc(sizeof(KxSlot) * KXSLOTS_DEFAULT_SIZE);
 	ALLOCTEST(self->slots);
 }
 
@@ -32,7 +32,7 @@ kxobject_slots_free(KxObject *self)
 		REF_REMOVE(slots[t].key);
 		REF_REMOVE(slots[t].value);
 	}
-	free(slots);
+	kxfree(slots);
 }
 
 void 
@@ -44,13 +44,13 @@ kxobject_slots_clean(KxObject *self)
 
 	self->slots_count = 0;
 	self->slots_capacity = KXSLOTS_DEFAULT_SIZE;
-	self->slots = malloc(sizeof(KxSlot) * KXSLOTS_DEFAULT_SIZE);
+	self->slots = kxmalloc(sizeof(KxSlot) * KXSLOTS_DEFAULT_SIZE);
 
 	for (t=0;t<size;t++) {
 		REF_REMOVE(slots[t].key);
 		REF_REMOVE(slots[t].value);
 	}
-	free(slots);
+	kxfree(slots);
 }
 
 
@@ -90,7 +90,7 @@ kxobject_slot_add(KxObject *self, KxObject *key, KxObject *value, int flags)
 {
 	if (self->slots_capacity == self->slots_count) {
 		self->slots_capacity <<= 1;
-		self->slots = realloc(self->slots, self->slots_capacity * sizeof(KxSlot));
+		self->slots = kxrealloc(self->slots, self->slots_capacity * sizeof(KxSlot));
 		ALLOCTEST(self->slots);
 	}
 	self->slots[self->slots_count].key = key;

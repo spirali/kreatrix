@@ -48,7 +48,7 @@ kxstring_init_extension()
 static void 
 kxstring_free(KxString *self) 
 {
-	free(KXSTRING_VALUE(self));
+	kxfree(KXSTRING_VALUE(self));
 }
 
 
@@ -401,7 +401,7 @@ kxstring_as_list_by(KxString *self, KxMessage *message)
 		}
 
 	} while(str != NULL);
-	free(sp);
+	kxfree(sp);
 	return KXLIST(list);
 }
 
@@ -553,7 +553,7 @@ kxstring_replace_to(KxString *self, KxMessage *message)
 	int len = strlen(selfstr);
 
 	int buffer_len = len+to_len+16;
-	char *buffer = malloc(buffer_len+1);
+	char *buffer = kxmalloc(buffer_len+1);
 	ALLOCTEST(buffer);
 	int buffer_pos = 0;
 	int t;
@@ -567,7 +567,7 @@ kxstring_replace_to(KxString *self, KxMessage *message)
 		if (s == from_len) {
 			if (buffer_len <= buffer_pos+to_len) {
 				buffer_len *= 2;
-				buffer = realloc(buffer, buffer_len+1);
+				buffer = kxrealloc(buffer, buffer_len+1);
 				ALLOCTEST(buffer);
 			}
 			memcpy(buffer+buffer_pos,to,to_len);
@@ -576,7 +576,7 @@ kxstring_replace_to(KxString *self, KxMessage *message)
 		} else {
 			if (buffer_len <= buffer_pos+1) {
 				buffer_len *= 2;
-				buffer = realloc(buffer, buffer_len+1);
+				buffer = kxrealloc(buffer, buffer_len+1);
 				ALLOCTEST(buffer);
 			}
 			buffer[buffer_pos++] = selfstr[t];
@@ -586,14 +586,14 @@ kxstring_replace_to(KxString *self, KxMessage *message)
 	for (s = t; s < len; s++) {
 			if (buffer_len <= buffer_pos+1) {
 				buffer_len *= 2;
-				buffer = realloc(buffer, buffer_len+1);
+				buffer = kxrealloc(buffer, buffer_len+1);
 				ALLOCTEST(buffer);
 			}
 			buffer[buffer_pos++] = selfstr[s];
 	}
 	buffer[buffer_pos] = 0;
 	KxString *string = KXSTRING(buffer);
-	free(buffer);
+	kxfree(buffer);
 	return string;
 }
 
@@ -697,7 +697,7 @@ kxstring_dirname(KxString *self, KxMessage *message)
 {
 	char *copy = strdup(KXSTRING_VALUE(self));
 	KxString *string = KXSTRING(dirname(copy));
-	free(copy);
+	kxfree(copy);
 	return string;
 }
 
@@ -706,7 +706,7 @@ kxstring_basename(KxString *self, KxMessage *message)
 {
 	char *copy = strdup(KXSTRING_VALUE(self));
 	KxString *string = KXSTRING(basename(copy));
-	free(copy);
+	kxfree(copy);
 	return string;
 }
 

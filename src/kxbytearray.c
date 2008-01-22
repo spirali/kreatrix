@@ -156,7 +156,7 @@ kxbytearray_cut_line(KxByteArray *self, KxMessage *message)
 	data->array = NULL;
 	bytearray_free(data);
 
-	char *str = realloc(array, t + 2);
+	char *str = kxrealloc(array, t + 2);
 	ALLOCTEST(str);
 	str[t+1] = 0;
 

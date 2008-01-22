@@ -155,7 +155,7 @@ kxbasedictionary_grow(KxBaseDictionary *self)
 {
 	int old_size = self->array_size;
 	int new_size = old_size * 2 + 1;
-	KxObject **new_array = calloc(1,new_size * sizeof(KxObject*));
+	KxObject **new_array = kxcalloc(1,new_size * sizeof(KxObject*));
 	ALLOCTEST(new_array);
 
 	KxObject **array = self->array;
@@ -166,7 +166,7 @@ kxbasedictionary_grow(KxBaseDictionary *self)
 	for (t=0;t<old_size;t++) {
 		if (array[t]) {
 			if (!kxassoc_get_hash(array[t], &hash)) {
-				free(new_array);
+				kxfree(new_array);
 				return 0;
 			}
 			index = hash % new_size;
@@ -188,7 +188,7 @@ kxbasedictionary_grow(KxBaseDictionary *self)
 			}
 		}
 	}
-	free(array);
+	kxfree(array);
 	self->array = new_array;
 	self->array_size = new_size;
 	return 1;

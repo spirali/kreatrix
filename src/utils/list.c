@@ -9,12 +9,12 @@
 List* 
 list_new_size(int size) 
 {
-    List *list = malloc(sizeof(List));
+    List *list = kxmalloc(sizeof(List));
     ALLOCTEST(list);
     
     list->capacity = MAX(size,LIST_DEFAULT_CAPACITY);
     list->size = size;
-    list->items = calloc(list->capacity, sizeof(void*));
+    list->items = kxcalloc(list->capacity, sizeof(void*));
     ALLOCTEST(list->items);
    
     return list;
@@ -50,7 +50,7 @@ list_set_size(List *list, int size)
 	list->size = size;
 	list->capacity = MAX(size, LIST_DEFAULT_CAPACITY);
 
-	list->items = realloc(list->items,sizeof(void*)*list->capacity);
+	list->items = kxrealloc(list->items,sizeof(void*)*list->capacity);
 	ALLOCTEST(list->items);
 
 
@@ -66,7 +66,7 @@ list_append(List *list, void *data)
 	if (list->size == list->capacity) 
 	{
 		list->capacity <<= 1;
-		list->items = realloc(list->items,sizeof(void*)*list->capacity);
+		list->items = kxrealloc(list->items,sizeof(void*)*list->capacity);
 		ALLOCTEST(list->items);
 	} 
  	list->items[list->size] = data;
@@ -84,7 +84,7 @@ list_insert_at(List *list, void *data, int pos)
 	if (list->size == list->capacity) 
 	{
 		list->capacity <<= 1;
-		list->items = realloc(list->items,sizeof(void*)*list->capacity);
+		list->items = kxrealloc(list->items,sizeof(void*)*list->capacity);
 		ALLOCTEST(list->items);
 	}
 	void *p = list->items + pos;
@@ -108,7 +108,7 @@ list_join(List *list, List *list2)
 	{
 		list->capacity <<= 1;
 		list->capacity = MAX(list->capacity, list->size);
-		list->items = realloc(list->items,sizeof(void*)*list->capacity);
+		list->items = kxrealloc(list->items,sizeof(void*)*list->capacity);
 		ALLOCTEST(list->items);
 	}
 
@@ -141,7 +141,7 @@ list_remove(List *list, int position)
 		list->capacity >>= 1;
 
 
-		list->items = realloc(list->items,sizeof(void*)*list->capacity);
+		list->items = kxrealloc(list->items,sizeof(void*)*list->capacity);
 		ALLOCTEST(list->items);
 	}
 }
@@ -167,15 +167,15 @@ list_clean(List* list)
 	list->capacity = LIST_DEFAULT_CAPACITY;
 	list->size = 0;
 
-	list->items = realloc(list->items,sizeof(void*) * LIST_DEFAULT_CAPACITY);
+	list->items = kxrealloc(list->items,sizeof(void*) * LIST_DEFAULT_CAPACITY);
 }
 
 // Free list
 void
 list_free(List *list)
 {
-    free(list->items);
-    free(list);
+    kxfree(list->items);
+    kxfree(list);
 }
 
 // Free list and all pointers in list
@@ -184,7 +184,7 @@ list_free_all(List *list)
 {
 	int t;
 	for (t=0;t<list->size;t++) {
-		free(list->items[t]);
+		kxfree(list->items[t]);
 	}
 	list_free(list);
 }
@@ -217,7 +217,7 @@ list_pop(List *list)
 		}
 		list->capacity >>= 1;
 
-		list->items = realloc(list->items,sizeof(void*)*list->capacity);
+		list->items = kxrealloc(list->items,sizeof(void*)*list->capacity);
 		ALLOCTEST(list->items);
 	}
 

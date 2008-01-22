@@ -47,7 +47,7 @@ kxmodule_new_prototype(KxCore *core)
 	KxObject *object = kxcore_clone_base_object(core);
 
 	object->extension = &kxmodule_extension;
-	object->data.ptr = calloc(1,sizeof(KxModuleData));
+	object->data.ptr = kxcalloc(1,sizeof(KxModuleData));
 	ALLOCTEST(object->data.ptr);
 
 	kxmodule_add_method_table(object);
@@ -100,10 +100,10 @@ kxmodule_free(KxModule *self)
 		list_free(data->handle_list);
 	}
 	if (data->path) {
-		free(data->path);
+		kxfree(data->path);
 	}
 	
-	free(data);
+	kxfree(data);
 }
 
 static KxModule * 
@@ -111,7 +111,7 @@ kxmodule_clone(KxModule *self)
 {
 	KxObject *clone = kxobject_raw_clone(self);
 
-	clone->data.ptr = calloc(1,sizeof(KxModuleData));
+	clone->data.ptr = kxcalloc(1,sizeof(KxModuleData));
 	ALLOCTEST(clone->data.ptr);
 
 	return clone;
@@ -134,7 +134,7 @@ kxmodule_load(KxModule *self, KxMessage *message)
 	
 	if (data->path) { 
 		/** Use path from data withou looking up */
-		free(data->path);
+		kxfree(data->path);
 	}
 
 	KXPARAM_TO_CSTRING(param,0);
@@ -168,7 +168,7 @@ kxmodule_load(KxModule *self, KxMessage *message)
 
 	if (path_index != -1) {
 		char *path = paths->items[path_index];
-		data->path = malloc(sizeof(char) * (strlen(path) + strlen(param) + 3));
+		data->path = kxmalloc(sizeof(char) * (strlen(path) + strlen(param) + 3));
 
 		if (short_path) {
 			strcpy(data->path, path);
@@ -177,7 +177,7 @@ kxmodule_load(KxModule *self, KxMessage *message)
 		}
 		char *kx_path = utils_path_join(path, kx_filename);
 		KxObject *ret_object = kxcompile_do_file(kx_path, self, message->message_name, kx_doc_flag);
-		free(kx_path);
+		kxfree(kx_path);
 		list_free(paths);
 		KXCHECK(ret_object);
 		REF_REMOVE(ret_object);
@@ -213,7 +213,7 @@ kxmodule_load_c_lib(KxModule *self, KxMessage *message)
 		printf("dlopen: %s\n", libpath);
 	}
 	void *handle = dlopen(libpath, RTLD_NOW|RTLD_GLOBAL);
-	free(libpath);
+	kxfree(libpath);
 	if (handle == NULL) {
 		KxException *excp = kxexception_new_with_text(KXCORE,"Module load error: %s", dlerror());
 		KXTHROW(excp);

@@ -17,7 +17,7 @@ static char *
 path_add(char *path1, char *path2)
 {
 	int len = strlen(path1) + strlen(path2) + 2;
-	char *str = malloc(sizeof(char) * len);
+	char *str = kxmalloc(sizeof(char) * len);
 	ALLOCTEST(str);
 
 	if (path1[strlen(path2)-1] == '/') {
@@ -47,7 +47,7 @@ kxmodules_path_init()
 		}
 	}
 	
-	kxmodules_path = malloc(sizeof(char*) * (size+1));
+	kxmodules_path = kxmalloc(sizeof(char*) * (size+1));
 
 	int pos = 0;
 

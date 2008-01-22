@@ -50,7 +50,7 @@ kxfile_new_prototype(KxCore *core)
 	KxObject *object = kxcore_clone_base_object(core);
 	
 	object->extension = &kxfile_extension;
-	object->data.ptr = calloc(1,sizeof(KxFileData));
+	object->data.ptr = kxcalloc(1,sizeof(KxFileData));
 	ALLOCTEST(object->data.ptr);
 
 
@@ -63,7 +63,7 @@ kxfile_clone(KxFile *self)
 {
 	KxObject *clone = kxobject_raw_clone(self);
 
-	KxFileData *data = calloc(1,sizeof(KxFileData));
+	KxFileData *data = kxcalloc(1,sizeof(KxFileData));
 	ALLOCTEST(data);
 
 	clone->data.ptr = data;
@@ -75,7 +75,7 @@ KxFile *
 kxfile_stdout(KxCore *core) 
 {
 	KxObject *clone = kxobject_raw_clone(kxcore_get_basic_prototype(core,KXPROTO_FILE));
-	KxFileData *data = calloc(1,sizeof(KxFileData));
+	KxFileData *data = kxcalloc(1,sizeof(KxFileData));
 	ALLOCTEST(data);
 	data->file = stdout;
 	data->filename = strdup("<stdout>");
@@ -88,7 +88,7 @@ KxFile *
 kxfile_stdin(KxCore *core) 
 {
 	KxObject *clone = kxobject_raw_clone(kxcore_get_basic_prototype(core,KXPROTO_FILE));
-	KxFileData *data = calloc(1,sizeof(KxFileData));
+	KxFileData *data = kxcalloc(1,sizeof(KxFileData));
 	ALLOCTEST(data);
 	data->file = stdin;
 	data->filename = strdup("<stdin>");
@@ -101,7 +101,7 @@ KxFile *
 kxfile_stderr(KxCore *core) 
 {
 	KxObject *clone = kxobject_raw_clone(kxcore_get_basic_prototype(core,KXPROTO_FILE));
-	KxFileData *data = calloc(1,sizeof(KxFileData));
+	KxFileData *data = kxcalloc(1,sizeof(KxFileData));
 	ALLOCTEST(data);
 	data->file = stderr;
 	data->filename = strdup("<stderr>");
@@ -164,8 +164,8 @@ kxfile_free(KxFile *self)
 	if (file && file != stdout && file != stdin && file != stderr)
 		fclose(data->file);
 	if (data->filename)
-		free(data->filename);
-	free(data);
+		kxfree(data->filename);
+	kxfree(data);
 }
 
 /*KXdoc name
@@ -200,7 +200,7 @@ kxfile_set_filename(KxFile *self, KxMessage *message)
 	}
 
 	if (data->filename)
-		free(data->filename);
+		kxfree(data->filename);
 	data->filename = strdup(param->data.ptr);
 
 	KXRETURN(self);
@@ -529,7 +529,7 @@ kxfile_content_as_string(KxFile *self, KxMessage *message)
 		THROW_STD_IO_EXCEPTION;
 	}
 
-	char *buffer = malloc(size+1);
+	char *buffer = kxmalloc(size+1);
 
 	int r;
 	KX_THREADS_BEGIN
@@ -542,7 +542,7 @@ kxfile_content_as_string(KxFile *self, KxMessage *message)
 	buffer[size] = 0;
 
 	KxString *str = KXSTRING(buffer);
-	free(buffer);
+	kxfree(buffer);
 	return str;
 }
 

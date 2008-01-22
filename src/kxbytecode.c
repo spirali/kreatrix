@@ -41,7 +41,7 @@ bytecode_read_source_filename(FILE *file, char **source_filename)
 		fclose(file);
 		return 0;
 	}
-	*source_filename = malloc(filename_len+1);
+	*source_filename = kxmalloc(filename_len+1);
 	ALLOCTEST(*source_filename);
 
 	if (fread(*source_filename,filename_len,1,file) != 1) {
@@ -81,7 +81,7 @@ bytecode_load_from_file(char *filename, int *bytecode_size, char **source_filena
 		return NULL;
 	}
 
-	char *bytecode = malloc(size);
+	char *bytecode = kxmalloc(size);
 	ALLOCTEST(bytecode);
 
 	if (fread(bytecode,size,1,file) != 1) {

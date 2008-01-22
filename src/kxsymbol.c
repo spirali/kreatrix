@@ -66,7 +66,7 @@ kxsymbol_free(KxSymbol *self)
 {
 	if (self->data.ptr) {
 		kxcore_symbol_remove(KXCORE,self);
-		free(self->data.ptr);
+		kxfree(self->data.ptr);
 	}
 }
 

@@ -7,7 +7,7 @@
 HashTable * 
 hashtable_new() 
 {
-	HashTable *table = malloc(sizeof(HashTable));
+	HashTable *table = kxmalloc(sizeof(HashTable));
 	ALLOCTEST(table);
 	
 	table->keys = list_new();
@@ -21,7 +21,7 @@ hashtable_free(HashTable *hashtable)
 {
 	list_free(hashtable->keys);
 	list_free(hashtable->values);
-	free(hashtable);
+	kxfree(hashtable);
 }
 
 void
@@ -91,7 +91,7 @@ hashtable_keys_to_list(HashTable *hashtable)
 HashTable * 
 hashtable_copy(HashTable *self) 
 {
-	HashTable *copy = malloc(sizeof(HashTable));
+	HashTable *copy = kxmalloc(sizeof(HashTable));
 	ALLOCTEST(copy);
 
 	copy->keys = list_copy(self->keys);

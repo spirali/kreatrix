@@ -11,7 +11,7 @@ static void bytearray_resize(ByteArray *self, int new_size);
 
 ByteArray * 
 bytearray_new_with(int size) {
-	ByteArray *self = calloc(1,sizeof(ByteArray));
+	ByteArray *self = kxcalloc(1,sizeof(ByteArray));
 	ALLOCTEST(self);
 
 	bytearray_resize(self, size);
@@ -28,7 +28,7 @@ bytearray_new_from_string(char *string) {
 ByteArray *
 bytearray_new_set(void *data, int size)
 {
-	ByteArray *self = calloc(1,sizeof(ByteArray));
+	ByteArray *self = kxcalloc(1,sizeof(ByteArray));
 	ALLOCTEST(self);
 	self->size = size;
 	self->array = data;
@@ -76,8 +76,8 @@ ByteArray *
 bytearray_free(ByteArray *self) 
 {
 	if (self->array) 
-		free(self->array);
-	free(self);
+		kxfree(self->array);
+	kxfree(self);
 }
 
 
@@ -93,7 +93,7 @@ ByteArray *bytearray_copy(ByteArray *self)
 static void 
 bytearray_resize(ByteArray *self, int new_size) 
 {
-	self->array = (char*)realloc(self->array, new_size);
+	self->array = (char*)kxrealloc(self->array, new_size);
 	ALLOCTEST(self->array);
 	self->capacity = new_size;
 }

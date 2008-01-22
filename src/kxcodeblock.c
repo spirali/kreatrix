@@ -55,7 +55,7 @@ kxcodeblock_new(KxCore *core) {
 	KxObject *prototype = kxcore_get_basic_prototype(core, KXPROTO_CODEBLOCK);
 	KxCodeBlock *codeblock =  kxobject_raw_clone(prototype);
 	
-	codeblock->data.ptr = calloc(1,sizeof(KxCodeBlockData));
+	codeblock->data.ptr = kxcalloc(1,sizeof(KxCodeBlockData));
 	ALLOCTEST(codeblock->data.ptr);
 
 	return codeblock;
@@ -70,8 +70,8 @@ kxcodeblock_free(KxCodeBlock *self) {
 
 
 
-	free(data->source_filename); 
-	free(data->message_linenumbers);
+	kxfree(data->source_filename); 
+	kxfree(data->message_linenumbers);
 
 	int t;
 	for (t=0;t<data->subcodeblocks_size;t++)
@@ -83,21 +83,21 @@ kxcodeblock_free(KxCodeBlock *self) {
 	for (t=0;t<data->symbol_frame_size;t++) {
 		REF_REMOVE(data->symbol_frame[t]);
 	}
-	free(data->symbol_frame);
+	kxfree(data->symbol_frame);
 	
 	if (data->subcodeblocks)
-		free(data->subcodeblocks);
+		kxfree(data->subcodeblocks);
 
 	if (data->params_symbols)
-		free(data->params_symbols);
+		kxfree(data->params_symbols);
 
 	if (data->localslots_symbols)
-		free(data->localslots_symbols);
+		kxfree(data->localslots_symbols);
 
 	
 	if (data->code)
-		free(data->code);
-	free(data);
+		kxfree(data->code);
+	kxfree(data);
 }
 
 static void 
@@ -114,7 +114,7 @@ kxcodeblock_read_symbol_frame (KxCodeBlock *self, char **bytecode)
 	}
 
 
-	data->symbol_frame = malloc(sizeof(KxSymbol*) * size);
+	data->symbol_frame = kxmalloc(sizeof(KxSymbol*) * size);
 	ALLOCTEST(data->symbol_frame);
 
 	int t;
@@ -145,7 +145,7 @@ kxcodeblock_read_params(KxCodeBlock *self, char **bytecode)
 		return;
 	}
 
-	data->params_symbols = malloc(sizeof(KxSymbol*) * size);
+	data->params_symbols = kxmalloc(sizeof(KxSymbol*) * size);
 	ALLOCTEST(data->params_symbols);
 
 	int t;
@@ -170,7 +170,7 @@ kxcodeblock_read_localslots(KxCodeBlock *self, char **bytecode)
 		return;
 	}
 
-	data->localslots_symbols = malloc(sizeof(KxSymbol*) * size);
+	data->localslots_symbols = kxmalloc(sizeof(KxSymbol*) * size);
 	ALLOCTEST(data->localslots_symbols);
 
 	int t;
@@ -232,7 +232,7 @@ kxcodeblock_read_code(KxCodeBlock *self, char **bytecode)
 		return;
 	}
 
-	data->code = malloc(size);
+	data->code = kxmalloc(size);
 	ALLOCTEST(data->code);
 
 	memcpy(data->code,*bytecode,size);
@@ -261,7 +261,7 @@ kxcodeblock_read_subblocks(KxCodeBlock *self, char **bytecode, char *source_file
 		return;
 	}
 
-	data->subcodeblocks = malloc(count * sizeof(KxCodeBlock*));
+	data->subcodeblocks = kxmalloc(count * sizeof(KxCodeBlock*));
 	ALLOCTEST(data->subcodeblocks);
 
 	int t;
@@ -281,7 +281,7 @@ kxcodeblock_read_message_linenumbers(KxCodeBlock *self, char **bytecode)
 
 	KxCodeBlockData *data = KXCODEBLOCK_DATA(self);
 
-	data->message_linenumbers = malloc(sizeof(int) * size);
+	data->message_linenumbers = kxmalloc(sizeof(int) * size);
 	ALLOCTEST(data->message_linenumbers);
 
 	int t;

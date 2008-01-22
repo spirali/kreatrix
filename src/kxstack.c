@@ -22,7 +22,7 @@
 KxStack * 
 kxstack_new() 
 {
-	KxStack *stack = calloc(1,sizeof(KxStack));
+	KxStack *stack = kxcalloc(1,sizeof(KxStack));
 	ALLOCTEST(stack);
 
 	return stack;
@@ -45,7 +45,7 @@ kxstack_free(KxStack *self)
 		list_free(self->throw_trace);
 
 
-	free(self);
+	kxfree(self);
 
 
 }

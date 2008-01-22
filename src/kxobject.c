@@ -24,7 +24,7 @@
 static KxParentSlot * 
 kxparentslot_new(KxObject *parent) 
 {
-	KxParentSlot *newslot = malloc(sizeof(KxParentSlot));
+	KxParentSlot *newslot = kxmalloc(sizeof(KxParentSlot));
 	ALLOCTEST(newslot);
 
 	REF_ADD(parent);
@@ -38,7 +38,7 @@ KxObject *
 kxobject_new() 
 {
 
-	KxObject *object = calloc(1,sizeof(KxObject));
+	KxObject *object = kxcalloc(1,sizeof(KxObject));
 	ALLOCTEST(object);
 
 	//object->slots = hashtable_new();
@@ -121,7 +121,7 @@ kxobject_free(KxObject *self)
 	while(pslot) {
 		KxParentSlot *next = pslot->next;
 		REF_REMOVE(pslot->parent);
-		free(pslot);
+		kxfree(pslot);
 		pslot = next;
 	}
 
@@ -132,7 +132,7 @@ kxobject_free(KxObject *self)
 	next->gc_prev = prev;
 	prev->gc_next = next;
 	self->core->objects_count--;
-	free(self);
+	kxfree(self);
 }
 
 /*void
@@ -202,7 +202,7 @@ kxobject_remove_all_parents(KxObject *self)
 	while(pslot) {
 		KxParentSlot *next = pslot->next;
 		REF_REMOVE(pslot->parent);
-		free(pslot);
+		kxfree(pslot);
 		pslot = next;
 	}
 }
@@ -348,7 +348,7 @@ kxobject_remove_parent(KxObject *self, KxObject *parent)
 		KxParentSlot *p = self->parent_slot.next;
 		self->parent_slot.parent = p->parent;
 		self->parent_slot.next = p->next;
-		free(p);
+		kxfree(p);
 		return;
 	}
 
@@ -359,7 +359,7 @@ kxobject_remove_parent(KxObject *self, KxObject *parent)
 		if (pslot->parent == parent) {
 			prev->next = pslot->next;
 			REF_REMOVE(parent);
-			free(pslot);
+			kxfree(pslot);
 			return;
 		}
 		prev = pslot;

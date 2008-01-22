@@ -89,7 +89,7 @@ kxcore_std_exceptions(KxCore *core)
 KxCore *
 kxcore_new() 
 {
-	KxCore *core = calloc(1,sizeof(KxCore));
+	KxCore *core = kxcalloc(1,sizeof(KxCore));
 	ALLOCTEST(core);
 
 	#ifdef KX_THREADS_SUPPORT
@@ -318,7 +318,7 @@ kxcore_free(KxCore *self)
 	}
 
 	for (t=0;t<self->local_import_paths->size;t++) {
-		free(self->local_import_paths->items[t]);
+		kxfree(self->local_import_paths->items[t]);
 	}
 
 	list_free(self->local_import_paths);
@@ -326,7 +326,7 @@ kxcore_free(KxCore *self)
 
 	if (kx_verbose || self->objects_count)
 		printf("core->objects_count = %i\n", self->objects_count);
-	free(self);
+	kxfree(self);
 }
 
 KxObject *
@@ -643,7 +643,7 @@ void kxcore_pop_local_import_path(KxCore *core)
 	char *str;
 	str = list_pop(core->local_import_paths);
 	if (str)
-		free(str);
+		kxfree(str);
 }
 
 char * kxcore_top_local_import_path(KxCore *core)

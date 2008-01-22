@@ -30,7 +30,7 @@ kxdynlib_new_prototype(KxCore *core)
 	KxObject *object = kxcore_clone_base_object(core);
 
 	object->extension = &kxdynlib_extension;
-	object->data.ptr = malloc(sizeof(KxDynLibData));
+	object->data.ptr = kxmalloc(sizeof(KxDynLibData));
 	ALLOCTEST(object->data.ptr);
 
 	kxdynlib_add_method_table(object);
@@ -42,7 +42,7 @@ kxdynlib_new_prototype(KxCore *core)
 static void
 kxdynlib_free(KxDynLib *self) 
 {
-	free(self->data.ptr);
+	kxfree(self->data.ptr);
 }
 
 static void 

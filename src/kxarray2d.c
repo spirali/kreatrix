@@ -32,9 +32,9 @@ kxarray2d_add_method_table(KxArray2d *self);
 static KxArray2dData *
 kxarray2d_new_data(int x, int y) 
 {
-	KxArray2dData *data = malloc(sizeof(KxArray2dData));
+	KxArray2dData *data = kxmalloc(sizeof(KxArray2dData));
 	ALLOCTEST(data);
-	data->array = malloc(sizeof(KxObject*)*x*y);
+	data->array = kxmalloc(sizeof(KxObject*)*x*y);
 	ALLOCTEST(data->array);
 	data->sizex = x;
 	data->sizey = y;
@@ -74,8 +74,8 @@ kxarray2d_free(KxArray2d *self)
 	for (t=0; t<size; ++t) {
 		REF_REMOVE(data->array[t]);
 	}
-	free(data->array);
-	free(data);
+	kxfree(data->array);
+	kxfree(data);
 }
 
 static void
@@ -98,8 +98,8 @@ kxarray2d_clean(KxArray2d *self)
 	for (t=0; t<size; ++t) {
 		REF_REMOVE(data->array[t]);
 	}
-	free(data->array);
-	data->array = malloc(0);
+	kxfree(data->array);
+	data->array = kxmalloc(0);
 	data->sizex = 0;
 	data->sizey = 0;
 }
@@ -141,7 +141,7 @@ kxarray2d_set_width_height(KxArray2d *self, KxMessage *message)
 	KxArray2dData *data = KXARRAY2D_DATA(self);
 
 	KxObject **array_s = data->array;
-	KxObject **array_d = malloc(width*height*sizeof(KxObject*));
+	KxObject **array_d = kxmalloc(width*height*sizeof(KxObject*));
 	ALLOCTEST(array_d);
 	int old_x = data->sizex;
 	int old_y = data->sizey;
@@ -203,7 +203,7 @@ kxarray2d_set_width_height(KxArray2d *self, KxMessage *message)
 	};
 
 
-	free(array_s);
+	kxfree(array_s);
 	KXRETURN(self);
 }
 

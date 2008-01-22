@@ -621,6 +621,13 @@ VM do: {
 			Exception printException: excp on: aFile.
 		]
 	}.
+
+	versionNumber = { |list|
+		list << (version asListBy: ".") collect: [ :each | each asInteger ].
+		^((list at: 0) * 1000000) + 
+		 ((list at: 1) * 1000) +
+		 (list at: 2).
+	}
 }.
 
 Set do: {
