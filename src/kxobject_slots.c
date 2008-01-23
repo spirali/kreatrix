@@ -7,8 +7,8 @@
 #define KXSLOTS_DEFAULT_SIZE 4
 
 /***
- *   For simple implementation is now slots implement as simple list,
- *   It should be implemented as hashtables, but it need same benchmarks
+ *   Slots is now implemented as simple list due to simple implementation,
+ *   It should be implemented as hashtables, but it need some benchmarks
  */ 
 
 void 
