@@ -35,7 +35,7 @@ for ((i=2;i<=MAIN_RUNS;i++)) do
 	echo "TEST: $i"
 	sh $SCRIPT $KREATRIX $TEST_RUNS > tmp2
 	cat tmp2
-	$KREATRIX getmin.kx tmp1 tmp2 > tmp3
+	$KREATRIX scripts/getmin.kx tmp1 tmp2 > tmp3
 	mv tmp3 tmp1
 done
 
