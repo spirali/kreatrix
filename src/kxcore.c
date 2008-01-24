@@ -109,6 +109,8 @@ kxcore_new()
 
 	core->global_data = dictionary_new();
 
+	core->object_cache_pos = 0;
+
 	/** Init base object */
 	core->base_object = kxbaseobject_new(core);
 
@@ -651,3 +653,27 @@ char * kxcore_top_local_import_path(KxCore *core)
 	return list_top(core->local_import_paths);
 }
 
+
+KxObject * kxcore_raw_object_get(KxCore *core) 
+{
+	KxObject *object;
+
+	if (core->object_cache_pos) {
+		object = core->object_cache[--core->object_cache_pos];
+		bzero(object, sizeof(KxObject));
+		return object;
+	}
+
+	object = kxcalloc(1,sizeof(KxObject));
+	ALLOCTEST(object);
+	return object;
+}
+
+void kxcore_raw_object_return(KxCore *core, KxObject *object) 
+{
+	if (core->object_cache_pos == KXCORE_OBJECT_CACHE_SIZE) {
+		kxfree(object);
+	} else {
+		core->object_cache[core->object_cache_pos++] = object;
+	}
+}

@@ -62,6 +62,8 @@ typedef void(KxGILFcn)(KxCore*);
 
 #define KXCORE_IS_BLOCKED(core) (core)->blocked
 
+#define KXCORE_OBJECT_CACHE_SIZE 50
+
 typedef void(KxMarkFunction)(KxCore*);
 
 struct KxCore  {
@@ -114,6 +116,9 @@ struct KxCore  {
 	List *mark_functions;
 
 	List *local_import_paths;
+
+	int object_cache_pos;
+	KxObject *object_cache[KXCORE_OBJECT_CACHE_SIZE];
 };
 
 KxCore *kxcore_new();
@@ -166,6 +171,10 @@ void kxcore_register_mark_function(KxCore *core, KxMarkFunction *function);
 void kxcore_push_local_import_path(KxCore *core, char *path);
 void kxcore_pop_local_import_path(KxCore *core);
 char * kxcore_top_local_import_path(KxCore *core);
+
+
+KxObject * kxcore_raw_object_get(KxCore *core);
+void kxcore_raw_object_return(KxCore *core, KxObject *object);
 
 #ifdef KX_THREADS_SUPPORT
 	void kxcore_reset_yield_counter(KxCore *core);

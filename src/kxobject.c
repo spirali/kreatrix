@@ -35,11 +35,10 @@ kxparentslot_new(KxObject *parent)
 }
 
 KxObject * 
-kxobject_new() 
+kxobject_new(KxCore *core) 
 {
 
-	KxObject *object = kxcalloc(1,sizeof(KxObject));
-	ALLOCTEST(object);
+	KxObject *object = kxcore_raw_object_get(core);
 
 	//object->slots = hashtable_new();
 	kxobject_slots_init(object);
@@ -56,7 +55,7 @@ kxobject_new_from(KxObject *self)
 					self, 
 					self->extension?self->extension->type_name:"");
 
-	KxObject *object = kxobject_new();
+	KxObject *object = kxobject_new(KXCORE);
 
 	object->core = self->core;
 	++self->core->objects_count;
@@ -132,7 +131,8 @@ kxobject_free(KxObject *self)
 	next->gc_prev = prev;
 	prev->gc_next = next;
 	self->core->objects_count--;
-	kxfree(self);
+
+	kxcore_raw_object_return(KXCORE,self);
 }
 
 /*void

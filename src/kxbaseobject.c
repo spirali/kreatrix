@@ -26,12 +26,12 @@
 #include "kxlist.h"
 #include "kxinteger.h"
 
-KxObject * kxobject_new();
+KxObject * kxobject_new(KxCore *core);
 
 KxObject *
 kxbaseobject_new(KxCore *core)
 {
-	KxObject *object = kxobject_new();
+	KxObject *object = kxobject_new(core);
 	object->core = core;
 
 

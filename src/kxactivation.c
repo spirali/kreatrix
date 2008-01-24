@@ -45,7 +45,6 @@ KxActivationInstrFcn *(instr_fcn)[KXCI_INSTRUCTIONS_COUNT];
 void
 kxactivation_free(KxActivation *self)
 {
-
 	kxactivation_inner_stack_free(self);
 
 	REF_REMOVE(self->receiver);
