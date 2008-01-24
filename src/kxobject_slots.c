@@ -4,7 +4,7 @@
 #include "kxobject_slots.h"
 #include "kxobject.h"
 
-#define KXSLOTS_DEFAULT_SIZE 4
+#define KXSLOTS_DEFAULT_SIZE 5
 
 /***
  *   Slots is now implemented as simple list due to simple implementation,
@@ -15,42 +15,45 @@ void
 kxobject_slots_init(KxObject *self)
 {
 	self->slots_capacity = KXSLOTS_DEFAULT_SIZE;
-	self->slots = kxmalloc(sizeof(KxSlot) * KXSLOTS_DEFAULT_SIZE);
+	self->slots = kxmalloc(sizeof(KxSlot) * (KXSLOTS_DEFAULT_SIZE));
+	self->slots[0].key = NULL;
 	ALLOCTEST(self->slots);
 }
 
 void 
 kxobject_slots_free(KxObject *self)
 {
-	int t;
-	int size = self->slots_count;
-	self->slots_count = 0;
 	self->slots_capacity = 0;
-	KxSlot *slots = self->slots;
+	KxSlot *slot = self->slots;
 
-	for (t=0;t<size;t++) {
-		REF_REMOVE(slots[t].key);
-		REF_REMOVE(slots[t].value);
+	/*if (slot == NULL)
+		return;*/
+
+	while(slot->key) {
+		REF_REMOVE(slot->key);
+		REF_REMOVE(slot->value);
+		slot++;
 	}
-	kxfree(slots);
+
+	kxfree(self->slots);
 }
 
 void 
 kxobject_slots_clean(KxObject *self)
 {
-	int t;
-	int size = self->slots_count;
-	KxSlot *slots = self->slots;
+	kxobject_slots_free(self);
+	//self->slots = NULL;
 
-	self->slots_count = 0;
 	self->slots_capacity = KXSLOTS_DEFAULT_SIZE;
-	self->slots = kxmalloc(sizeof(KxSlot) * KXSLOTS_DEFAULT_SIZE);
+	self->slots = kxmalloc(sizeof(KxSlot) * (KXSLOTS_DEFAULT_SIZE));
 
+	self->slots[0].key = NULL;
+/*
 	for (t=0;t<size;t++) {
 		REF_REMOVE(slots[t].key);
 		REF_REMOVE(slots[t].value);
 	}
-	kxfree(slots);
+	kxfree(slots);*/
 }
 
 
@@ -58,12 +61,23 @@ kxobject_slots_clean(KxObject *self)
 void
 kxobject_slots_copy(KxObject *self, KxObject *copy) 
 {
-	KxSlot *source = self->slots;
+	/*if (self->slots == NULL) {
+		copy->slots = NULL;
+		return;
+	}*/
+	/*KxSlot *source = self->slots;
 	int t;
 	for (t=0;t<self->slots_count;++t) {
 		REF_ADD(source[t].key);
 		REF_ADD(source[t].value);
 		kxobject_slot_add(copy, source[t].key, source[t].value,source[t].flags);
+	}*/
+	KxSlot *slot = self->slots;
+	while(slot->key) {
+		REF_ADD(slot->key);
+		REF_ADD(slot->value);
+		kxobject_slot_add(copy, slot->key, slot->value,slot->flags);
+		slot++;
 	}
 }
 
@@ -71,41 +85,76 @@ kxobject_slots_copy(KxObject *self, KxObject *copy)
 KxSlot *
 kxobject_slot_find(KxObject *self, KxObject *key) 
 {
-	int t;
-	KxSlot *slots = self->slots;
-	for (t=0;t<self->slots_count;t++) {
-	/*	printf("check: ");
-		kxobject_dump(slots[t].key);
-		printf("test: ");
-		kxobject_dump(key);*/
+	KxSlot *slot = self->slots;
 
-		if (slots[t].key == key)
-			return &slots[t];
+	while(slot->key) {
+		if (slot->key == key)
+			return slot;
+		slot++;
 	}
+
 	return NULL;
 }
 
 void
 kxobject_slot_add(KxObject *self, KxObject *key, KxObject *value, int flags) 
 {
-	if (self->slots_capacity == self->slots_count) {
-		self->slots_capacity <<= 1;
-		self->slots = kxrealloc(self->slots, self->slots_capacity * sizeof(KxSlot));
-		ALLOCTEST(self->slots);
+	int count = 1;
+	KxSlot *slot = self->slots;
+
+	while(slot->key) {
+		slot++;
+		count++;
 	}
-	self->slots[self->slots_count].key = key;
-	self->slots[self->slots_count].flags = flags;
-	self->slots[self->slots_count++].value = value;
+
+	if (self->slots_capacity == count) {
+		KxSlot *old = self->slots;
+		self->slots_capacity <<= 1;
+		self->slots = kxrealloc(self->slots, ( (self->slots_capacity) * sizeof(KxSlot)));
+		if (self->slots != old) {
+			ALLOCTEST(self->slots);
+
+			slot = self->slots;
+			while(slot->key) {
+				slot++;
+			}
+		}
+	}
+	slot->key = key;
+	slot->flags = flags;
+	slot->value = value;
+
+	slot++;
+	
+	slot->key = NULL;
+
+}
+
+int 
+kxobject_slots_count(KxObject *self) {
+	KxSlot *slot = self->slots;
+	int count = 0;
+	while(slot->key) {
+		slot++;
+		count++;
+	}
+	return count;
 }
 
 List *
 kxobject_slots_to_list(KxObject *self) {
 
-	List *list = list_new_size(self->slots_count);
+	List *list = list_new_size(kxobject_slots_count(self));
+
+	KxSlot *slot = self->slots;
+
 	int t;
-	for (t=0;t<self->slots_count;t++) {
-		REF_ADD(self->slots[t].key);
-		list->items[t] = self->slots[t].key;
+	t = 0;
+	while(slot->key) {
+		REF_ADD(slot->key);
+		list->items[t] = slot->key;
+		slot++;
+		t++;
 	}
 	return list;
 }
@@ -113,20 +162,19 @@ kxobject_slots_to_list(KxObject *self) {
 void
 kxobject_slots_mark(KxObject *self)
 {
-	int t;
-	int size = self->slots_count;
-	KxSlot *slots = self->slots;
+	KxSlot *slot = self->slots;
 
-	for (t=0;t<size;t++) {
-		kxobject_mark(slots[t].key);
-		kxobject_mark(slots[t].value);
+	while(slot->key) {
+		kxobject_mark(slot->key);
+		kxobject_mark(slot->value);
+		slot++;
 	}
 }
 
 void
 kxobject_slots_dump(KxObject *self) 
 {
-	printf("Slots for:");
+	/*printf("Slots for:");
 	kxobject_dump(self);
 	
 	int t;
@@ -134,5 +182,5 @@ kxobject_slots_dump(KxObject *self)
 	{
 		printf("%s -> ", (char*)(self->slots[t].key->data.ptr));
 		kxobject_dump(self->slots[t].value);
-	}
+	}*/
 }
