@@ -40,7 +40,6 @@ struct KxParentSlot {
 
 struct KxObject {
 	KxSlot *slots;
-	int slots_capacity;
 
 	KxParentSlot parent_slot; // Linked list with parent slots
 	//HashTable *slots;          // Hash table with slots
