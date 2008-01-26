@@ -64,6 +64,9 @@ typedef void(KxGILFcn)(KxCore*);
 
 #define KXCORE_OBJECT_CACHE_SIZE 50
 
+#define KXCORE_SLOT_CACHE_CAPACITIES_COUNT 12
+#define KXCORE_SLOT_CACHE_SIZE 40
+
 typedef void(KxMarkFunction)(KxCore*);
 
 struct KxCore  {
@@ -119,6 +122,10 @@ struct KxCore  {
 
 	int object_cache_pos;
 	KxObject *object_cache[KXCORE_OBJECT_CACHE_SIZE];
+
+	int slot_cache_count[KXCORE_SLOT_CACHE_CAPACITIES_COUNT];
+	void *slot_cache[KXCORE_OBJECT_CACHE_SIZE][KXCORE_SLOT_CACHE_SIZE];
+	
 };
 
 KxCore *kxcore_new();
@@ -175,6 +182,11 @@ char * kxcore_top_local_import_path(KxCore *core);
 
 KxObject * kxcore_raw_object_get(KxCore *core);
 void kxcore_raw_object_return(KxCore *core, KxObject *object);
+
+
+void kxcore_slot_cache_put(KxCore *core, int size, void *mem);
+void * kxcore_slot_cache_get(KxCore *core, int size);
+void * kxcore_slot_cache_resize(KxCore *core, int old_size, int new_size, void *mem);
 
 #ifdef KX_THREADS_SUPPORT
 	void kxcore_reset_yield_counter(KxCore *core);

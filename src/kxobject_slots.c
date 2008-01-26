@@ -29,13 +29,17 @@ kxobject_slots_free(KxObject *self)
 	if (slot == NULL)
 		return;
 
+	int count = 0;
 	while(slot->key) {
 		REF_REMOVE(slot->key);
 		REF_REMOVE(slot->value);
 		slot++;
+		count++;
 	}
 
-	kxfree(self->slots);
+	//kxfree(self->slots);
+	
+	kxcore_slot_cache_put(KXCORE, count, self->slots);
 }
 
 void 
@@ -93,10 +97,10 @@ kxobject_slot_add(KxObject *self, KxObject *key, KxObject *value, int flags)
 			slot++;
 			count++;
 		}
-	} 
-
-	self->slots = kxrealloc(self->slots, (count + 2) * sizeof(KxSlot));
-	ALLOCTEST(self->slots);
+		self->slots = kxcore_slot_cache_resize(KXCORE, count, count + 1, self->slots);
+	} else {
+		self->slots = kxcore_slot_cache_get(KXCORE, 1);
+	}
 
 	slot = &self->slots[count];
 

@@ -89,6 +89,7 @@ kxcore_std_exceptions(KxCore *core)
 KxCore *
 kxcore_new() 
 {
+	int t;
 	KxCore *core = kxcalloc(1,sizeof(KxCore));
 	ALLOCTEST(core);
 
@@ -162,7 +163,6 @@ kxcore_new()
 	kxbaseobject_add_method_table(core->base_object);
 
 	/* Init basic symbols */
-	int t;
 	for(t=0;t<KXDICTIONARY_SIZE;t++) {
 		core->dictionary[t] = kxcore_get_symbol(core,core_dictionary[t]);
 	}
@@ -324,6 +324,18 @@ kxcore_free(KxCore *self)
 	}
 
 	list_free(self->local_import_paths);
+
+	for (t=0;t<self->object_cache_pos;t++) {
+		kxfree(self->object_cache[t]);
+	}
+
+	for (t=0;t<KXCORE_SLOT_CACHE_CAPACITIES_COUNT;t++) {
+		int s;
+		for (s=0;s<self->slot_cache_count[t];s++) 
+			kxfree(self->slot_cache[t][s]);
+	}
+
+
 	
 
 	if (kx_verbose || self->objects_count)
@@ -677,3 +689,47 @@ void kxcore_raw_object_return(KxCore *core, KxObject *object)
 		core->object_cache[core->object_cache_pos++] = object;
 	}
 }
+
+void kxcore_slot_cache_put(KxCore *core, int size, void *mem)
+{
+	if (size > KXCORE_SLOT_CACHE_CAPACITIES_COUNT) {
+		kxfree(mem);
+		return;
+	}
+	size--;
+	if (core->slot_cache_count[size] == KXCORE_SLOT_CACHE_SIZE) {
+		kxfree(mem);
+		return;
+	}
+	core->slot_cache[size][core->slot_cache_count[size]++] = mem;
+}
+
+void * kxcore_slot_cache_get(KxCore *core, int size)
+{
+	if (size > KXCORE_SLOT_CACHE_CAPACITIES_COUNT) {
+		KxSlot *slots =  kxmalloc( (size+1) * sizeof(KxSlot) );
+		ALLOCTEST(slots);
+		return slots;
+	}
+
+	size--;
+
+	if (core->slot_cache_count[size]) {
+		return core->slot_cache[size][--core->slot_cache_count[size]];
+	}
+	
+	KxSlot *slots =  kxmalloc( (size+2) * sizeof(KxSlot));
+	ALLOCTEST(slots);
+	return slots;
+}
+
+void * kxcore_slot_cache_resize(KxCore *core, int old_size, int new_size, void *mem) 
+{
+	void *newmem = kxcore_slot_cache_get(core, new_size);
+	memcpy(newmem, mem, old_size * sizeof(KxSlot));
+	
+	kxcore_slot_cache_put(core, old_size, mem);
+	
+	return newmem;
+}
+
