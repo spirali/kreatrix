@@ -54,7 +54,9 @@ kxactivation_free(KxActivation *self)
 
 	if (self->message_name)
 		REF_REMOVE(self->message_name);
-	kxfree(self);
+
+	kxcore_raw_activation_return(self->core,self);
+
 }
 
 void
@@ -142,7 +144,7 @@ kxactivation_inner_stack_free(KxActivation *self)
 
 KxActivation *kxactivation_new(KxCore *core) 
 {
-	KxActivation *self = kxcalloc(sizeof(KxActivation),1);
+	KxActivation *self = kxcore_raw_activation_get(core);
 	ALLOCTEST(self);
 	self->core = core;
 	self->ref_count = 1;

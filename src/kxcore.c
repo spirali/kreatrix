@@ -733,3 +733,27 @@ void * kxcore_slot_cache_resize(KxCore *core, int old_size, int new_size, void *
 	return newmem;
 }
 
+
+void * kxcore_raw_activation_get(KxCore *core) 
+{
+	void *activation;
+
+	if (core->activation_cache_count) {
+		activation = core->activation_cache[--core->activation_cache_count];
+		bzero(activation, sizeof(KxActivation));
+		return activation;
+	}
+
+	activation = kxcalloc(1,sizeof(KxActivation));
+	ALLOCTEST(activation);
+	return activation;
+}
+
+void kxcore_raw_activation_return(KxCore *core, void *activation) 
+{
+	if (core->activation_cache_count == KXCORE_ACTIVATION_CACHE_SIZE) {
+		kxfree(activation);
+	} else {
+		core->activation_cache[core->activation_cache_count++] = activation;
+	}
+}
