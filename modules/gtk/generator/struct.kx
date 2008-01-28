@@ -24,6 +24,8 @@ GStruct = GWrapper clone do: {
 				func << GRawFunction clone.
 				func slotName: slotNameReader.
 				func wrapperCName: functionsPrefix,"_", name.
+
+				// TODO: check if data is not NULL
 				func codeString: ("\treturn KX",gtype name asUppercase,
 								  "( ((", wrapper cname,") self->data.ptr)->",name,");").
 				^func.
@@ -34,9 +36,11 @@ GStruct = GWrapper clone do: {
 				func numberOfParameters: 1.
 				func slotName: slotNameWriter.
 				func wrapperCName: functionsPrefix,"_", name,"_".
+				// TODO: check if data is not NULL
 
 				func codeString: (gtype codeForGettingParamId: 0),
-					"\n\t((", wrapper cname,") self->data.ptr)->",name," = param0;".
+					"\n\t((", wrapper cname,") self->data.ptr)->",name," = param0;",
+					"\n\tKXRETURN(self);".
 				^func.
 		}
 
@@ -49,9 +53,11 @@ GStruct = GWrapper clone do: {
 
 	options <- "".
 
-	ownCloneCall <- nil.
+	ownInitCode <- nil.
 
 	isStruct = true.
+
+	emptyPrototype <- false.
 
 	init = {
 		resend init.
@@ -79,7 +85,12 @@ GStruct = GWrapper clone do: {
 		]).
 
 		options isEmpty ifFalse: [
-			ownCloneCall: options.
+			(options == "empty_prototype") ifTrue: [
+				ownInitCode: "NULL".
+				emptyPrototype: true.
+			] ifFalse: [
+				ownInitCode: options.
+			].
 		].
 	}.
 	
@@ -106,16 +117,15 @@ GStruct = GWrapper clone do: {
 		^list.
 	}.
 
-	initPrototypeCode = {
-		^ "self->data.ptr = ",cloneCallCode,"\n",
-		  "\tkxgtk_register_extension(", typeCName, ", &", extensionName, ");\n".
-	}.
-
-	cloneCallCode = {
-		ownCloneCall ifNotNil: [ 
-			^ownCloneCall,";\n".
-		].
-		^"calloc(sizeof(",name ,"),1);\n".
+	initPrototypeCode = { |str|
+		  str << ownInitCode isNil ifFalse: [ 
+			  "self->data.ptr = ",ownInitCode,";\n".
+		  ] ifTrue: [
+			  name, " p;\n",
+			  "\tmemset(&p, 0, sizeof(",name,"));\n",
+			  "\tself->data.ptr = g_boxed_copy(", typeCName, ",&p);\n".
+		  ].
+		  ^str, "\tkxgtk_register_extension(", typeCName, ", &", extensionName, ");\n".
 	}.
 
 	cloneFunction = {
@@ -123,23 +133,37 @@ GStruct = GWrapper clone do: {
 		func << GRawFunction clone.
 		func slotName: "clone".
 		func wrapperCName: functionsPrefix,"_clone".
-		func codeString: ("\tKxObject *clone = kxobject_raw_clone(self);\n",
-						  "\tclone->data.ptr = ", cloneCallCode,
-						  "\treturn clone;"
-						  ). 
+		emptyPrototype ifTrue: [
+			func codeString: ("\tKxObject *clone = kxobject_raw_clone(self);\n",
+							  "\tif(self->data.ptr) {\n",
+							  "\t\tclone->data.ptr = g_boxed_copy(",typeCName,", self->data.ptr);\n",
+							  "\t}\n",
+							  "\treturn clone;"
+							  ). 
+			] ifFalse: [
+				func codeString: ("\tKxObject *clone = kxobject_raw_clone(self);\n",
+								  "\tclone->data.ptr = g_boxed_copy(",typeCName,", self->data.ptr);\n",
+								  "\treturn clone;"
+								  ). 
+			].
 		^func
 	}.
 
 	freeCode = { 
-		^"free(self->data.ptr);"
+		^emptyPrototype ifTrue: [ 
+			"if (self->data.ptr) g_boxed_free(",typeCName,",self->data.ptr);"
+		] ifFalse: [
+			"g_boxed_free(",typeCName,",self->data.ptr);"
+		].
 	}.
 
 	newFromCode = {
-^"""
+	^"void *boxed = g_boxed_copy(",typeCName,",data);\n",
+"""
 	KxObject *self; 
 	KxObject *proto = kxcore_get_prototype(core, &kx""",name asLowercase,"""_extension);
 	self = kxobject_raw_clone(proto);
-	self->data.ptr = data;
+	self->data.ptr = boxed;
 	return self;
 """ }.
 

@@ -103,8 +103,16 @@ GFunction = Object clone do: {
 			param codeForGettingParamId: id.
 		]) reject: [ :string | string isEmpty ]) asStringDelimiter: "\n".
 	}.
+
+	codeCallParams = { |list|
+		list << #().
+		0 to: params size do: [ :i |
+			list add: "(", (params at: i) cname ,")param",i
+		].
+		^(list asStringDelimiter: ",")
+	}.
 	
-	codeCall = { |str list|
+	codeCall = { |str|
 
 		isMethod 
 			ifTrue: [ 
@@ -112,11 +120,7 @@ GFunction = Object clone do: {
 				(params size > 0) ifTrue: [ str << str, "," ]. ]
 			ifFalse: [ str << call,"(" ].
 		
-		list << #().
-		0 to: params size do: [ :i |
-			list add: "(", (params at: i) cname ,")param",i
-		].
-		^str,(list asStringDelimiter: ","),")".
+		^str,codeCallParams,")".
 
 	}.
 
@@ -262,15 +266,21 @@ GStructReader = GFunction clone do: {
 		]) reject: [ :string | string isEmpty ]) asStringDelimiter: "\n".
 	}.
 
+	codeCallParams = { |list|
+		list << #( ("(",params first cname,") &param0") ).
+		1 to: params size do: [ :i |
+			list add: "(", (params at: i) cname ,")param",i
+		].
+		^(list asStringDelimiter: ",")
+	}.
 
 	code = { |str|
 		str << "static KxObject *\n",wrapperCName,
 		 " (KxObject *self, KxMessage *message)\n{\n",codeGetParams,"\n\t".
-		str << str,"void *param0 = malloc(sizeof(",returnStruct name,
-			")); ALLOCTEST(param0);\n\t".
+		str << str,returnStruct name, " param0;\n\t".
 		str << str,codeCall,";\n".
 		str << str,"\treturn KX",
-					returnStruct name asUppercase,"(param0);".
+					returnStruct name asUppercase,"(&param0);".
 
 		^str,"\n}\n".
 	}.

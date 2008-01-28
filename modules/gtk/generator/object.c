@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 
 #include "kxmessage.h"
 #include "kxobject.h"
@@ -62,22 +63,6 @@ KxObject *
 kx%name%_from(KxCore *core, %ctype% data)
 {
 	%new_from%
-/*
-	KxObject *self = kxgtk_check_wrapper((GObject*)data);
-	if (self != NULL) {
-		return self;
-	}
-
-	KxObject *proto = kxcore_get_prototype(core, &kx%name%_extension);
-	self = kxobject_raw_clone(proto);
-
-	//g_object_ref_sink(data);
-	self->data.ptr = data;
-
-	kxgtk_set_wrapper(self, G_OBJECT(data));
-
-	return self;
-*/	
 }
 
 %cfunctions%

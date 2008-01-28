@@ -251,8 +251,8 @@ backspaceAt:interactive:editable: gboolean            gtk_text_buffer_backspace 
 textFrom:to:includeHidden: gchar*              gtk_text_buffer_get_text            (GtkTextBuffer *buffer,GtkTextIter *start,GtkTextIter *end,gboolean include_hidden_chars);
 sliceFrom:to:includeHidden: gchar*              gtk_text_buffer_get_slice           (GtkTextBuffer *buffer,GtkTextIter *start,GtkTextIter *end,gboolean include_hidden_chars);
 //void                gtk_text_buffer_insert_pixbuf       (GtkTextBuffer *buffer,GtkTextIter *iter,GdkPixbuf *pixbuf);
-at:insertChildAnchor: void                gtk_text_buffer_insert_child_anchor (GtkTextBuffer *buffer,GtkTextIter *iter,GtkTextChildAnchor *anchor);
-createChildAnchor: GtkTextChildAnchor* gtk_text_buffer_create_child_anchor (GtkTextBuffer *buffer,GtkTextIter *iter);
+//? at:insertChildAnchor: void                gtk_text_buffer_insert_child_anchor (GtkTextBuffer *buffer,GtkTextIter *iter,GtkTextChildAnchor *anchor);
+//? createChildAnchor: GtkTextChildAnchor* gtk_text_buffer_create_child_anchor (GtkTextBuffer *buffer,GtkTextIter *iter);
 //! createMark:at:leftGravity: GtkTextMark*        gtk_text_buffer_create_mark         (GtkTextBuffer *buffer,gchar *mark_name,GtkTextIter *where,gboolean left_gravity);
 //! moveMark:at: void                gtk_text_buffer_move_mark           (GtkTextBuffer *buffer,GtkTextMark *mark,GtkTextIter *where);
 moveMarkName:at: void                gtk_text_buffer_move_mark_by_name   (GtkTextBuffer *buffer,gchar *name,GtkTextIter *where);
@@ -336,8 +336,8 @@ gboolean            gtk_text_view_forward_display_line_end(GtkTextView *text_vie
 gboolean            gtk_text_view_backward_display_line_start(GtkTextView *text_view,GtkTextIter *iter);
 gboolean            gtk_text_view_starts_display_line   (GtkTextView *text_view,GtkTextIter *iter);
 moveVisually:count: gboolean            gtk_text_view_move_visually         (GtkTextView *text_view,GtkTextIter *iter,gint count);
-addChild:atAnchor: void                gtk_text_view_add_child_at_anchor   (GtkTextView *text_view,GtkWidget *child,GtkTextChildAnchor *anchor);
-$new$ cloneAnchor GtkTextChildAnchor* gtk_text_child_anchor_new           (void);
+//? addChild:atAnchor: void                gtk_text_view_add_child_at_anchor   (GtkTextView *text_view,GtkWidget *child,GtkTextChildAnchor *anchor);
+//? $new$ cloneAnchor GtkTextChildAnchor* gtk_text_child_anchor_new           (void);
 //NT GList*              gtk_text_child_anchor_get_widgets   (GtkTextChildAnchor *anchor);
 //? gboolean            gtk_text_child_anchor_get_deleted   (GtkTextChildAnchor *anchor);
 addChild:type:x:y: void                gtk_text_view_add_child_in_window   (GtkTextView *text_view,GtkWidget *child,GtkTextWindowType which_window,gint xpos,gint ypos);
