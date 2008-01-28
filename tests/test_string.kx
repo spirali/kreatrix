@@ -131,6 +131,20 @@ stringTest = test TestCase clone do: {
 		list << str asListSeparator: "aaaaaa".
 		(list == #("" "")) assertTrue.
 	}.
+
+	testCharacters = { | count1 count2 count3 |
+		count1 << (count2 << (count3 << 0)).
+		"01a23b.  a \t Xx " foreach: [ :char |
+			char isDigit ifTrue: [ count1 << count1 + 1 ].
+			char isAlpha ifTrue: [ count2 << count2 + 1 ].
+			char isBlank ifTrue: [ count3 << count3 + 1 ].
+		].
+
+		(count1 == 4) assertTrue.
+		(count2 == 5) assertTrue.
+		(count3 == 6) assertTrue.
+		
+	}.
 }.
 
 stringTest run.

@@ -29,6 +29,7 @@ for file in `cat test.list`; do
    sh create-graph.sh $file
    sh create-tex.sh $file
    mv objstat.eps ../results/$name-objstat.eps
+   mv slotstat.eps ../results/$name-slotstat.eps
    mv memstat.eps ../results/$name-memstat.eps
    mv objstat.tex ../results/$name-objstat.tex
    mv memstat.tex ../results/$name-memstat.tex

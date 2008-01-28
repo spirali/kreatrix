@@ -88,7 +88,7 @@ kxobject_ref_add(void *self)
 void
 kxobject_free(KxObject *self) 
 {
-	KX_LOG_WRITE("FO",self);
+	KX_LOG_WRITE_ID_I("FO",self, kxobject_slots_count(self));
 
 	/* When GC call this function, ref_count shouldn't be zero
 	 * and when hashtable is unreferenced, another object can be deleted

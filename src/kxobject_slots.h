@@ -5,6 +5,8 @@
 
 #define KXOBJECT_SLOTFLAG_FREEZE 1
 
+#define kxobject_slots_count(self) ((self)->slots_count)
+
 void kxobject_slots_init(KxObject *self);
 void kxobject_slots_free(KxObject *self);
 void kxobject_slots_clean(KxObject *self);
