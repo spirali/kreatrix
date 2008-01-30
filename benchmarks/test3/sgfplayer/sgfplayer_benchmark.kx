@@ -1,0 +1,26 @@
+
+localImport: "goban.kx".
+localImport: "sgf.kx".
+localImport: "sgfplayer.kx".
+
+Benchmark clone do: {
+
+	pathToSGF = VM topLocalImportPath.
+
+	runGame: = { :filename | |player|
+		player << SGFPlayer clone.
+		player loadFile: (pathToSGF joinPath: filename).
+
+		player playAll.
+		player goban println.
+	}.
+
+	run = { |player|
+		runGame: "game1.sgf".
+		runGame: "game2.sgf".
+		runGame: "game3.sgf".
+		runGame: "game4.sgf".
+		runGame: "game5.sgf".
+	}
+
+}.

@@ -1,0 +1,32 @@
+
+
+Benchmark clone do: {
+
+	path = VM topLocalImportPath.
+
+	run = {
+		|words file str count1 count2 count3|
+
+		words << Dictionary clone.
+
+		file << (File clone name: 
+					(path joinPath: "data.txt") ) openForReading.
+		
+		str << file contentAsString.
+
+		count1 << 0.
+		count2 << 0.
+		count3 << 0.
+
+		str foreach: [ :chr | 
+			chr isAlpha ifTrue: [ count1 << count1 + 1 ].
+			chr isBlank ifTrue: [ count2 << count2 + 1 ].
+			chr isDigit ifTrue: [ count3 << count3 + 1 ].
+		].
+
+		("Alpha = ", count1) println.
+		("Blank = ", count2) println.
+		("Digit = ", count3) println.
+
+	}.
+}.

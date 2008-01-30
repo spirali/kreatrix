@@ -6,4 +6,5 @@
 ./test2/graph.kx
 ./test2/world.kx
 ./test2/wcounter.kx
-./test3/sgfplayer/bechmark.kx
+./test2/ccounter.kx
+./test3/sgfplayer/sgfplayer_benchmark.kx

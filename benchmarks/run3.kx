@@ -1,7 +1,12 @@
-import: "time".
+// Same as run2.kx but vm-log can't be compiled
+
+(VM hasSupport: "log") ifTrue: [
+	stderr writeln: "VM has to be compiled without --enable-vm-log".
+	VM quit.
+].
 
 args isEmpty ifTrue: [ 
-	stderr writeln: "usage: run.kx <benchmark>".
+	stderr writeln: "usage: run2.kx <benchmark>".
 	VM quit.
 ].
 
@@ -22,10 +27,9 @@ do: {
 	
 	benchmark initBenchmark.
 	benchmark initRun.
-	
-	tm << (time timeOfRun: [ benchmark run. ]) asMilliseconds.
-	("<%%% Time: ",tm," %%%>") println.
-
+	VM logWrite: "!!:START".
+	benchmark run. 
+	VM logWrite: "!!:END".
 	benchmark closeBenchmark.
 }.
 

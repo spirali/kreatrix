@@ -1,0 +1,267 @@
+
+Dictionary saveAsStatFile: = { :filename |
+	|file list|
+	file << (File clone name: filename) openForWriting.
+
+	list << asList sort: [ :a :b | a value >= b value ].
+	list << list first: 12.
+
+	list foreach: [ :assoc |
+		file writeln: assoc key asString, " ", assoc value.
+	].
+	
+	file close.
+}.
+
+LogParser = Object clone do: {
+	type = "LogParser".
+
+	filename <- "kx.log".
+
+	time <- 0.
+
+	//actions <- Dictionary clone.
+
+	readers = #().
+
+	addReader: = { :aReader | 
+		readers add: aReader.
+	}.
+
+	onTimeMark: = { :list |
+		time: (list at: 1) asInteger.
+		readers foreach: [ :each | 
+			each onTimeMark: time.
+		].
+	}.
+
+	run = { |file timeString|
+		file << File clone name: filename.
+		file openForReading.
+
+		timeString << "TM".
+		
+		file foreachLine: [ :line |
+			|list|
+			list << line asListBy: ":".
+			list at: -1 put: list last trimEnd.
+			(list first == timeString) ifTrue: [
+				onTimeMark: list.
+			].
+			readers foreach: [ :each | 
+				each processParsedLine: list.
+			].
+		].
+		doSummaryOfReaders.
+	}.
+
+	doSummaryOfReaders = {
+		readers foreach: [ :each | each doSummary ].
+	}.
+
+}.
+
+LogReader = Object clone do: {
+	type = "LogReader".
+
+	actions <- nil.
+	
+	init = {
+		actions: Dictionary clone.
+	}.
+	
+	addAction:message: = { :anAction :aMessage | 
+		actions at: anAction put: aMessage.
+	}.
+
+
+	processParsedLine: = { :aList | 
+		(actions hasKey: aList first) ifTrue: [
+			perform: (actions at: aList first) with: aList.
+		].
+	}.
+
+	onTimeMark: = { :anInteger | }.
+	doSummary = {}.
+
+}.
+
+ObjectStatistics = LogReader clone do: {
+	type = "ObjectStatistics".
+
+	addAction: "NO" message: #onNewObject:.
+	addAction: "FO" message: #onFreeObject:.
+
+	types = Dictionary clone.
+	slotsCount = Dictionary clone.
+
+	onNewObject:  = { :list | |ext count|
+		ext << list at: 2.
+		count << types at: ext ifAbsent: [ 0 ].
+	 	types at: ext put: count + 1.
+	}.
+
+	onFreeObject: = { :list | 
+		|count old|
+		count << (list at: 2) asInteger.
+		old << slotsCount at: count ifAbsent: [ 0 ].
+		slotsCount at: count put: old + 1.
+	}.
+
+	saveObjStat: = { :list | |file|
+		list << list first: 12.
+		file << (File clone name: "objstat.txt") openForWriting.
+		list foreach: [ :assoc | |count|
+			count << assoc value.
+			file write: "\"", assoc key, "\" ".
+			file writeln: count asString.
+		].
+	}.
+
+	saveTable: = { :list | |file sum| 
+		sum << (list inject: 0 into: [ :a :each | a + each value ]) asFloat.
+		list << list first: 12.
+
+		file << (File clone name: "objstat.tex") openForWriting.
+		file writeln: "\\begin{tabular}{|l|l|l|}\n\\hline".
+		file writeln: "ObjectExtension & counts & \\% \\\\ \\hline".
+
+		list foreach: [ :assoc | 
+			file write: assoc key asString, " & ".		
+			file write: assoc value asString, " & ".		
+			file write: ((assoc value asFloat * 100.0) / sum) asString.		
+			file writeln: "\\\\".
+		].
+
+		file writeln: "\\hline\n\\end{tabular}".
+
+		file close.
+	}.
+
+	doSlotsCountSummary = { |dict count|
+		dict << Dictionary clone.
+		count << 0.
+
+		slotsCount foreachKeyValue: [ :key :value |  
+			(key > 11) ifTrue: [
+				count << count + 1.
+			] ifFalse: [
+				dict at: key put: value.
+			].
+		].
+
+		(count > 0) ifTrue: [ 
+			dict at: ">11" put: count.
+		].
+
+		dict saveAsStatFile: "slotstat.txt".
+	}.
+
+	doSummary = { |list file|
+		(types hasKey: "") ifTrue: [ 
+			types at: "NULL" put: (types at: "").
+			types remove: "".
+		].
+		list << types asList.
+		(list sort: [ :a :b | a value >= b value ]).
+		
+		saveObjStat: list.
+		saveTable: list.
+		
+		doSlotsCountSummary.
+	}.
+
+}.
+
+MemoryStatistics = LogReader clone do: {
+	type = "MemoryStatistics".
+
+	addAction: "CA" message: #onAlloc:.
+	addAction: "MA" message: #onAlloc:.
+	addAction: "RA" message: #onRealloc:.
+	addAction: "FR" message: #onFree:.
+
+	sizes = Dictionary clone.
+	table = Dictionary clone.
+
+	actual <- 0.
+	maximum <- 0.
+
+	memHistoryFile = (File clone name: "memhistory.txt") openForWriting.
+
+	checkMax = {
+		(actual > maximum) ifTrue: [ 
+			maximum: actual.
+		].
+	}.
+
+	onAlloc: = { :list | |size count|
+		size << list at: 1.
+		count << sizes at: size ifAbsent: [ 0 ].
+		sizes at: size put: count + 1.
+
+		actual: size asInteger + actual.
+		checkMax.
+		table at: (list at: 2) put: size asInteger.
+	}.
+
+	onRealloc: = { :list | |old size new old_size|
+		old << list at: 1.
+		size << (list at: 2) asInteger.
+		new << (list at: 3).
+		
+		(old != "(nil)") ifTrue: [ 
+			old_size << table at: old.
+			table remove: old.
+		] ifFalse: [ 
+			old_size << 0.
+		].
+
+		table at: new put: size.
+
+		actual: (actual - old_size) + size.
+
+		checkMax.
+	}.
+
+	onFree: = { :list | |ptr|
+		ptr << list at: 1.
+		(table hasKey: ptr) ifTrue: [
+			actual: actual - (table at: ptr).
+			table remove: ptr.
+		].
+	}.
+
+	saveTex = { |file|
+
+		file << (File clone name: "memstat.tex") openForWriting.
+
+		file writeln: "Maximum: ", maximum, "B\\ ".
+		file writeln: "Foreign/Leak: ", actual, "B\\ ".
+
+		file close.
+	}.
+
+	onTimeMark: = { :time | 
+		memHistoryFile writeln: time asString, " ", actual.
+	}.
+
+
+	doSummary = {
+		sizes saveAsStatFile: "memstat.txt".
+		saveTex.
+
+		memHistoryFile close.
+	}.
+}.
+
+//ObjectStatistics slots println.
+main = { |parser filename|
+	filename << args size isZero ifTrue: [ "kx2.log" ] ifFalse: [ args first ].
+	parser << LogParser clone.
+	parser filename: filename.
+	parser addReader: ObjectStatistics.
+	parser addReader: MemoryStatistics.
+	parser run.
+}.
+main.

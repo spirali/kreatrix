@@ -22,19 +22,23 @@ echo TEST_RUNS ... $TEST_RUNS
 
 LIST="test.list"
 
+SCRIPT="scripts/speed_test.sh"
+
 echo "Version ... `$KREATRIX -c "VM version println"`";
-echo "Threads ... `$KREATRIX -c "(VM hasSupport: \\"threads\\") println"`";
+echo "VM Supports ... `$KREATRIX -c "(VM supportList printString println)"`";
 
 echo "TEST: 1"
-sh "test_all.sh" $KREATRIX $TEST_RUNS > tmp1
+sh $SCRIPT $KREATRIX $TEST_RUNS > tmp1
 cat tmp1
 
 for ((i=2;i<=MAIN_RUNS;i++)) do
 	echo "TEST: $i"
-	sh "test_all.sh" $KREATRIX $TEST_RUNS > tmp2
+	sh $SCRIPT $KREATRIX $TEST_RUNS > tmp2
 	cat tmp2
 	$KREATRIX getmin.kx tmp1 tmp2 > tmp3
 	mv tmp3 tmp1
 done
 
-paste $LIST tmp1 -d ':' > result
+paste $LIST tmp1 -d ':' > results/result
+
+rm tmp?

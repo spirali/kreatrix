@@ -12,5 +12,6 @@ for file in `cat test.list`; do
 
 	avg=`expr $sum / $COUNT`
 	#echo "<test filename='$file'>$avg</test>"
+
 	echo $avg
 done
