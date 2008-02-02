@@ -151,6 +151,156 @@ KxActivation *kxactivation_new(KxCore *core)
 	return self;
 }
 
+// You must specify message.start_search if target == NULL
+static inline void 
+kxactivation_message_prepare_from_inner_stack(KxActivation *self, KxObject *target, int params_count, KxSymbol *message_name) 
+{
+
+
+	REF_ADD(message_name);
+	self->message.message_name = message_name;
+	self->message.params_count = params_count;
+
+	int t;
+	for (t=params_count-1; t>=0;t--) {
+		self->message.params[t] = kxactivation_inner_stack_pop(self);
+	}
+
+	if (target) {
+		self->message.target = target;
+	} else {
+		self->message.target = kxactivation_inner_stack_pop(self);
+		self->message.start_search  = self->message.target;
+
+	}
+	REF_ADD2(self->message.target);
+}
+
+static inline KxObject * 
+kxactivation_ret_methodreturn(KxActivation *self) 
+{
+	self->is_over = 1;
+	kxstack_pop_activation(KXSTACK);
+
+	kxactivation_inner_stack_free(self);
+
+	if (self->message.target)
+		REF_REMOVE(self->message.target);
+
+	if (KXCODEBLOCK_DATA(self->codeblock)->type == KXCODEBLOCK_METHOD) {
+		return kxstack_get_and_reset_return_object(KXSTACK);
+	}
+	else {
+		return NULL;
+	}
+}
+
+static inline KxObject * 
+kxactivation_ret_blockreturn(KxActivation *self)
+{
+	self->is_over = 1;
+	if (self->message.target)
+		REF_REMOVE(self->message.target);
+
+	kxstack_pop_activation(KXSTACK);
+	KxObject *obj = kxactivation_inner_stack_pop(self);
+	kxactivation_inner_stack_free(self);
+	return obj;
+} 
+
+static inline KxObject *
+kxactivation_ret_longreturn(KxActivation *self)
+{
+	self->is_over = 1;
+	kxstack_pop_activation(KXSTACK);
+
+	kxactivation_inner_stack_free(self);
+
+	if (self->message.target)
+		REF_REMOVE(self->message.target);
+
+	KxActivation *longret = kxstack_get_long_return_to_activation(KXSTACK);
+	if (KXCODEBLOCK_DATA(self->codeblock)->type == KXCODEBLOCK_METHOD && longret == self) {
+		return kxstack_get_and_reset_return_object(KXSTACK);
+	} else {
+		return NULL;
+	}
+}
+
+static inline KxObject * 
+kxactivation_return(KxActivation *self, KxReturn ret)
+{
+	self->is_over = 1;
+	switch(ret) {
+		case RET_METHODRETURN:
+			return kxactivation_ret_methodreturn(self);
+		case RET_BLOCKRETURN: 
+			return kxactivation_ret_blockreturn(self);
+		case RET_LONGRETURN: 
+			return kxactivation_ret_longreturn(self);
+		/*case RET_METHODRETURN: {
+			kxstack_pop_activation(KXSTACK);
+
+			kxactivation_inner_stack_free(self);
+
+			if (self->message.target)
+				REF_REMOVE(self->message.target);
+
+			if (KXCODEBLOCK_DATA(self->codeblock)->type == KXCODEBLOCK_METHOD) {
+				return kxstack_get_and_reset_return_object(KXSTACK);
+			}
+			else {
+				return NULL;
+			}
+		}
+
+		case RET_BLOCKRETURN: {
+			if (self->message.target)
+				REF_REMOVE(self->message.target);
+
+			kxstack_pop_activation(KXSTACK);
+			KxObject *obj = kxactivation_inner_stack_pop(self);
+			kxactivation_inner_stack_free(self);
+			return obj;
+		}
+
+		case RET_LONGRETURN: {
+			kxstack_pop_activation(KXSTACK);
+
+			kxactivation_inner_stack_free(self);
+
+			if (self->message.target)
+				REF_REMOVE(self->message.target);
+
+			KxActivation *longret = kxstack_get_long_return_to_activation(KXSTACK);
+			if (KXCODEBLOCK_DATA(self->codeblock)->type == KXCODEBLOCK_METHOD && longret == self) {
+				return kxstack_get_and_reset_return_object(KXSTACK);
+			} else {
+				return NULL;
+			}
+		}*/
+
+		case RET_THROW: {
+			kxactivation_process_throw(self);
+			kxactivation_inner_stack_free(self);
+			return NULL;
+		} break;
+
+		case RET_EXIT: {
+			kxactivation_inner_stack_free(self);
+			if (self->message.target)
+				REF_REMOVE(self->message.target);
+			kxstack_pop_activation(KXSTACK);
+			return NULL;
+		}
+
+		default:
+			fprintf(stderr,"Invalid return code\n");
+			exit(-1);
+			return NULL;
+	}
+}
+
 
 KxObject * 
 kxactivation_run(KxActivation *self) 
@@ -175,463 +325,322 @@ kxactivation_run(KxActivation *self)
 
 	for(;;) {
 		char instruction = *(codep++);
-		if (instruction >= KXCI_INSTRUCTIONS_COUNT) {
-			printf("Instruction out of range\n");
-			exit(-1);
-		}
-
 	/*	printf("INSTR = %i\n",instruction);
 		kxstack_dump_messages(stack);*/
-		KxActivationInstrFcn *fcn = (instr_fcn[(int)instruction]);
-		KxReturn ret = fcn(self,&codep);
-		
-		if (ret != RET_OK) {
-			self->is_over = 1;
-			switch(ret) {
-				case RET_METHODRETURN: {
-					kxstack_pop_activation(stack);
-			
-					kxactivation_inner_stack_free(self);
+		//KxActivationInstrFcn *fcn = (instr_fcn[(int)instruction]);
 
-					if (self->message.target)
-						REF_REMOVE(self->message.target);
-
-					if (KXCODEBLOCK_DATA(self->codeblock)->type == KXCODEBLOCK_METHOD) {
-						return kxstack_get_and_reset_return_object(stack);
-					}
-					else {
-						return NULL;
-					}
-				} break;
-				case RET_BLOCKRETURN: {
-						if (self->message.target)
-							REF_REMOVE(self->message.target);
-
-						kxstack_pop_activation(stack);
-						KxObject *obj = kxactivation_inner_stack_pop(self);
-						kxactivation_inner_stack_free(self);
-						return obj;
-					} break;
-				case RET_LONGRETURN: {
-					kxstack_pop_activation(stack);
-			
-					kxactivation_inner_stack_free(self);
-
-					if (self->message.target)
-						REF_REMOVE(self->message.target);
-
-					KxActivation *longret = kxstack_get_long_return_to_activation(stack);
-					if (KXCODEBLOCK_DATA(self->codeblock)->type == KXCODEBLOCK_METHOD && longret == self) {
-						return kxstack_get_and_reset_return_object(stack);
-					}
-					else {
-						return NULL;
-					}
-				} break;
-
-
-				case RET_THROW: {
-					kxactivation_process_throw(self);
-
-					kxactivation_inner_stack_free(self);
-					return NULL;
-				} break;
-				case RET_EXIT: {
-					kxactivation_inner_stack_free(self);
-					if (self->message.target)
-						REF_REMOVE(self->message.target);
-					kxstack_pop_activation(stack);
-					return NULL;
-				}
-				default:
-					fprintf(stderr,"Null returned but invalid return state\n");
-					exit(-1);
+		switch(instruction) {
+			case KXCI_PUSH_INTEGER: 
+			{
+				int integer = *((int*)codep);
+				codep += sizeof(int);
+				kxactivation_inner_stack_push(self, KXINTEGER(integer));
+				continue;
 			}
-		} 
+
+			case KXCI_PUSH_CHARACTER:
+			{
+				int integer = *((int*)codep);
+				codep += sizeof(int);
+				kxactivation_inner_stack_push(self, KXCHARACTER(integer));
+				continue;
+			}
+
+			case KXCI_PUSH_FLOAT:
+			{
+				double floatval = *((double*)codep);
+				codep += sizeof(double);
+				kxactivation_inner_stack_push(self, KXFLOAT(floatval));
+				continue;
+			}
+			
+			case KXCI_PUSH_STRING:
+			{
+				char *str = codep;
+				codep += strlen(str)+1;
+				kxactivation_inner_stack_push(self, KXSTRING(str));
+				continue;
+			}
+
+			case KXCI_PUSH_SYMBOL:
+			{
+				KxCodeBlock *codeblock = self->codeblock;
+				KxSymbol **symbol_frame = KXCODEBLOCK_DATA(codeblock)->symbol_frame;
+				KxSymbol *symbol = symbol_frame[(int)(*((codep)++))];
+				REF_ADD(symbol);
+				kxactivation_inner_stack_push(self, symbol);
+				continue;
+			}
+
+			case KXCI_POP:
+			{
+				KxObject *object = kxactivation_inner_stack_pop(self);
+				REF_REMOVE(object);
+				continue;
+			}
+
+			case KXCI_RETURNSELF:
+			{
+				KxObject *self_obj = self->receiver;
+				REF_ADD(self_obj);
+				KxStack *stack = KXSTACK;
+				kxstack_set_return_object(stack,self_obj);
+				kxstack_set_return_state(stack, RET_METHODRETURN);
+				return kxactivation_ret_methodreturn(self);
+			}
+
+			case KXCI_RETURN:
+			{
+				KxObject *obj = kxactivation_inner_stack_pop(self);
+				KxStack *stack = KXSTACK;
+				kxstack_set_return_object(stack,obj);
+				kxstack_set_return_state(stack, RET_METHODRETURN);
+				return kxactivation_ret_methodreturn(self);
+			}
+			
+			case KXCI_LONGRETURN:
+			{
+				KxActivation *long_return = self->long_return;
+
+				// TODO: prevest is_over na novy rezim
+				if (long_return->is_over) {
+					KxException *exception = kxexception_new_with_text(KXCORE,"Blok with '^' evaluated when scope isn't running");
+					kxstack_throw_object(KXSTACK,exception);
+					return kxactivation_return(self, RET_THROW);
+				}
+
+				KxObject *obj = kxactivation_inner_stack_pop(self);
+				KxStack *stack = KXSTACK;
+				kxstack_set_long_return_to_activation(stack, long_return);
+				kxstack_set_return_object(stack,obj);
+				kxstack_set_return_state(stack, RET_LONGRETURN);
+				return kxactivation_ret_longreturn(self);
+			}
+			
+			case KXCI_END_OF_BLOCK:
+				return kxactivation_ret_blockreturn(self);
+
+			case KXCI_UNARY_MSG:
+			{
+				if (self->message.target)
+					REF_REMOVE(self->message.target);
+				self->message_num++;
+				KxCodeBlock *codeblock = self->codeblock;
+				KxSymbol **symbol_frame = KXCODEBLOCK_DATA(codeblock)->symbol_frame;
+
+				kxactivation_message_prepare_from_inner_stack(self, NULL, 0, symbol_frame[(int)(*((codep)++))]);
+				
+
+				KxObject *obj = kxmessage_send(&self->message);
+				if (obj) {
+					kxactivation_inner_stack_push(self, obj);
+					continue;
+				} else {
+					return kxactivation_return(self, kxstack_get_return_state(KXSTACK));
+				}
+			}
+
+			case KXCI_BINARY_MSG:
+			{
+				if (self->message.target)
+					REF_REMOVE(self->message.target);
+				self->message_num++;
+				KxCodeBlock *codeblock = self->codeblock;
+				KxSymbol **symbol_frame = KXCODEBLOCK_DATA(codeblock)->symbol_frame;
+
+				kxactivation_message_prepare_from_inner_stack(self,NULL, 1,symbol_frame[(int)(*((codep)++))]);
+
+				KxObject *obj = kxmessage_send(&self->message);
+
+				if (obj) {
+					kxactivation_inner_stack_push(self, obj);
+					continue;
+				} else  {
+					return kxactivation_return(self, kxstack_get_return_state(KXSTACK));
+				}
+			}
+
+			case KXCI_LOCAL_UNARY_MSG:
+			{
+				if (self->message.target)
+					REF_REMOVE(self->message.target);
+				self->message_num++;
+				KxCodeBlock *codeblock = self->codeblock;
+
+				KxSymbol **symbol_frame = KXCODEBLOCK_DATA(codeblock)->symbol_frame;
+
+				self->message.message_name = symbol_frame[(int)(*((codep)++))];
+				REF_ADD(self->message.message_name);
+
+				self->message.params_count = 0;
+				self->message.target = self->receiver;
+
+				REF_ADD2(self->receiver);
+				
+				self->message.start_search = self->target;
+				REF_ADD(self->message.start_search);
+
+				KxObject *obj =  kxmessage_send(&self->message);
+				if (obj) {
+					kxactivation_inner_stack_push(self, obj);
+					continue;
+				} else  {
+					return kxactivation_return(self, kxstack_get_return_state(KXSTACK));
+				}
+
+			}
+
+			/*static void
+			kxactivation_resend_error() 
+			{
+				printf("Fatal Error: resend instruction without slot_holder_of_scopeblock");
+				abort();
+			}*/
+			
+			case KXCI_RESEND_UNARY_MSG:
+			{
+				if (self->message.target)
+					REF_REMOVE(self->message.target);
+
+				self->message_num++;
+				KxCodeBlock *codeblock = self->codeblock;
+
+				KxSymbol **symbol_frame = KXCODEBLOCK_DATA(codeblock)->symbol_frame;
+
+				self->message.message_name = symbol_frame[(int)(*((codep)++))];
+				REF_ADD(self->message.message_name);
+
+				self->message.params_count = 0;
+
+				self->message.target = self->receiver;
+				REF_ADD2(self->message.target);
+				KxObject *obj = kxmessage_resend(&self->message, self->slot_holder_of_codeblock);
+
+				if (obj) {
+					kxactivation_inner_stack_push(self, obj);
+					continue;
+				} else {
+					return kxactivation_return(self, kxstack_get_return_state(KXSTACK));
+				}
+			}
+
+			case KXCI_KEYWORD_MSG:
+			{
+				if (self->message.target)
+					REF_REMOVE(self->message.target);
+				self->message_num++;
+				KxCodeBlock *codeblock = self->codeblock;
+
+				KxSymbol **symbol_frame = KXCODEBLOCK_DATA(codeblock)->symbol_frame;
+				KxSymbol *symbol = symbol_frame[(int)(*((codep)++))];
+
+				int params = (int)(*((codep)++));
+				kxactivation_message_prepare_from_inner_stack(self,NULL, params,symbol);
+
+				KxObject *obj = kxmessage_send(&self->message);
+
+				if (obj) {
+					kxactivation_inner_stack_push(self, obj);
+					continue;
+				} else {
+					return kxactivation_return(self, kxstack_get_return_state(KXSTACK));
+				}
+			}
+
+			case KXCI_RESEND_KEYWORD_MSG:
+			{
+				/** TODO: remove this condition */
+				if (self->message.target)
+					REF_REMOVE(self->message.target);
+				self->message_num++;
+				KxCodeBlock *codeblock = self->codeblock;
+
+				KxSymbol **symbol_frame = KXCODEBLOCK_DATA(codeblock)->symbol_frame;
+				KxSymbol *symbol = symbol_frame[(int)(*((codep)++))];
+
+				int params = (int)(*((codep)++));
+				kxactivation_message_prepare_from_inner_stack(self,self->receiver, params,symbol);
+
+				KxObject *obj = kxmessage_resend(&self->message, self->slot_holder_of_codeblock);
+
+				if (obj) {
+					kxactivation_inner_stack_push(self, obj);
+					continue;
+				} else {
+					return kxactivation_return(self, kxstack_get_return_state(KXSTACK));
+				}
+			}
+		
+			case KXCI_LOCAL_KEYWORD_MSG:
+			{
+				if (self->message.target)
+					REF_REMOVE(self->message.target);
+				self->message_num++;
+				KxCodeBlock *codeblock = self->codeblock;
+
+				KxSymbol **symbol_frame = KXCODEBLOCK_DATA(codeblock)->symbol_frame;
+				KxSymbol *symbol = symbol_frame[(int)(*((codep)++))];
+				int params = (int)(*((codep)++));
+
+				kxactivation_message_prepare_from_inner_stack(self,self->receiver,params,symbol);
+
+				self->message.start_search = self->target;
+				REF_ADD(self->target);
+
+				KxObject *obj = kxmessage_send(&self->message);
+
+				if (obj) {
+					kxactivation_inner_stack_push(self, obj);
+					continue;
+				} else {
+					return kxactivation_return(self, kxstack_get_return_state(KXSTACK));
+				}
+			}
+			
+			case KXCI_PUSH_METHOD:
+			{
+				KxCodeBlock **subblocks = KXCODEBLOCK_DATA(self->codeblock)->subcodeblocks;
+				KxCodeBlock *method = subblocks[(int)(*((codep)++))];
+				REF_ADD(method);
+				kxactivation_inner_stack_push(self, method);
+				continue;
+			}
+
+			case KXCI_PUSH_BLOCK:
+			{
+				KxCodeBlock **subblocks = KXCODEBLOCK_DATA(self->codeblock)->subcodeblocks;
+				KxCodeBlock *block = subblocks[(int)(*((codep)++))];
+
+				KxScopedBlock *scopedblock = kxscopedblock_new(KXCORE, block, self);
+				kxactivation_inner_stack_push(self, scopedblock);
+				continue;
+			}
+			
+			case KXCI_LIST:
+			{
+				int size = *((int*)codep);
+				codep += sizeof(int);
+
+				List *list = list_new_size(size);
+				int t;
+
+				for (t=size-1;t>=0;--t) {
+					list->items[t] = kxactivation_inner_stack_pop(self);
+				}
+
+				KxList *kxlist = kxobject_raw_clone(kxcore_get_basic_prototype(KXCORE, KXPROTO_LIST));
+				kxlist->data.ptr = list;
+
+				kxactivation_inner_stack_push(self, kxlist);
+				continue;
+			}
+			default: 
+				fprintf(stderr,"Invalid instruction\n");
+				abort();
+		}
+		
 		
 	}
 }
 
-static KxReturn 
-kxactivation_instr_push_integer(KxActivation *self, char **codep)
-{
-	int integer = *((int*)*codep);
-	*codep += sizeof(int);
-	kxactivation_inner_stack_push(self, KXINTEGER(integer));
-	return RET_OK;
-}
 
-static KxReturn 
-kxactivation_instr_push_character(KxActivation *self, char **codep)
-{
-	int integer = *((int*)*codep);
-	*codep += sizeof(int);
-	kxactivation_inner_stack_push(self, KXCHARACTER(integer));
-	return RET_OK;
-}
-
-
-static KxReturn 
-kxactivation_instr_push_float(KxActivation *self, char **codep)
-{
-	double floatval = *((double*)*codep);
-	*codep += sizeof(double);
-	kxactivation_inner_stack_push(self, KXFLOAT(floatval));
-	return RET_OK;
-}
-
-static KxReturn 
-kxactivation_instr_push_string(KxActivation *self, char **codep)
-{
-	char *str = *codep;
-	*codep += strlen(str)+1;
-	kxactivation_inner_stack_push(self, KXSTRING(str));
-	return RET_OK;
-}
-
-static KxReturn
-kxactivation_instr_push_symbol(KxActivation *self, char **codep)
-{
-	KxCodeBlock *codeblock = self->codeblock;
-	KxSymbol **symbol_frame = KXCODEBLOCK_DATA(codeblock)->symbol_frame;
-	KxSymbol *symbol = symbol_frame[(int)(*((*codep)++))];
-	REF_ADD(symbol);
-	kxactivation_inner_stack_push(self, symbol);
-	return RET_OK;
-}
-
-static KxReturn 
-kxactivation_instr_pop(KxActivation *self, char **codep)
-{
-	KxObject *object = kxactivation_inner_stack_pop(self);
-
-	REF_REMOVE(object);
-	return RET_OK;
-}
-
-static KxReturn 
-kxactivation_instr_returnself(KxActivation *self, char **codep)
-{
-	KxObject *self_obj = self->receiver;
-	REF_ADD(self_obj);
-	KxStack *stack = KXSTACK;
-	kxstack_set_return_object(stack,self_obj);
-	kxstack_set_return_state(stack, RET_METHODRETURN);
-
-	return RET_METHODRETURN;
-}
-
-static KxReturn
-kxactivation_instr_return(KxActivation *self, char **codep)
-{
-	KxObject *obj = kxactivation_inner_stack_pop(self);
-	KxStack *stack = KXSTACK;
-	kxstack_set_return_object(stack,obj);
-	kxstack_set_return_state(stack, RET_METHODRETURN);
-	return RET_METHODRETURN;
-}
-
-static KxReturn
-kxactivation_instr_long_return(KxActivation *self, char **codep)
-{
-	KxActivation *long_return = self->long_return;
-
-	// TODO: prevest is_over na novy rezim
-	if (long_return->is_over) {
-		KxException *exception = kxexception_new_with_text(KXCORE,"Blok with '^' evaluated when scope isn't running");
-		kxstack_throw_object(KXSTACK,exception);
-		return RET_THROW;
-	}
-	KxObject *obj = kxactivation_inner_stack_pop(self);
-	KxStack *stack = KXSTACK;
-	kxstack_set_long_return_to_activation(stack, long_return);
-	kxstack_set_return_object(stack,obj);
-	kxstack_set_return_state(stack, RET_LONGRETURN);
-	return RET_LONGRETURN;
-}
-
-static KxReturn
-kxactivation_instr_end_of_block(KxActivation *self, char **codep)
-{
-	return RET_BLOCKRETURN;
-}
-
-
-// You must specify message.start_search if target == NULL
-static void 
-kxactivation_message_prepare_from_inner_stack(KxActivation *self, KxObject *target, int params_count, KxSymbol *message_name) 
-{
-
-
-	REF_ADD(message_name);
-	self->message.message_name = message_name;
-	self->message.params_count = params_count;
-
-	int t;
-	for (t=params_count-1; t>=0;t--) {
-		self->message.params[t] = kxactivation_inner_stack_pop(self);
-	}
-
-	if (target) {
-		self->message.target = target;
-	} else {
-		self->message.target = kxactivation_inner_stack_pop(self);
-		self->message.start_search  = self->message.target;
-
-	}
-	REF_ADD2(self->message.target);
-}
-
-static KxReturn
-kxactivation_instr_unary_message(KxActivation *self, char **codep) 
-{
-	if (self->message.target)
-		REF_REMOVE(self->message.target);
-	self->message_num++;
-	KxCodeBlock *codeblock = self->codeblock;
-	KxSymbol **symbol_frame = KXCODEBLOCK_DATA(codeblock)->symbol_frame;
-
-	kxactivation_message_prepare_from_inner_stack(self, NULL, 0, symbol_frame[(int)(*((*codep)++))]);
-	
-
-	KxObject *obj = kxmessage_send(&self->message);
-	if (obj) {
-		kxactivation_inner_stack_push(self, obj);
-		return RET_OK;
-	} else 
-		return kxstack_get_return_state(KXSTACK);
-}
-
-static KxReturn
-kxactivation_instr_binary_message(KxActivation *self, char **codep) 
-{
-	if (self->message.target)
-		REF_REMOVE(self->message.target);
-	self->message_num++;
-	KxCodeBlock *codeblock = self->codeblock;
-	KxSymbol **symbol_frame = KXCODEBLOCK_DATA(codeblock)->symbol_frame;
-
-	kxactivation_message_prepare_from_inner_stack(self,NULL, 1,symbol_frame[(int)(*((*codep)++))]);
-
-	KxObject *obj = kxmessage_send(&self->message);
-
-	if (obj) {
-		kxactivation_inner_stack_push(self, obj);
-		return RET_OK;
-	} else 
-		return kxstack_get_return_state(KXSTACK);
-
-}
-
-static KxReturn
-kxactivation_instr_local_unary_message(KxActivation *self, char **codep)
-{
-	if (self->message.target)
-		REF_REMOVE(self->message.target);
-	self->message_num++;
-	KxCodeBlock *codeblock = self->codeblock;
-
-	KxSymbol **symbol_frame = KXCODEBLOCK_DATA(codeblock)->symbol_frame;
-
-	self->message.message_name = symbol_frame[(int)(*((*codep)++))];
-	REF_ADD(self->message.message_name);
-
-	self->message.params_count = 0;
-	self->message.target = self->receiver;
-
-	REF_ADD2(self->receiver);
-	
-	self->message.start_search = self->target;
-	REF_ADD(self->message.start_search);
-
-	KxObject *obj =  kxmessage_send(&self->message);
-	if (obj) {
-		kxactivation_inner_stack_push(self, obj);
-		return RET_OK;
-	} else 
-		return kxstack_get_return_state(KXSTACK);
-
-}
-
-/*static void
-kxactivation_resend_error() 
-{
-	printf("Fatal Error: resend instruction without slot_holder_of_scopeblock");
-	abort();
-}*/
-
-static KxReturn
-kxactivation_instr_resend_unary_message(KxActivation *self, char **codep)
-{
-	if (self->message.target)
-		REF_REMOVE(self->message.target);
-
-	/*if (!self->slot_holder_of_codeblock) {
-		kxactivation_resend_error();
-	}*/
-	self->message_num++;
-	KxCodeBlock *codeblock = self->codeblock;
-
-	KxSymbol **symbol_frame = KXCODEBLOCK_DATA(codeblock)->symbol_frame;
-
-	self->message.message_name = symbol_frame[(int)(*((*codep)++))];
-	REF_ADD(self->message.message_name);
-
-	self->message.params_count = 0;
-
-	self->message.target = self->receiver;
-	REF_ADD2(self->message.target);
-	KxObject *obj = kxmessage_resend(&self->message, self->slot_holder_of_codeblock);
-
-	if (obj) {
-		kxactivation_inner_stack_push(self, obj);
-		return RET_OK;
-	} else 
-		return kxstack_get_return_state(KXSTACK);
-
-}
-
-static KxReturn
-kxactivation_instr_keyword_message(KxActivation *self, char **codep) 
-{
-	if (self->message.target)
-		REF_REMOVE(self->message.target);
-	self->message_num++;
-	KxCodeBlock *codeblock = self->codeblock;
-
-	KxSymbol **symbol_frame = KXCODEBLOCK_DATA(codeblock)->symbol_frame;
-	KxSymbol *symbol = symbol_frame[(int)(*((*codep)++))];
-
-	int params = (int)(*((*codep)++));
-	kxactivation_message_prepare_from_inner_stack(self,NULL, params,symbol);
-
-	KxObject *obj = kxmessage_send(&self->message);
-
-	if (obj) {
-		kxactivation_inner_stack_push(self, obj);
-		return RET_OK;
-	} else 
-		return kxstack_get_return_state(KXSTACK);
-
-}
-
-static KxReturn
-kxactivation_instr_resend_keyword_message(KxActivation *self, char **codep) 
-{
-    /** TODO: remove this condition */
-	if (self->message.target)
-		REF_REMOVE(self->message.target);
-	self->message_num++;
-	KxCodeBlock *codeblock = self->codeblock;
-
-	KxSymbol **symbol_frame = KXCODEBLOCK_DATA(codeblock)->symbol_frame;
-	KxSymbol *symbol = symbol_frame[(int)(*((*codep)++))];
-
-	int params = (int)(*((*codep)++));
-	kxactivation_message_prepare_from_inner_stack(self,self->receiver, params,symbol);
-
-	KxObject *obj = kxmessage_resend(&self->message, self->slot_holder_of_codeblock);
-
-	if (obj) {
-		kxactivation_inner_stack_push(self, obj);
-		return RET_OK;
-	} else 
-		return kxstack_get_return_state(KXSTACK);
-
-}
-
-static KxReturn
-kxactivation_instr_local_keyword_message(KxActivation *self, char **codep) 
-{
-	if (self->message.target)
-		REF_REMOVE(self->message.target);
-	self->message_num++;
-	KxCodeBlock *codeblock = self->codeblock;
-
-	KxSymbol **symbol_frame = KXCODEBLOCK_DATA(codeblock)->symbol_frame;
-	KxSymbol *symbol = symbol_frame[(int)(*((*codep)++))];
-	int params = (int)(*((*codep)++));
-
-	kxactivation_message_prepare_from_inner_stack(self,self->receiver,params,symbol);
-
-	self->message.start_search = self->target;
-	REF_ADD(self->target);
-
-	KxObject *obj = kxmessage_send(&self->message);
-
-	if (obj) {
-		kxactivation_inner_stack_push(self, obj);
-		return RET_OK;
-	} else 
-		return kxstack_get_return_state(KXSTACK);
-}
-
-static KxReturn
-kxactivation_instr_push_method(KxActivation *self, char **codep) 
-{
-	KxCodeBlock *codeblock = self->codeblock;
-	KxCodeBlock **subblocks = KXCODEBLOCK_DATA(codeblock)->subcodeblocks;
-	KxCodeBlock *method = subblocks[(int)(*((*codep)++))];
-	REF_ADD(method);
-	kxactivation_inner_stack_push(self, method);
-
-	return RET_OK;
-}
-
-static KxReturn
-kxactivation_instr_push_block(KxActivation *self, char **codep) 
-{
-	
-	KxCodeBlock *codeblock = self->codeblock;
-	KxCodeBlock **subblocks = KXCODEBLOCK_DATA(codeblock)->subcodeblocks;
-	KxCodeBlock *block = subblocks[(int)(*((*codep)++))];
-
-	KxScopedBlock *scopedblock = kxscopedblock_new(KXCORE, block, self);
-	kxactivation_inner_stack_push(self, scopedblock);
-	return RET_OK;
-}
-
-static KxReturn
-kxactivation_instr_list(KxActivation *self, char **codep)
-{
-	int size = *((int*)*codep);
-	*codep += sizeof(int);
-
-	List *list = list_new_size(size);
-	int t;
-
-	for (t=size-1;t>=0;--t) {
-		list->items[t] = kxactivation_inner_stack_pop(self);
-	}
-
-	KxList *kxlist = kxobject_raw_clone(kxcore_get_basic_prototype(KXCORE, KXPROTO_LIST));
-	kxlist->data.ptr = list;
-
-	kxactivation_inner_stack_push(self, kxlist);
-	return RET_OK;
-}
-
-
-KxActivationInstrFcn *(instr_fcn)[KXCI_INSTRUCTIONS_COUNT] = 
-{ 
-	kxactivation_instr_unary_message,         // 0
-	kxactivation_instr_binary_message,        // 1
-	kxactivation_instr_keyword_message,       // 2
-	kxactivation_instr_local_unary_message,   // 3
-	kxactivation_instr_local_keyword_message, // 4
-	kxactivation_instr_resend_unary_message,  // 5
-	kxactivation_instr_resend_keyword_message, // 6
-	kxactivation_instr_push_integer,          // 7 
-	kxactivation_instr_push_string,           // 8 
-	kxactivation_instr_push_float,            // 9
-	kxactivation_instr_push_symbol,           // 10
-	kxactivation_instr_push_character,           // 11
-	kxactivation_instr_pop,                   // 12
-	kxactivation_instr_push_method,           // 13
-	kxactivation_instr_push_block,            // 14
-	kxactivation_instr_list, 
-	kxactivation_instr_end_of_block,          // 16
-	kxactivation_instr_return,                // 17
-	kxactivation_instr_returnself,            // 18
-	kxactivation_instr_long_return,            // 19
-};

@@ -20,7 +20,7 @@ for file in `cat test.list`; do
    echo Running ... $testname
 
    #test line# valgrind &> /dev/null --tool="callgrind" $KREATRIX -c "123 println" & # $SCRIPT $file &
-   valgrind &> /dev/null --tool="callgrind" $KREATRIX $SCRIPT $file &
+   valgrind &> /dev/null --tool="callgrind" --dump-instr=yes --trace-jump=yes $KREATRIX $SCRIPT $file &
    pid=$!
    wait $pid
    mv callgrind.out.$pid results/$testname.callgrind.out
