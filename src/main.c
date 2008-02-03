@@ -116,7 +116,7 @@ static int
 main_run_codeblock(KxCore *core, KxStack *stack, KxCodeBlock *codeblock, KxSymbol *message_name) {
 	KxMessage *start_msg = kxmessage_new(message_name, core->lobby);
 
-	KxObject *ret_obj = kxcodeblock_run(codeblock,core->lobby, start_msg, KXCB_RUN_NORMAL);
+	KxObject *ret_obj = kxcodeblock_run(codeblock,core->lobby, start_msg);
 
 	int ret_value = 0;
 	if (ret_obj == NULL) {

@@ -88,6 +88,30 @@ kxcinstruction_bytecode_size(KxcInstruction *instruction)
 		case KXCI_LONGRETURN:
 		case KXCI_RETURNSELF:
 			return typesize;
+
+		case KXCI_PUSH_LOCAL0:
+		case KXCI_PUSH_LOCAL1:
+		case KXCI_PUSH_LOCAL2:
+		case KXCI_PUSH_LOCAL3:
+		case KXCI_PUSH_LOCAL4:
+		case KXCI_PUSH_LOCAL5:
+		case KXCI_PUSH_LOCAL6:
+		case KXCI_PUSH_LOCAL7:
+		case KXCI_PUSH_SELF:
+		case KXCI_UPDATE_LOCAL0:
+		case KXCI_UPDATE_LOCAL1:
+		case KXCI_UPDATE_LOCAL2:
+		case KXCI_UPDATE_LOCAL3:
+		case KXCI_UPDATE_LOCAL4:
+		case KXCI_UPDATE_LOCAL5:
+		case KXCI_UPDATE_LOCAL6:
+		case KXCI_UPDATE_LOCAL7:
+			return typesize;
+
+
+		case KXCI_PUSH_LOCALN:
+		case KXCI_UPDATE_LOCALN:
+			return typesize + 1;
 	}
 	fprintf(stderr,"Internal error, invalid instruction type");
 	return typesize;
@@ -166,6 +190,34 @@ kxcinstruction_bytecode_write(KxcInstruction *instruction, char **bytecode, KxcB
 		case KXCI_PUSH_BLOCK:
 			BYTECODE_WRITE_CHAR(instruction->value.codeblock);
 			return;
+
+		case KXCI_PUSH_LOCAL0:
+		case KXCI_PUSH_LOCAL1:
+		case KXCI_PUSH_LOCAL2:
+		case KXCI_PUSH_LOCAL3:
+		case KXCI_PUSH_LOCAL4:
+		case KXCI_PUSH_LOCAL5:
+		case KXCI_PUSH_LOCAL6:
+		case KXCI_PUSH_LOCAL7:
+		case KXCI_PUSH_SELF:
+		case KXCI_UPDATE_LOCAL0:
+		case KXCI_UPDATE_LOCAL1:
+		case KXCI_UPDATE_LOCAL2:
+		case KXCI_UPDATE_LOCAL3:
+		case KXCI_UPDATE_LOCAL4:
+		case KXCI_UPDATE_LOCAL5:
+		case KXCI_UPDATE_LOCAL6:
+		case KXCI_UPDATE_LOCAL7:
+			return;
+
+		case KXCI_PUSH_LOCALN:
+		case KXCI_UPDATE_LOCALN:
+			BYTECODE_WRITE_CHAR(instruction->value.local);
+			return;
+
+
+
+
 	}
 
 	fprintf(stderr,"Internal error, invalid instruction type");
@@ -174,20 +226,23 @@ kxcinstruction_bytecode_write(KxcInstruction *instruction, char **bytecode, KxcB
 /// -- KxcBlock --------------------------------------------------
 
 static int kxcblock_get_symbol(KxcBlock *block, char *symbolname);
-static void kxcblock_add_params(KxcBlock *block, List *parameters, List *errors);
-static void kxcblock_add_localslots(KxcBlock *block, List *localslots, List *errors);
+static void kxcblock_add_params_and_locals(KxcBlock *block, List *parameters, List *locals, List *errors);
+static int kxcblock_get_locals_start_id(KxcBlock *block);
+
 
 /**
  * Create new block
- * if parent is NULL, method is createn otherwise block is createn
- * paramaters is list of parameters's name
  */
 struct KxcBlock*
-kxcblock_new(int type, List *parameters, List *localslots, List *errors)
+kxcblock_new(int type, KxcBlock * parent, List *parameters, List *localslots, List *errors)
 {
 	struct KxcBlock *block = malloc(sizeof(KxcBlock));
 	ALLOCTEST(block);
 	
+	if (type == KXCBLOCK_TYPE_METHOD)
+		block->parent_block = NULL;
+	else 
+		block->parent_block = parent;
 
 	block->symbols = list_new();
 
@@ -195,12 +250,13 @@ kxcblock_new(int type, List *parameters, List *localslots, List *errors)
 
 	//block->params_list = parameters;
 	
-	kxcblock_add_params(block,parameters, errors);
-	kxcblock_add_localslots(block,localslots, errors);
+	kxcblock_add_params_and_locals(block,parameters, localslots, errors);
+	block->locals_start_pos = kxcblock_get_locals_start_id(block);
 
 	block->code = list_new();
 	block->subblocks = list_new();
 	block->message_linenumbers = list_new();
+
 	return block;
 }
 
@@ -222,11 +278,11 @@ kxcblock_free(KxcBlock *block)
 
 	list_free_all(block->symbols);
 
-	if (block->params)
-		free(block->params);
+	/*if (block->params)
+		free(block->params);*/
 
-	if (block->localslots)
-		free(block->localslots);
+	if (block->locals)
+		free(block->locals);
 
 
 	// Free instructions
@@ -289,32 +345,54 @@ kxcblock_get_symbol(KxcBlock *block, char *symbolname)
 	return kxcblock_add_symbol(block,symbolname);
 }
 
+static int
+kxcblock_get_locals_start_id(KxcBlock *block)
+{
+	if (block->parent_block == NULL) {
+		return 0;
+	} else {
+		KxcBlock *parent = block->parent_block;
+		return parent->locals_count + kxcblock_get_locals_start_id(parent);
+	}
+}
+
 /**
- *	Add parameters into block
+ *	Add parameters and local slots into block
  *	"parameters" is list of names of parameters
+ *	"locals" is list of names of localslots
  */
 static void 
-kxcblock_add_params(KxcBlock *block, List *parameters, List *errors) 
+kxcblock_add_params_and_locals(KxcBlock *block, List *parameters, List *locals, List *errors) 
 {
 	if (parameters == NULL) {
 		block->params_count = 0;
-		block->params = NULL;
-		return;
+	} else {
+		block->params_count = parameters->size;
 	}
 
-	block->params_count = parameters->size;
-	block->params = malloc(parameters->size * sizeof(char));
-	ALLOCTEST(block->params);
+	block->locals_count = block->params_count;
+	int locals_count;
+
+	if (locals == NULL) {
+		block->locals_count += 0;
+		locals_count = 0;
+	} else {
+		block->locals_count += locals->size;
+		locals_count = locals->size;
+	}
+	
+	block->locals = malloc(block->locals_count * sizeof(char));
+	ALLOCTEST(block->locals);
 
 
 	int t;
-	for (t=0;t<parameters->size;t++) {
+	for (t=0;t<block->params_count;t++) {
 		PDEBUG("param :%s\n",parameters->items[t]);
 		int symbol = kxcblock_get_symbol(block, (char*)parameters->items[t]);
-		block->params[t] = symbol;
+		block->locals[t] = symbol;
 		int s;
 		for (s=0;s<t;s++) {
-			if (block->params[s] == symbol) {
+			if (block->locals[s] == symbol) {
 				char tmp[250];
 				snprintf(tmp,250, "Two parameters has same name '%s'",parameters->items[s]);
 				list_append(errors, strdup(tmp));
@@ -322,14 +400,41 @@ kxcblock_add_params(KxcBlock *block, List *parameters, List *errors)
 			}
 		}
 	}
-	list_free(parameters);
+
+	for (t=0;t<locals_count;t++) {
+		PDEBUG("local slot :%s\n",locals->items[t]);
+		int symbol = kxcblock_get_symbol(block, (char*)locals->items[t]);
+		int pos = t + block->params_count;
+		block->locals[pos] = symbol;
+		int s;
+		for (s=0;s<pos;s++) {
+			if (block->locals[s] == symbol) {
+				char tmp[250];
+				if (s < block->params_count) {
+					snprintf(tmp,250, "Local slot and parameter has same name '%s'",parameters->items[s]);
+				} else {
+					snprintf(tmp,250, "Two local slots has same name '%s'",
+						locals->items[s - block->params_count]);
+				}
+				list_append(errors, strdup(tmp));
+				break;
+			}
+
+		}
+	}
+
+	if (parameters)
+		list_free(parameters);
+
+	if (locals)
+		list_free(locals);
 }
 
 /**
  *	Add name of local slots into block
  *	"parameters" is list of names of parameters
  */
-static void 
+/*static void 
 kxcblock_add_localslots(KxcBlock *block, List *slots, List *errors) 
 {
 	if (slots == NULL) {
@@ -360,6 +465,63 @@ kxcblock_add_localslots(KxcBlock *block, List *slots, List *errors)
 		}
 	}
 	list_free(slots);	
+}*/
+
+static void
+kxcblock_push_locals(KxcBlock *block, int pos)
+{
+	int itype;
+	switch(pos) {
+		case 0: itype = KXCI_PUSH_LOCAL0; break;
+		case 1: itype = KXCI_PUSH_LOCAL1; break;
+		case 2: itype = KXCI_PUSH_LOCAL2; break;
+		case 3: itype = KXCI_PUSH_LOCAL3; break;
+		case 4: itype = KXCI_PUSH_LOCAL4; break;
+		case 5: itype = KXCI_PUSH_LOCAL5; break;
+		case 6: itype = KXCI_PUSH_LOCAL6; break;
+		case 7: itype = KXCI_PUSH_LOCAL7; break;
+		default: itype = KXCI_PUSH_LOCALN; break;
+	}
+	KxcInstruction *i = kxcinstruction_new(itype);
+	i->value.local = pos;
+	kxcblock_add_instruction(block,i);
+}
+
+int
+kxcblock_local_pos(KxcBlock *block, char *messagename)
+{
+	int t;
+	for (t=0; t<block->locals_count; t++) {
+		if (!strcmp(messagename, block->symbols->items[block->locals[t]])) {
+			return t + block->locals_start_pos;
+		}
+	}
+	if (block->parent_block) {
+		return kxcblock_local_pos(block->parent_block, messagename);
+	}
+	return -1;
+}
+
+
+static int
+kxcblock_message_substitution(KxcBlock *block, char *messagename)
+{
+	KxcInstruction *i;
+	if (!strcmp(messagename,"self")) {
+		free(messagename);
+		i = kxcinstruction_new(KXCI_PUSH_SELF);
+		kxcblock_add_instruction(block, i);
+		return 1;
+	}
+	
+	int pos = kxcblock_local_pos(block, messagename);
+
+	if (pos != -1) {
+			free(messagename);
+			kxcblock_push_locals(block, pos);		
+			return 1;
+	}
+	return 0;
 }
 
 
@@ -371,6 +533,11 @@ kxcblock_add_localslots(KxcBlock *block, List *slots, List *errors)
 void
 kxcblock_put_message(KxcBlock *block, KxInstructionType msgtype, char *messagename, int lineno) 
 {
+	if (msgtype == KXCI_LOCAL_UNARY_MSG) {
+		if (kxcblock_message_substitution(block, messagename))
+			return;
+	}
+
 	PDEBUG("sendmsg: %i %s\n",msgtype,messagename);
 	int symbol = kxcblock_get_symbol(block, messagename);
 
@@ -397,7 +564,7 @@ kxcblock_put_new_block(KxcBlock *block, int type, List *parameters, List *locals
 	KxcInstruction *i = kxcinstruction_new(itype);
 	
 	// Create new kxcblock
-	KxcBlock *child = kxcblock_new(type, parameters, localslots, errors);
+	KxcBlock *child = kxcblock_new(type, block, parameters, localslots, errors);
 
 	// Put new block into parent and add id into instruction
 	i->value.codeblock = kxcblock_add_subblock(block,child);
@@ -406,6 +573,28 @@ kxcblock_put_new_block(KxcBlock *block, int type, List *parameters, List *locals
 	kxcblock_add_instruction(block,i);
 
 	return child;
+}
+
+
+void
+kxcblock_put_local_update(KxcBlock *block, int pos)
+{
+	int itype;
+	switch(pos) {
+		case 0: itype = KXCI_UPDATE_LOCAL0; break;
+		case 1: itype = KXCI_UPDATE_LOCAL1; break;
+		case 2: itype = KXCI_UPDATE_LOCAL2; break;
+		case 3: itype = KXCI_UPDATE_LOCAL3; break;
+		case 4: itype = KXCI_UPDATE_LOCAL4; break;
+		case 5: itype = KXCI_UPDATE_LOCAL5; break;
+		case 6: itype = KXCI_UPDATE_LOCAL6; break;
+		case 7: itype = KXCI_UPDATE_LOCAL7; break;
+		default: itype = KXCI_UPDATE_LOCALN; break;
+
+	}
+	KxcInstruction *i = kxcinstruction_new(itype);
+	i->value.local = pos;
+	kxcblock_add_instruction(block, i);
 }
 
 
@@ -663,8 +852,9 @@ kxcblock_bytecode_size(KxcBlock *block)
 	int size = sizeof(char); // count of instruction
 
 	size += kxcblock_bytecode_symboltable_size(block);
-	size += block->params_count + 1; // 1 byte for count of params
-	size += block->localslots_count + 1; // 1 byte for count of local slots
+	size += block->locals_count + 1; // 1 byte for count of local slots
+	size += 1 + 1; // 1 byte for count of params, 1 byte for local start pos
+
 	size += kxcblock_bytecode_code_size(block);
 	size += kxcblock_bytecode_lineno_size(block);
 
@@ -700,25 +890,21 @@ kxcblock_bytecode_symboltable_write(KxcBlock *block, char **bytecode)
 	}
 }
 
-/**
- * Write bytecode of codeblock's parameters, 
- * bytecode pointer is moved after parameters
- */ 
 static void
 kxcblock_bytecode_params_write(KxcBlock *block, char **bytecode) 
 {
 	BYTECODE_WRITE_CHAR(block->params_count);
-	memcpy(*bytecode, block->params, sizeof(char) * block->params_count);
-	*bytecode += block->params_count;
-	
+	/*memcpy(*bytecode, block->params, sizeof(char) * block->params_count);
+	*bytecode += block->params_count;*/
 }
 
 static void
-kxcblock_bytecode_localslots_write(KxcBlock *block, char **bytecode) 
+kxcblock_bytecode_locals_write(KxcBlock *block, char **bytecode) 
 {
-	BYTECODE_WRITE_CHAR(block->localslots_count);
-	memcpy(*bytecode, block->localslots, sizeof(char) * block->localslots_count);
-	*bytecode += block->localslots_count;
+	BYTECODE_WRITE_CHAR(block->locals_start_pos);
+	BYTECODE_WRITE_CHAR(block->locals_count);
+	memcpy(*bytecode, block->locals, sizeof(char) * block->locals_count);
+	*bytecode += block->locals_count;
 	
 }
 
@@ -742,7 +928,6 @@ kxcblock_bytecode_code_write(KxcBlock *block, char **bytecode)
 
 	int size = *bytecode - startaddr;
 	memcpy(sizeaddr,&size,sizeof(int));
-
 }
 
 static void
@@ -765,7 +950,7 @@ kxcblock_bytecode_write(KxcBlock *block, char **bytecode)
 	BYTECODE_WRITE_CHAR(block->type);
 	kxcblock_bytecode_symboltable_write(block,bytecode);	
 	kxcblock_bytecode_params_write(block, bytecode);
-	kxcblock_bytecode_localslots_write(block, bytecode);
+	kxcblock_bytecode_locals_write(block, bytecode);
 	kxcblock_bytecode_lineno_write(block, bytecode);
 	kxcblock_bytecode_code_write(block,bytecode);
 	

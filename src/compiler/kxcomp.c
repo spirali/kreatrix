@@ -59,7 +59,9 @@ kxcomp_new()
 {
 	KxCompiler *self = calloc(sizeof(KxCompiler), 1);
 	self->errors = list_new();
-	self->block = kxcblock_new(KXCBLOCK_TYPE_METHOD, NULL, NULL, self->errors);
+
+	// Create root block
+	self->block = kxcblock_new(KXCBLOCK_TYPE_METHOD, NULL, NULL, NULL, self->errors);
 	return self;
 }
 
@@ -367,16 +369,28 @@ grammar_keyword_message(KxCompiler *self)
 }
 
 static int
-kxcomp_put_alias(KxCompiler *self, int message_type, char *message_name)
+kxcomp_put_alias(KxCompiler *self, int message_type, char *message_name, int substitution_check)
 {
 	char *symbol = kxparser_token_string_value(self->parser);
-	int doc_type;
-	char *doc_string = kxparser_get_documentation_string(self->parser, &doc_type);
-	
-	if (doc_string) {
-		kxcblock_put_symbol(self->block, strdup(symbol));
+
+	int local_pos;
+
+	if (substitution_check) {
+		local_pos = kxcblock_local_pos(self->block, symbol);
 	} else {
-		kxcblock_put_symbol(self->block, symbol);
+		local_pos = -1;
+	}
+
+	int doc_type;
+	char *doc_string = NULL;
+	
+	if (local_pos == -1) {
+		doc_string = kxparser_get_documentation_string(self->parser, &doc_type);
+		if (doc_string) {
+			kxcblock_put_symbol(self->block, strdup(symbol));
+		} else {
+			kxcblock_put_symbol(self->block, symbol);
+		}
 	}
 	/*if (doc_string) {
 		kxcblock_put_string(self->block,doc_string);
@@ -395,7 +409,12 @@ kxcomp_put_alias(KxCompiler *self, int message_type, char *message_name)
 		kxcblock_put_message(self->block,KXCI_KEYWORD_MSG,strdup("__asDocTo:"), self->parser->line_number); 
 	}*/
 
-	kxcblock_put_message(self->block,message_type,strdup(message_name), self->parser->line_number); 
+	if (local_pos == -1) {
+		kxcblock_put_message(self->block,message_type,strdup(message_name), self->parser->line_number); 
+	} else {
+		kxcblock_put_local_update(self->block, local_pos);
+		free(symbol);
+	}
 
 	if (doc_string) {
 		kxcblock_put_symbol(self->block,symbol);
@@ -406,7 +425,7 @@ kxcomp_put_alias(KxCompiler *self, int message_type, char *message_name)
 			msg = "__slot:mainDoc:";
 		} else {
 			msg = "__slot:doc:";
-		}
+			}
 		kxcblock_put_message(self->block,KXCI_KEYWORD_MSG,strdup(msg), self->parser->line_number); 
 	}
 	return 1;
@@ -443,9 +462,9 @@ grammar_expression2(KxCompiler *self)
 {
 	switch(self->token) {
 		case TOKEN_SET_SLOT:
-			return kxcomp_put_alias(self, KXCI_LOCAL_KEYWORD_MSG, "slot:set:");
+			return kxcomp_put_alias(self, KXCI_LOCAL_KEYWORD_MSG, "slot:set:",0);
 		case TOKEN_UPDATE_SLOT:
-			return kxcomp_put_alias(self, KXCI_LOCAL_KEYWORD_MSG, "slot:update:");
+			return kxcomp_put_alias(self, KXCI_LOCAL_KEYWORD_MSG, "slot:update:",1);
 		case TOKEN_UPDATE_PAIR:
 			return kxcomp_put_update_pair(self, KXCI_LOCAL_KEYWORD_MSG);
 	}
@@ -454,9 +473,9 @@ grammar_expression2(KxCompiler *self)
 
 	switch(self->token) {
 		case TOKEN_SET_SLOT:
-			return kxcomp_put_alias(self, KXCI_KEYWORD_MSG, "slot:set:");
+			return kxcomp_put_alias(self, KXCI_KEYWORD_MSG, "slot:set:",0);
 		case TOKEN_UPDATE_SLOT:
-			return kxcomp_put_alias(self, KXCI_KEYWORD_MSG, "slot:update:");
+			return kxcomp_put_alias(self, KXCI_KEYWORD_MSG, "slot:update:",0);
 		case TOKEN_UPDATE_PAIR:
 			return kxcomp_put_update_pair(self, KXCI_KEYWORD_MSG);
 		default:

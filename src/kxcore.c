@@ -329,14 +329,15 @@ kxcore_free(KxCore *self)
 		kxfree(self->object_cache[t]);
 	}
 
+	for (t=0;t<self->activation_cache_count;t++) {
+		kxfree(self->activation_cache[t]);
+	}
+
 	for (t=0;t<KXCORE_SLOT_CACHE_CAPACITIES_COUNT;t++) {
 		int s;
 		for (s=0;s<self->slot_cache_count[t];s++) 
 			kxfree(self->slot_cache[t][s]);
 	}
-
-
-	
 
 	if (kx_verbose || self->objects_count)
 		printf("core->objects_count = %i\n", self->objects_count);

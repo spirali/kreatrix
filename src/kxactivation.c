@@ -48,7 +48,17 @@ kxactivation_free(KxActivation *self)
 	kxactivation_inner_stack_free(self);
 
 	REF_REMOVE(self->receiver);
-	REF_REMOVE(self->locals);
+
+	KxCodeBlockData *cdata = self->codeblock->data.ptr;
+	int t;
+	for (t=cdata->locals_pos; t < cdata->locals_pos + cdata->locals_count; t++) 
+	{
+		REF_REMOVE(self->locals[t]);
+	}
+
+	if (!self->is_scoped)
+		kxfree(self->locals);
+	
 	REF_REMOVE(self->codeblock);
 	REF_REMOVE(self->slot_holder_of_codeblock);
 
@@ -76,7 +86,10 @@ kxactivation_mark(KxActivation *self)
 		kxobject_mark(self->inner_stack[t]);
 	}
 
-
+	KxCodeBlockData *cdata = KXCODEBLOCK_DATA(self->codeblock);
+	for (t=cdata->locals_pos;t<cdata->locals_pos + cdata->locals_count;t++) {
+		kxobject_mark(self->locals[t]);
+	}
 	// TODO: params
 }
 
@@ -121,7 +134,8 @@ static KxObject *
 kxactivation_inner_stack_pop(KxActivation *self) 
 {
 	if (self->inner_stack_pos == 0) {
-		fprintf(stderr,"Inner stack pop: Stack is empty\n");
+		KxCodeBlockData *cdata = self->codeblock->data.ptr;
+		fprintf(stderr,"Inner stack pop: Stack is empty (%s)\n", cdata->source_filename);
 		abort();
 	}
 	
@@ -322,11 +336,12 @@ kxactivation_run(KxActivation *self)
 	kxcore_gc_check(KXCORE);	
 
 	char *codep = KXCODEBLOCK_DATA(self->codeblock)->code;
-
+	
+	//printf("-=BEGIN=-\n");
 	for(;;) {
 		char instruction = *(codep++);
-	/*	printf("INSTR = %i\n",instruction);
-		kxstack_dump_messages(stack);*/
+	//	printf("INSTR = %i\n",instruction);
+	/*	kxstack_dump_messages(stack);*/
 		//KxActivationInstrFcn *fcn = (instr_fcn[(int)instruction]);
 
 		switch(instruction) {
@@ -634,6 +649,195 @@ kxactivation_run(KxActivation *self)
 				kxactivation_inner_stack_push(self, kxlist);
 				continue;
 			}
+
+			case KXCI_PUSH_LOCAL0:
+			{
+				KxObject *obj = self->locals[0];
+				REF_ADD(obj);
+				kxactivation_inner_stack_push(self, obj);
+				continue;
+			}
+
+			case KXCI_PUSH_LOCAL1:
+			{
+				KxObject *obj = self->locals[1];
+				REF_ADD(obj);
+				kxactivation_inner_stack_push(self, obj);
+				continue;
+
+			}
+
+
+			case KXCI_PUSH_LOCAL2:
+			{
+				KxObject *obj = self->locals[2];
+				REF_ADD(obj);
+				kxactivation_inner_stack_push(self, obj);
+				continue;
+
+			}
+
+			case KXCI_PUSH_LOCAL3:
+			{
+				KxObject *obj = self->locals[3];
+				REF_ADD(obj);
+				kxactivation_inner_stack_push(self, obj);
+				continue;
+
+			}
+
+			case KXCI_PUSH_LOCAL4:
+			{
+				KxObject *obj = self->locals[4];
+				REF_ADD(obj);
+				kxactivation_inner_stack_push(self, obj);
+				continue;
+
+			}
+
+			case KXCI_PUSH_LOCAL5:
+			{
+				KxObject *obj = self->locals[5];
+				REF_ADD(obj);
+				kxactivation_inner_stack_push(self, obj);
+				continue;
+
+			}
+
+			case KXCI_PUSH_LOCAL6:
+			{
+				KxObject *obj = self->locals[6];
+				REF_ADD(obj);
+				kxactivation_inner_stack_push(self, obj);
+				continue;
+
+			}
+
+			case KXCI_PUSH_LOCAL7:
+			{
+				KxObject *obj = self->locals[7];
+				REF_ADD(obj);
+				kxactivation_inner_stack_push(self, obj);
+				continue;
+			}
+
+			case KXCI_PUSH_LOCALN:
+			{
+				KxObject *obj = self->locals[(int)(*((codep)++))];
+				REF_ADD(obj);
+				kxactivation_inner_stack_push(self, obj);
+				continue;
+
+			}
+
+			case KXCI_PUSH_SELF:
+			{
+				KxObject *obj = self->receiver;
+				REF_ADD(obj);
+				kxactivation_inner_stack_push(self, obj);
+				continue;
+
+			}
+
+
+
+			case KXCI_UPDATE_LOCAL0:
+			{
+				KxObject *obj = kxactivation_inner_stack_pop(self);
+				REF_REMOVE(self->locals[0]);
+				self->locals[0] = obj;
+				REF_ADD(obj);
+				kxactivation_inner_stack_push(self, obj);
+				continue;
+			}
+
+			case KXCI_UPDATE_LOCAL1:
+			{
+				KxObject *obj = kxactivation_inner_stack_pop(self);
+				REF_REMOVE(self->locals[1]);
+				self->locals[1] = obj;
+				REF_ADD(obj);
+				kxactivation_inner_stack_push(self, obj);
+				continue;
+			}
+
+			case KXCI_UPDATE_LOCAL2:
+			{
+				KxObject *obj = kxactivation_inner_stack_pop(self);
+				REF_REMOVE(self->locals[2]);
+				self->locals[2] = obj;
+				REF_ADD(obj);
+				kxactivation_inner_stack_push(self, obj);
+				continue;
+			}
+
+
+			case KXCI_UPDATE_LOCAL3:
+			{
+				KxObject *obj = kxactivation_inner_stack_pop(self);
+				REF_REMOVE(self->locals[3]);
+				self->locals[3] = obj;
+				REF_ADD(obj);
+				kxactivation_inner_stack_push(self, obj);
+				continue;
+			}
+
+
+			case KXCI_UPDATE_LOCAL4:
+			{
+				KxObject *obj = kxactivation_inner_stack_pop(self);
+				REF_REMOVE(self->locals[4]);
+				self->locals[4] = obj;
+				REF_ADD(obj);
+				kxactivation_inner_stack_push(self, obj);
+				continue;
+			}
+
+
+			case KXCI_UPDATE_LOCAL5:
+			{
+				KxObject *obj = kxactivation_inner_stack_pop(self);
+				REF_REMOVE(self->locals[5]);
+				self->locals[5] = obj;
+				REF_ADD(obj);
+				kxactivation_inner_stack_push(self, obj);
+				continue;
+			}
+
+
+			case KXCI_UPDATE_LOCAL6:
+			{
+				KxObject *obj = kxactivation_inner_stack_pop(self);
+				REF_REMOVE(self->locals[6]);
+				self->locals[6] = obj;
+				REF_ADD(obj);
+				kxactivation_inner_stack_push(self, obj);
+				continue;
+			}
+
+
+			case KXCI_UPDATE_LOCAL7:
+			{
+				KxObject *obj = kxactivation_inner_stack_pop(self);
+				REF_REMOVE(self->locals[7]);
+				self->locals[7] = obj;
+				REF_ADD(obj);
+				kxactivation_inner_stack_push(self, obj);
+				continue;
+			}
+
+
+			case KXCI_UPDATE_LOCALN:
+			{
+				KxObject *obj = kxactivation_inner_stack_pop(self);
+				int pos = (int)(*((codep)++));
+				REF_REMOVE(self->locals[pos]);
+				self->locals[pos] = obj;
+				REF_ADD(obj);
+				kxactivation_inner_stack_push(self, obj);
+				continue;
+			}
+
 			default: 
 				fprintf(stderr,"Invalid instruction\n");
 				abort();

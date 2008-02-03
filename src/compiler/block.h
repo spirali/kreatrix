@@ -20,6 +20,7 @@ struct KxcInstruction {
 		int charval;
 		int integer;
         double floatval;
+		char local;
 	} value;
 };
 
@@ -28,12 +29,16 @@ typedef struct KxcBlock KxcBlock;
 struct KxcBlock {
 	
 	int type; // values: KXCBLOCK_TYPE_*
+	KxcBlock *parent_block;
 
-	char *params;
+	/*char *params;*/
+	
+	int locals_start_pos;
+
+	char *locals;
+
 	int params_count;
-
-	char *localslots;
-	int localslots_count;
+	int locals_count;
 
 	struct List *symbols;
 
@@ -42,9 +47,10 @@ struct KxcBlock {
 	struct List *subblocks;
 
 	struct List *message_linenumbers;
+
 };
 
-struct KxcBlock * kxcblock_new(int type,List *parameters, List *localslots, List *errors);
+struct KxcBlock * kxcblock_new(int type,KxcBlock *parent, List *parameters, List *localslots, List *errors);
 void kxcblock_free(KxcBlock *block);
 
 void kxcblock_put_message(KxcBlock *block, KxInstructionType msgtype, char *messagename, int lineno);
@@ -54,6 +60,8 @@ KxcBlock* kxcblock_put_new_block(KxcBlock *block,int type, List *parameters, Lis
 void kxcblock_end_of_code(KxcBlock *block);
 
 void kxcblock_end_of_main_block(KxcBlock *block);
+
+int kxcblock_local_pos(KxcBlock *block, char *messagename);
 
 
 void kxcblock_put_pop(KxcBlock *block);

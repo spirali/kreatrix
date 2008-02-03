@@ -209,7 +209,7 @@ kxbaseobject_do(KxObject *self, KxMessage *message)
 	msg.params_count = 0;
 	msg.target = self;
 	msg.slot_holder = self;
-	return kxcodeblock_run(param, self, &msg, KXCB_RUN_NORMAL);
+	return kxcodeblock_run(param, self, &msg);
 }
 
 /*KXdoc slots

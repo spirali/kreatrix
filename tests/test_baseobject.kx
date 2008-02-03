@@ -108,6 +108,50 @@ testObject = test TestCase clone do: {
 		assert: y equals: nil.
 		assert: z equals: nil.
 	}.
+	testLotsLocals = { |a1 a2 a3 a4 a5 a6 a7 a8 a9 a10 a11 a12 a13 a14 a15 a16 a17 a18 a19 a20|
+		a19 << "a".
+		a20 << "b".
+
+		(a19 == "a") assertTrue.
+		(a20 == "b") assertTrue.
+	}.
+
+	testLotsParams = { |obj|
+		obj << Object clone.
+		obj a:b:c:d:e:f:g:h: = { :a :b :c :d :e :f :g :h |  
+		           |aa bb cc dd ee ff gg hh ii jj kk ll mm nn zz |
+			aa << a.
+			bb << b.
+			cc << c.
+			dd << d.
+			ee << e.
+			ff << f.
+			gg << g.
+			hh << h.
+			ii << 1.
+			jj << 2.
+			kk << 3.
+			ll << 4.
+			mm << 3.
+			nn << 3.
+			zz << 4.
+			^ aa + bb + cc + dd + 
+			  ee + ff + gg + hh + 
+			  ii + jj + kk + ll + 
+			  mm + nn + zz.
+		}.
+
+		((obj a: 10
+		    b: 12
+			c: 28
+			d: 22
+			e: 8
+			f: (-15)
+			g: 5
+			h: 100) == 190) assertTrue.
+		
+	}.
+
 
 	testSlotUpdate = { |TestObject t|
 

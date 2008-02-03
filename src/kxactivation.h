@@ -27,7 +27,7 @@ typedef struct KxActivation KxActivation;
 #define KXACTIVATION_INNER_STACK_SIZE 16
 
 struct KxActivation {
-	
+	KxObject **locals;
 	KxCodeBlock *codeblock;
 
 	KxObject *receiver; /* Reference to receiver */
@@ -55,11 +55,11 @@ struct KxActivation {
 
 	int is_over; // activation is dead, running of method is over and activation isn't on stack
 
+	int is_scoped;
+
 	KxObject *slot_holder_of_codeblock;
 
 	KxCore *core;
-
-	KxObject *locals;
 
 	int ref_count;
 };

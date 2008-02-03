@@ -50,7 +50,7 @@ kxcompile_run_bytecode(char *bytecode,  KxObject *target,
 
 	KxObject * obj;
 	
-	obj = kxcodeblock_run(codeblock,target, start_msg, KXCB_RUN_NORMAL);
+	obj = kxcodeblock_run(codeblock,target, start_msg);
 
 	kxmessage_free(start_msg);
 	REF_REMOVE(codeblock);

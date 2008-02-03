@@ -88,11 +88,8 @@ kxcodeblock_free(KxCodeBlock *self) {
 	if (data->subcodeblocks)
 		kxfree(data->subcodeblocks);
 
-	if (data->params_symbols)
-		kxfree(data->params_symbols);
-
-	if (data->localslots_symbols)
-		kxfree(data->localslots_symbols);
+	if (data->locals_symbols)
+		kxfree(data->locals_symbols);
 
 	
 	if (data->code)
@@ -125,8 +122,6 @@ kxcodeblock_read_symbol_frame (KxCodeBlock *self, char **bytecode)
 
 		data->symbol_frame[t] = kxcore_get_symbol(KXCORE, symbol);
 
-	//	REF_ADD(data->symbol_frame[t]);
-
 		*bytecode += strlen(symbol)+1;
 	}
 }
@@ -134,50 +129,35 @@ kxcodeblock_read_symbol_frame (KxCodeBlock *self, char **bytecode)
 static void
 kxcodeblock_read_params(KxCodeBlock *self, char **bytecode) 
 {
-	int size = GET_BYTECODE_CHAR;
-	
+
 	KxCodeBlockData *data = KXCODEBLOCK_DATA(self);
-
-	data->params_count = size;
-	
-	if (size == 0) {
-		data->params_symbols = NULL;
-		return;
-	}
-
-	data->params_symbols = kxmalloc(sizeof(KxSymbol*) * size);
-	ALLOCTEST(data->params_symbols);
-
-	int t;
-	for (t=0;t<size;t++) {
-		char pos = GET_BYTECODE_CHAR;
-		data->params_symbols[t] = data->symbol_frame[(int)pos];
-		PDEBUG("Param[%i]:%s\n",t,KXSYMBOL_AS_CSTRING(data->params_symbols[t]));
-	}
+	data->params_count = GET_BYTECODE_CHAR;
 }
 
 static void
 kxcodeblock_read_localslots(KxCodeBlock *self, char **bytecode) 
 {
+	int start_pos = GET_BYTECODE_CHAR;
 	int size = GET_BYTECODE_CHAR;
 	
 	KxCodeBlockData *data = KXCODEBLOCK_DATA(self);
 
-	data->localslots_count = size;
-	
+	data->locals_count = size;
+	data->locals_pos = start_pos;
+
 	if (size == 0) {
-		data->localslots_symbols = NULL;
+		data->locals_symbols = NULL;
 		return;
 	}
 
-	data->localslots_symbols = kxmalloc(sizeof(KxSymbol*) * size);
-	ALLOCTEST(data->localslots_symbols);
+	data->locals_symbols = kxmalloc(sizeof(KxSymbol*) * size);
+	ALLOCTEST(data->locals_symbols);
 
 	int t;
 	for (t=0;t<size;t++) {
 		char pos = GET_BYTECODE_CHAR;
-		data->localslots_symbols[t] = data->symbol_frame[(int)pos];
-		PDEBUG("Localslots[%i]:%s\n",t,KXSYMBOL_AS_CSTRING(data->localslots_symbols[t]));
+		data->locals_symbols[t] = data->symbol_frame[(int)pos];
+		PDEBUG("Locals[%i]:%s\n",t,KXSYMBOL_AS_CSTRING(data->locals_symbols[t]));
 	}
 }
 
@@ -232,6 +212,7 @@ kxcodeblock_read_code(KxCodeBlock *self, char **bytecode)
 		return;
 	}
 
+	//printf("code size = %i\n", size);
 	data->code = kxmalloc(size);
 	ALLOCTEST(data->code);
 
@@ -268,10 +249,22 @@ kxcodeblock_read_subblocks(KxCodeBlock *self, char **bytecode, char *source_file
 
 	for (t=0;t<count;t++) {
 		KxCodeBlock *codeblock = kxcodeblock_read_subblock(KXCORE, bytecode, self, source_filename);		
-	//	REF_ADD(codeblock);
 		data->subcodeblocks[t] = codeblock;
 	}
 }
+
+static int 
+kxcodeblock_locals_total_count(KxCodeBlock *self)
+{	
+	KxCodeBlockData *data = KXCODEBLOCK_DATA(self);
+	int count = data->locals_count;
+	int t;
+	for (t=0;t<data->subcodeblocks_size;t++) {
+		count += kxcodeblock_locals_total_count(data->subcodeblocks[t]);
+	}
+	return count;
+}
+
 
 static void
 kxcodeblock_read_message_linenumbers(KxCodeBlock *self, char **bytecode)
@@ -309,6 +302,9 @@ kxcodeblock_read_subblock(KxCore *core, char **bytecode, KxCodeBlock *parent_cod
 	
 	kxcodeblock_read_subblocks(codeblock, bytecode, source_filename);
 
+	KxCodeBlockData *data = KXCODEBLOCK_DATA(codeblock);
+	data->locals_total_count = kxcodeblock_locals_total_count(codeblock);
+
 	return codeblock;
 }
 
@@ -320,9 +316,86 @@ kxcodeblock_new_from_bytecode(KxCore *core, char **bytecode, char *source_filena
 	return codeblock;
 }
 
+inline static KxObject *
+kxcodeblock_run_activation(KxCodeBlock *self, KxObject *target, KxActivation *activation, KxMessage *message)
+{
+	KxCodeBlockData *data = self->data.ptr;
+	activation->codeblock = self;
+
+	REF_ADD(activation->codeblock);
+	
+	if (message->message_name) {
+		activation->message_name = message->message_name;
+		REF_ADD(activation->message_name);
+	}
+
+	// TODO: REF_ADD ref add must be only in method, not in block
+	activation->receiver = target;
+	REF_ADD(activation->receiver);
+
+	activation->slot_holder_of_codeblock = message->slot_holder;
+	REF_ADD(activation->slot_holder_of_codeblock);
+
+
+	activation->target = activation->receiver;
+
+	int t;
+	for (t=0; t<message->params_count;t++) {
+		KxObject *param = message->params[t];
+		REF_ADD(param);
+		activation->locals[t+data->locals_pos] = param;
+	}
+
+	for (t=message->params_count; t<data->locals_count;t++) {
+		REF_ADD(KXCORE->object_nil);
+		activation->locals[t+data->locals_pos] = KXCORE->object_nil;
+	}
+
+
+
+
+	KxObject * retobj = kxactivation_run(activation);
+	
+	activation->ref_count--;
+	if (activation->ref_count == 0) {
+		kxactivation_free(activation);
+	}
+
+	return retobj;
+}
+
+KxObject *
+kxcodeblock_run_scoped(KxCodeBlock *self, KxActivation *parent_activation, KxMessage *message)
+{
+	KxCodeBlockData *data = self->data.ptr;
+	
+	if (data->params_count != message->params_count) {
+		KxException *excp = kxexception_new_with_text(KXCORE,
+			"CodeBlock: Invalid count of parameters %i (%i expected)\n",
+			message->params_count, data->params_count);
+		KXTHROW(excp);
+	}
+
+
+	KxActivation *activation = kxactivation_new(KXCORE); // = kxactivation_clone_with_new_data(prototype);
+
+	
+	if (parent_activation->long_return) {
+		activation->long_return = parent_activation->long_return;
+	} else {
+		activation->long_return = parent_activation;
+	}
+		
+	activation->locals = parent_activation->locals;
+	activation->is_scoped = 1;
+	
+	return kxcodeblock_run_activation(self, parent_activation->receiver, activation, message);
+
+}
+
 
 KxObject *  
-kxcodeblock_run(KxCodeBlock *self, KxObject *target, KxMessage *message, KxCodeBlockRunFlag flag)
+kxcodeblock_run(KxCodeBlock *self, KxObject *target, KxMessage *message)
 {
 
 	KxCodeBlockData *data = self->data.ptr;
@@ -337,69 +410,9 @@ kxcodeblock_run(KxCodeBlock *self, KxObject *target, KxMessage *message, KxCodeB
 
 	KxActivation *activation = kxactivation_new(KXCORE); // = kxactivation_clone_with_new_data(prototype);
 
-	if (flag == KXCB_RUN_SCOPED) {
-
-		
-		KxActivation *t_act = (KxActivation*) target->data.ptr;
-		if (t_act->long_return) {
-			activation->long_return = t_act->long_return;
-		} else {
-			activation->long_return = t_act;
-		}
-
-	    activation->locals = kxobject_raw_clone(target);
-		activation->locals->extension = NULL;
-		activation->locals->data.ptr = activation;
-		target = t_act->receiver;
-	} else {
-
-		activation->locals = kxobject_new_from(target);
-		activation->locals->extension = NULL;
-		activation->locals->data.ptr = activation;
-		kxobject_set_parent(activation->locals,target);
-
-		kxobject_set_slot_with_flags(activation->locals,KXCORE->dictionary[KXDICT_SELF],target, KXOBJECT_SLOTFLAG_FREEZE);
-	}
-
-	activation->codeblock = self;
-
-	REF_ADD(activation->codeblock);
+	activation->locals = kxmalloc(sizeof(KxObject *) * data->locals_total_count);
 	
-	if (message->message_name) {
-		activation->message_name = message->message_name;
-		REF_ADD(activation->message_name);
-	}
-	//activation->stack = message->stack;
-	activation->receiver = target;
-	REF_ADD(activation->receiver);
-
-	activation->slot_holder_of_codeblock = message->slot_holder;
-	REF_ADD(activation->slot_holder_of_codeblock);
-
-
-	activation->target = activation->locals;
-
-	int t;
-	for (t=0; t<data->localslots_count;t++) {
-		kxobject_set_slot_with_flags(activation->locals,data->localslots_symbols[t],KXCORE->object_nil, KXOBJECT_SLOTFLAG_FREEZE);
-	}
-
-	for (t=0; t<message->params_count;t++) {
-		kxobject_set_slot_with_flags(activation->locals,data->params_symbols[t],message->params[t], KXOBJECT_SLOTFLAG_FREEZE);
-	}
-
-
-
-	KxObject * retobj = kxactivation_run(activation);
-	//REF_REMOVE(activation);
-	
-	/* BUG HERE! Locals free function needed */
-	activation->ref_count--;
-	if (activation->ref_count == 0) {
-		kxactivation_free(activation);
-	}
-
-	return retobj;
+	return kxcodeblock_run_activation(self, target, activation, message);
 }
 
 
@@ -409,10 +422,10 @@ kxcodeblock_activate(KxCodeBlock *self, KxObject *target, KxMessage *message)
 {
 	KxCodeBlockData *data = self->data.ptr;
 	if (data == NULL) {
-		//return NULL;
+		// TODO: Better solution!
 		KXTHROW_EXCEPTION("Call proto codeblock is prohibited, TODO: Better solution of this");
 	}
-	return kxcodeblock_run(self,target, message, KXCB_RUN_NORMAL);
+	return kxcodeblock_run(self,target, message);
 }
 
 void
@@ -447,8 +460,8 @@ kxcodeblock_params(KxCodeBlock *self, KxMessage *message)
 	List *list = list_new_size(data->params_count);
 	int t;
 	for (t=0;t<data->params_count;t++) {
-		list->items[t] = data->params_symbols[t];
-		REF_ADD(data->params_symbols[t]);
+		list->items[t] = data->locals_symbols[t];
+		REF_ADD(data->locals_symbols[t]);
 	}
 	return KXLIST(list);
 }

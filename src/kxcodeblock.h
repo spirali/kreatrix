@@ -28,12 +28,15 @@ struct KxCodeBlockData {
 	KxCodeBlockType type;
 
 	char *code;
+
 	int params_count;
-	KxSymbol **params_symbols;
 
-	int localslots_count;
-	KxSymbol **localslots_symbols;
+	int locals_pos;
 
+	int locals_count;
+	KxSymbol **locals_symbols;
+
+	int locals_total_count;
 
 	int symbol_frame_size;
 	KxSymbol **symbol_frame;
@@ -52,11 +55,6 @@ struct KxCodeBlockData {
 
 };
 
-typedef enum {
-	KXCB_RUN_NORMAL = 0,
-	KXCB_RUN_SCOPED = 1,
-} KxCodeBlockRunFlag;
-
 void kxcodeblock_init_extension();
 
 KxObject *kxcodeblock_new_prototype(KxCore *core);
@@ -65,7 +63,9 @@ KxCodeBlock *kxcodeblock_new_from_bytecode(KxCore *core, char **bytecode, char *
 
 KxObject * kxcodeblock_activate(KxCodeBlock *self, KxObject *target, KxMessage *message);
 
-KxObject * kxcodeblock_run(KxCodeBlock *self, KxObject *target, KxMessage *message, KxCodeBlockRunFlag flag);
+KxObject * kxcodeblock_run(KxCodeBlock *self, KxObject *target, KxMessage *message);
+KxObject * kxcodeblock_run_scoped(KxCodeBlock *self, struct KxActivation *parent_activation, KxMessage *message);
+
 
 //KxObject * kxcodeblock_run_with_direct_target(KxCodeBlock *self, KxObject *target, KxMessage *message);
 

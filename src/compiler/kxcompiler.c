@@ -30,7 +30,7 @@ kxc_get_bytecode(KxcBlock *block, char **bytecode_mem)
 	kxcblock_bytecode_write(block, &bytecode);
 	int end_size = bytecode - start;
 	if (end_size != bytecode_size) {
-		fprintf(stderr,"Internal error, check of bytecode size FAILED (%i - %i)",bytecode_size, end_size);
+		fprintf(stderr,"Internal error, check of bytecode size FAILED (%i - %i)\n",bytecode_size, end_size);
 		abort();
 	}
 	*bytecode_mem = start;

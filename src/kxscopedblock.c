@@ -125,7 +125,7 @@ kxscopedblock_run(KxScopedBlock *self, KxMessage *message)
 
 	KxScopedBlockData *data = self->data.ptr;
 	message->slot_holder = data->scope->slot_holder_of_codeblock;
-	KxObject * retobj =  kxcodeblock_run(data->codeblock,data->scope->locals, message, KXCB_RUN_SCOPED);
+	KxObject * retobj =  kxcodeblock_run_scoped(data->codeblock,data->scope, message);
 	kxstack_pop_object(KXSTACK);
 	return retobj;
 }
