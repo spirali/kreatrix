@@ -98,6 +98,7 @@ kxcinstruction_bytecode_size(KxcInstruction *instruction)
 		case KXCI_PUSH_LOCAL6:
 		case KXCI_PUSH_LOCAL7:
 		case KXCI_PUSH_SELF:
+		case KXCI_PUSH_ACTIVATION:
 		case KXCI_UPDATE_LOCAL0:
 		case KXCI_UPDATE_LOCAL1:
 		case KXCI_UPDATE_LOCAL2:
@@ -113,7 +114,8 @@ kxcinstruction_bytecode_size(KxcInstruction *instruction)
 		case KXCI_UPDATE_LOCALN:
 			return typesize + 1;
 	}
-	fprintf(stderr,"Internal error, invalid instruction type");
+	fprintf(stderr,"Internal error, invalid instruction type\n");
+	abort();
 	return typesize;
 }
 
@@ -200,6 +202,7 @@ kxcinstruction_bytecode_write(KxcInstruction *instruction, char **bytecode, KxcB
 		case KXCI_PUSH_LOCAL6:
 		case KXCI_PUSH_LOCAL7:
 		case KXCI_PUSH_SELF:
+		case KXCI_PUSH_ACTIVATION:
 		case KXCI_UPDATE_LOCAL0:
 		case KXCI_UPDATE_LOCAL1:
 		case KXCI_UPDATE_LOCAL2:
@@ -220,7 +223,8 @@ kxcinstruction_bytecode_write(KxcInstruction *instruction, char **bytecode, KxcB
 
 	}
 
-	fprintf(stderr,"Internal error, invalid instruction type");
+	fprintf(stderr,"Internal error, invalid instruction type\n");
+	abort();
 }
 
 /// -- KxcBlock --------------------------------------------------
@@ -513,6 +517,14 @@ kxcblock_message_substitution(KxcBlock *block, char *messagename)
 		kxcblock_add_instruction(block, i);
 		return 1;
 	}
+
+	if (!strcmp(messagename,"activation")) {
+		free(messagename);
+		i = kxcinstruction_new(KXCI_PUSH_ACTIVATION);
+		kxcblock_add_instruction(block, i);
+		return 1;
+	}
+
 	
 	int pos = kxcblock_local_pos(block, messagename);
 

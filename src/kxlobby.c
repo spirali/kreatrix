@@ -114,6 +114,10 @@ KxObject *kxlobby_new(KxCore *core)
 	kxobject_set_slot_no_ref(self,kxcore_get_symbol(core,"Array2d"), 
 		kxcore_get_basic_prototype(core,KXPROTO_ARRAY2D));
 
+	kxobject_set_slot_no_ref(self,kxcore_get_symbol(core,"Activation"), 
+		kxcore_get_basic_prototype(core,KXPROTO_ACTIVATION));
+
+
 
 	kxobject_set_slot_no_ref2(self,kxcore_get_symbol(core,"VM"), kxvm_new(core));
 

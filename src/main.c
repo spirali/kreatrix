@@ -42,6 +42,7 @@
 #include "kxglobals.h"
 #include "kxmodules_path.h"
 #include "kxarray2d.h"
+#include "kxactivation_object.h"
 
 int kx_doc_flag = 0;
 int kx_interactive = 0;
@@ -89,6 +90,7 @@ extensions_init()
 	kxmodule_init_extension();
 	kxset_init_extension();
 	kxarray2d_init_extension();
+	kxactivationobject_init_extension();
 }
 
 static char *

@@ -25,6 +25,7 @@
 #include "kxfloat.h"
 #include "kxexception.h"
 #include "kxcharacter.h"
+#include "kxactivation_object.h"
 
 //static void kxactivation_add_method_table(KxObject *self);
 
@@ -739,7 +740,13 @@ kxactivation_run(KxActivation *self)
 
 			}
 
+			case KXCI_PUSH_ACTIVATION:
+			{
+				KxObject *obj = kxactivationobject_new(KXCORE, self);
+				kxactivation_inner_stack_push(self, obj);
+				continue;
 
+			}
 
 			case KXCI_UPDATE_LOCAL0:
 			{
@@ -847,4 +854,35 @@ kxactivation_run(KxActivation *self)
 	}
 }
 
+KxObject *
+kxactivation_get_local(KxActivation *self, KxSymbol *name) 
+{
+	KxCodeBlockData *cdata = KXCODEBLOCK_DATA(self->codeblock);
+	int t;
+	for (t=0;t<cdata->locals_count;t++) {
+		if (name == cdata->locals_symbols[t]) {
+			KxObject *obj = self->locals[t + cdata->locals_pos];
+			REF_ADD(obj);
+			return obj;
+		}
+	}
+	return NULL;
+}
 
+
+int
+kxactivation_put_local(KxActivation *self, KxSymbol *name, KxObject *newobject) 
+{
+	KxCodeBlockData *cdata = KXCODEBLOCK_DATA(self->codeblock);
+	int t;
+	for (t=0;t<cdata->locals_count;t++) {
+		if (name == cdata->locals_symbols[t]) {
+			REF_ADD(newobject);
+			KxObject *obj = self->locals[t + cdata->locals_pos];
+			self->locals[t + cdata->locals_pos] = newobject;
+			REF_REMOVE(obj);
+			return 1;
+		}
+	}
+	return 0;
+}

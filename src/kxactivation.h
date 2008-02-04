@@ -67,6 +67,11 @@ struct KxActivation {
 void kxactivation_mark(KxActivation *activation);
 void kxactivation_free(KxActivation *activation);
 
+int kxactivation_put_local(KxActivation *self, KxSymbol *name, KxObject *newobject);
+KxObject *kxactivation_get_local(KxActivation *self, KxSymbol *name);
+
+
+
 
 KxActivation * kxactivation_new(KxCore *core);
 //void kxactivation_init_extension();
