@@ -212,6 +212,55 @@ kxbaseobject_do(KxObject *self, KxMessage *message)
 	return kxcodeblock_run(param, self, &msg);
 }
 
+static KxObject *
+kxbaseobject_do_with(KxObject *self, KxMessage *message)
+{
+	KxObject *param = message->params[0];
+
+	if (!IS_KXCODEBLOCK(param)) {
+		KXTHROW_EXCEPTION("Method is expected as first parameter");
+	}
+
+
+	KxMessage msg;
+	msg.message_name = NULL;
+	msg.params_count = 1;
+	msg.target = self;
+	msg.slot_holder = self;
+	msg.params[0] = message->params[1];
+	return kxcodeblock_run(param, self, &msg);
+
+}
+
+static KxObject *
+kxbaseobject_do_parameters(KxObject *self, KxMessage *message)
+{
+	KxObject *param = message->params[0];
+	if (!IS_KXCODEBLOCK(param)) {
+		KXTHROW_EXCEPTION("Method is expected as first parameter");
+	}
+
+	KxObject *kxlist = message->params[1];
+	if (!IS_KXLIST(kxlist)) {
+		KXTHROW_EXCEPTION("List is expected as second parameter");
+	}
+
+	List *list = KXLIST_VALUE(kxlist);
+
+	KxMessage msg;
+	msg.message_name = NULL;
+	msg.params_count = list->size;
+	msg.target = self;
+	msg.slot_holder = self;
+
+	int t;
+	for (t=0;t<list->size;t++) {
+		msg.params[t] = list->items[t];
+	}
+	return kxcodeblock_run(param, self, &msg);
+
+}
+
 /*KXdoc slots
   [Slots] Returns slot's names of receiver
   Returns list with names (symbols) of all receiver's slots.
@@ -502,6 +551,8 @@ kxbaseobject_add_method_table(KxObject *self)
 		{"isKindOf:",1, kxbaseobject_is_kind_of},
 		{"slots",0, kxbaseobject_slots},
 		{"do:",1, kxbaseobject_do},
+		{"do:with:",2, kxbaseobject_do_with},
+		{"do:parameters:",2, kxbaseobject_do_parameters},
 		{"isSame:",1, kxbaseobject_is_same},
 		{"respondsTo:", 1, kxbaseobject_responds_to},
 		{"hasSlot:", 1, kxbaseobject_has_slot},

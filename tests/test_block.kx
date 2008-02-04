@@ -47,20 +47,22 @@ blockTest = test TestCase clone do: {
 		assert: obj run equals: "ok".
 		assert: obj run2 equals: "ok".
 
-		unfreezeSlot: #x.
 		x << { [ [ [ ^"ok2" ] value. ] value. ] value. }.
-		assert: x equals:  "ok2".
+		assert: (do: x) equals:  "ok2".
 	}.
 
 	testSnadAloneBlock = { |method block|
-		unfreezeSlot: #method.
 		method << { ^[ 5 + 2 ] }.
 	//	perform: #method.
-		block << method.
-		assert: block value equals: 7.
+		block << do: method.
+		(block value == 7) assertTrue.
 		 
 		// Destroy cycle
-		method << nil. block << nil.
+		method << nil. 
+
+		(block value == 7) assertTrue.
+		
+		block << nil.
 	}.
 
 	testOwnBlock = { |myblock result|

@@ -95,6 +95,17 @@ testObject = test TestCase clone do: {
 		assert: ObjA parents equals: #(Object ObjB).
 	}.
 
+	testDo = { |m1 m2 m3|
+		m1 << { ^"a" }.
+		m2 << { :a |  ^a }.
+		m3 << { :b :c :d | ^ b,d }.
+
+		((do: m1) == "a") assertTrue.
+		((do: m2 with: "z") == "z") assertTrue.
+		((do: m2 parameters: #(1)) == 1) assertTrue.
+		((do: m3 parameters: #("a" "b" "c")) == "ac") assertTrue.
+	}.
+
 	testLocals = { |x y z| 
 
 		[ |x z| 
@@ -181,13 +192,18 @@ testObject = test TestCase clone do: {
 		assert: o test equals: "ok".
 	}.
 	
-	testFreeze = { |method|
-		method << { ^"str" }.
-		(method != "str") assertTrue.
-		unfreezeSlot: #method.
-		(method == "str") assertTrue.
-		freezeSlot: #method.
-		(method != "str") assertTrue.
+	testFreeze = { |obj|
+		obj << Object clone.
+		obj method = { ^"str" }.
+
+		(obj method == "str") assertTrue.
+
+		obj freezeSlot: #method.
+
+		(obj method != "str") assertTrue.
+
+		obj unfreezeSlot: #method.
+		(obj method == "str") assertTrue.
 
 	}
 }.

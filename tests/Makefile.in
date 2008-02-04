@@ -146,7 +146,8 @@ TESTS = test_integer.kx \
 	test_float.kx \
 	test_compiler.kx \
 	test_bytearray.kx \
-	test_array2d.kx
+	test_array2d.kx \
+	test_codeblock.kx
 
 MOSTLYCLEANFILES = test_file.data
 EXTRA_DIST = \
