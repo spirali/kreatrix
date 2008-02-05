@@ -18,7 +18,6 @@ typedef struct KxMessage KxMessage;
 struct KxMessage {
 	KxObject *target;
 	KxSymbol *message_name;
-	KxObject *start_search;
 	int params_count;
 	KxObject *slot_holder;
 	KxObject *params[KXMESSAGE_PARAMS_SIZE];

@@ -182,7 +182,7 @@ kxobject_dump(KxObject *self)
 	} else if (IS_KXCODEBLOCK(self)) {
 		KxCodeBlockData *data = KXCODEBLOCK_DATA(self);
 		if (data) {
-			printf("(%p_%s:%i) {%p} %s:%i %s\n", self, kxobject_raw_type_name(self), self->ref_count, self->data.ptr,data->source_filename, data->message_linenumbers[0], proto_tail);
+			printf("(%p_%s:%i) {%p} %s:%i %s\n", self, kxobject_raw_type_name(self), self->ref_count, self->data.ptr,data->source_filename, data->message_linenumbers?data->message_linenumbers[0]:-1, proto_tail);
 		} else {
 			printf("(%p_%s:%i) {%p} %s\n", self, kxobject_raw_type_name(self), self->ref_count,self->data.ptr, proto_tail);
 		}
@@ -217,8 +217,7 @@ kxobject_send_message_init(KxObject *self)
 	msg.message_name = KXCORE->dictionary[KXDICT_INIT];
 	REF_ADD(msg.message_name);
 
-	msg.start_search = msg.target;
-	REF_ADD2(msg.target);
+	REF_ADD(msg.target);
 
 	int slot_not_found;
 	KxObject *obj = kxmessage_send_no_hook_and_exception(&msg, &slot_not_found);
@@ -811,8 +810,7 @@ kxobject_send_value_message(KxObject *self, KxMessage *message)
 		default: message->message_name = KXCORE->dictionary[KXDICT_VALUE_WITH_LIST]; break;
 	}
 	REF_ADD(message->message_name);
-	REF_ADD2(message->target);
-	message->start_search = message->target;
+	REF_ADD(message->target);
 	int t;
 	for (t=0;t<message->params_count;t++) {
 		REF_ADD(message->params[t]);

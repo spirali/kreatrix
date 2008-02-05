@@ -26,9 +26,8 @@ void kxmessage_init(KxMessage *self, KxObject *target, int params_count, KxSymbo
 	REF_ADD(message_name);
 	self->message_name = message_name;
 
-	REF_ADD2(target);
+	REF_ADD(target);
 	self->target = target;
-	self->start_search = target;
 	self->params_count = params_count;
 }
 
@@ -70,7 +69,6 @@ kxmessage_send_to_message_hook(KxMessage *self, KxObject *message_hook)
 	REF_REMOVE(list);
 	REF_REMOVE(self->params[0]);
 	REF_REMOVE(self->target);
-	REF_REMOVE(self->start_search);
 	return retobj;
 }
 
@@ -89,7 +87,7 @@ KxObject *
 kxmessage_send(KxMessage *self) 
 {
 	int flags;
-	KxObject *object = kxobject_find_slot_and_holder(self->start_search,self->message_name, &self->slot_holder, &flags);
+	KxObject *object = kxobject_find_slot_and_holder(self->target,self->message_name, &self->slot_holder, &flags);
 
 //	printf("SEND: %s\n",(char*)self->message_name->data.ptr);
 
@@ -139,7 +137,6 @@ kxmessage_send(KxMessage *self)
 		}
 	}
 	REF_REMOVE(self->target);
-	REF_REMOVE(self->start_search);
 	REF_REMOVE(self->message_name);
 	int t;
 	for (t=0;t<params_count;t++) {
@@ -228,7 +225,6 @@ kxmessage_send_no_hook_and_exception(KxMessage *self, int *slot_not_found)
 	}
 	REF_REMOVE(self->target);
 	REF_REMOVE(self->message_name);
-	REF_REMOVE(self->start_search);
 	int t;
 	for (t=0;t<params_count;t++) {
 		REF_REMOVE(self->params[t]);
@@ -262,8 +258,6 @@ kxmessage_mark(KxMessage *self)
 	kxobject_mark(self->target);
 	kxobject_mark(self->slot_holder);
 	kxobject_mark(self->message_name);
-	if (self->start_search)
-		kxobject_mark(self->start_search);
 	int t;
 	for (t=0;t<self->params_count;t++) {
 		kxobject_mark(self->params[t]);

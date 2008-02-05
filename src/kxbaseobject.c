@@ -72,7 +72,7 @@ kxbaseobject_update_slot(KxObject *self, KxMessage *message)
 
 	KXCHECK_SYMBOL(symbol);
 
-	if (kxobject_update_slot(message->start_search,symbol,message->params[1])) {
+	if (kxobject_update_slot(message->target,symbol,message->params[1])) {
 		KXRETURN(message->params[1]);
 	} else {
 		KxException *excp = kxexception_new_with_text(KXCORE, "Slot '%s' not found", (char*)symbol->data.ptr);
@@ -345,7 +345,7 @@ kxbaseobject_get_slot(KxObject *self, KxMessage *message)
 {
 	KxObject *param = message->params[0];
 	KXCHECK_SYMBOL(param);
-	KxObject *object = kxobject_find_slot(message->start_search, param);
+	KxObject *object = kxobject_find_slot(message->target, param);
 	if (object) {
 		KXRETURN(object);
 	} else {
@@ -365,7 +365,7 @@ kxbaseobject_responds_to(KxObject *self, KxMessage *message)
 	KxObject *param = message->params[0];
 	KXCHECK_SYMBOL(param);
 
-	KxObject *object = kxobject_find_slot(message->start_search, param);
+	KxObject *object = kxobject_find_slot(message->target, param);
 	KXRETURN_BOOLEAN(object != NULL);
 }
 
@@ -507,7 +507,7 @@ kxbaseobject_freeze_slot(KxObject *self, KxMessage *message)
 {
 	KxObject *symbol = message->params[0];
 	KXCHECK_SYMBOL(symbol);
-	kxobject_update_slot_flags(message->start_search, symbol, KXOBJECT_SLOTFLAG_FREEZE);
+	kxobject_update_slot_flags(message->target, symbol, KXOBJECT_SLOTFLAG_FREEZE);
 	KXRETURN(self);
 }
 
@@ -520,7 +520,7 @@ kxbaseobject_unfreeze_slot(KxObject *self, KxMessage *message)
 {
 	KxObject *symbol = message->params[0];
 	KXCHECK_SYMBOL(symbol);
-	kxobject_update_slot_flags(message->start_search, symbol, 0);
+	kxobject_update_slot_flags(message->target, symbol, 0);
 	KXRETURN(self);
 }
 

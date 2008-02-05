@@ -175,8 +175,6 @@ KxActivation *kxactivation_new(KxCore *core)
 static inline void 
 kxactivation_message_prepare_from_inner_stack(KxActivation *self, KxObject *target, int params_count, KxSymbol *message_name) 
 {
-
-
 	REF_ADD(message_name);
 	self->message.message_name = message_name;
 	self->message.params_count = params_count;
@@ -188,12 +186,11 @@ kxactivation_message_prepare_from_inner_stack(KxActivation *self, KxObject *targ
 
 	if (target) {
 		self->message.target = target;
+		REF_ADD2(self->message.target);
 	} else {
 		self->message.target = kxactivation_inner_stack_pop(self);
-		self->message.start_search  = self->message.target;
-
+		REF_ADD(self->message.target);
 	}
-	REF_ADD2(self->message.target);
 }
 
 static inline KxObject * 
@@ -498,9 +495,6 @@ kxactivation_run(KxActivation *self)
 
 				REF_ADD2(self->receiver);
 				
-				self->message.start_search = self->target;
-				REF_ADD(self->message.start_search);
-
 				KxObject *obj =  kxmessage_send(&self->message);
 				if (obj) {
 					kxactivation_inner_stack_push(self, obj);
@@ -604,9 +598,6 @@ kxactivation_run(KxActivation *self)
 				int params = (int)(*((codep)++));
 
 				kxactivation_message_prepare_from_inner_stack(self,self->receiver,params,symbol);
-
-				self->message.start_search = self->target;
-				REF_ADD(self->target);
 
 				KxObject *obj = kxmessage_send(&self->message);
 
