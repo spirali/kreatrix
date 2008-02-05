@@ -35,6 +35,7 @@ void list_insert_at(List *list, void *data, int pos);
 void list_put(List *list, int position, void *item);
 void *list_get(List *list, int position);
 void list_append(List *list, void *data);
+void list_fast_remove(List *list, int position);
 void list_remove(List *list, int position);
 void list_remove_first(List *list, void *data);
 

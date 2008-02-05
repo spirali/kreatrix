@@ -123,6 +123,23 @@ list_join(List *list, List *list2)
 /*
 	Remove item from list on position
 	without range check
+	without reducing capacity
+*/
+void 
+list_fast_remove(List *list, int position) 
+{
+	list->size--;
+	int t;
+	for (t=position;t<list->size;t++) {
+		list->items[t] = list->items[t+1];
+	}
+}
+
+
+
+/*
+	Remove item from list on position
+	without range check
 	if size is lesser than half of capacity, capacity is reduced
 */
 void 

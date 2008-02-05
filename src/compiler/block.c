@@ -471,8 +471,8 @@ kxcblock_add_localslots(KxcBlock *block, List *slots, List *errors)
 	list_free(slots);	
 }*/
 
-static void
-kxcblock_push_locals(KxcBlock *block, int pos)
+void
+kxcblock_push_local(KxcBlock *block, int pos)
 {
 	int itype;
 	switch(pos) {
@@ -530,7 +530,7 @@ kxcblock_message_substitution(KxcBlock *block, char *messagename)
 
 	if (pos != -1) {
 			free(messagename);
-			kxcblock_push_locals(block, pos);		
+			kxcblock_push_local(block, pos);		
 			return 1;
 	}
 	return 0;
@@ -632,7 +632,7 @@ kxcblock_end_of_code(KxcBlock *block)
 	} else {
 		if (append_end) {
 			if (i && i->type == KXCI_POP) {
-				list_pop(block->code);
+				list_fast_pop(block->code);
 				kxcinstruction_free(i);
 			} else if (i == NULL) {
 				// TODO: Vracet rozumny objekt

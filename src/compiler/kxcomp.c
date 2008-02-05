@@ -413,6 +413,7 @@ kxcomp_put_alias(KxCompiler *self, int message_type, char *message_name, int sub
 		kxcblock_put_message(self->block,message_type,strdup(message_name), self->parser->line_number); 
 	} else {
 		kxcblock_put_local_update(self->block, local_pos);
+		kxcblock_push_local(self->block, local_pos);
 		free(symbol);
 	}
 
@@ -546,6 +547,8 @@ kxcomp_start(KxCompiler *self)
 	CHECK(grammar_commands(self));
 
 	kxcblock_end_of_main_block(self->block);
+
+	kxcblock_optimise_root_block(self->block);
 	return 1;
 }
 

@@ -52,7 +52,7 @@ ARFLAGS = cru
 libkxcompiler_a_AR = $(AR) $(ARFLAGS)
 libkxcompiler_a_DEPENDENCIES = ../utils/libkxutils.a
 am_libkxcompiler_a_OBJECTS = kxcomp.$(OBJEXT) kxparser.$(OBJEXT) \
-	kxcompiler.$(OBJEXT) block.$(OBJEXT)
+	kxcompiler.$(OBJEXT) block.$(OBJEXT) block_optimise.$(OBJEXT)
 libkxcompiler_a_OBJECTS = $(am_libkxcompiler_a_OBJECTS)
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
@@ -165,7 +165,9 @@ libkxcompiler_a_SOURCES = \
 		kxcompiler.h \
 		block.c \
 		block.h \
-		kxinstr.h
+		kxinstr.h \
+		block_optimise.c \
+		block_optimise.h
 
 
 #libkxcompiler_a_LDFLAGS = -L../utils kxutils
@@ -218,6 +220,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/block.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/block_optimise.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/kxcomp.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/kxcompiler.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/kxparser.Po@am__quote@

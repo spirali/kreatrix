@@ -181,7 +181,9 @@ testObject = test TestCase clone do: {
 		(t slots size == 1) assertTrue.
 		t run.
 		(t slots size == 1) assertTrue.
-		assert: t a equals: 10.
+		(t a == 10) assertTrue.
+
+		( (t << 5) == 5 ) assertTrue.
 	}.
 
 	testInit = { |obj o|

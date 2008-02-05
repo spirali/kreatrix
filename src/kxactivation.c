@@ -749,8 +749,6 @@ kxactivation_run(KxActivation *self)
 				KxObject *obj = kxactivation_inner_stack_pop(self);
 				REF_REMOVE(self->locals[0]);
 				self->locals[0] = obj;
-				REF_ADD(obj);
-				kxactivation_inner_stack_push(self, obj);
 				continue;
 			}
 
@@ -759,8 +757,6 @@ kxactivation_run(KxActivation *self)
 				KxObject *obj = kxactivation_inner_stack_pop(self);
 				REF_REMOVE(self->locals[1]);
 				self->locals[1] = obj;
-				REF_ADD(obj);
-				kxactivation_inner_stack_push(self, obj);
 				continue;
 			}
 
@@ -769,8 +765,6 @@ kxactivation_run(KxActivation *self)
 				KxObject *obj = kxactivation_inner_stack_pop(self);
 				REF_REMOVE(self->locals[2]);
 				self->locals[2] = obj;
-				REF_ADD(obj);
-				kxactivation_inner_stack_push(self, obj);
 				continue;
 			}
 
@@ -780,8 +774,6 @@ kxactivation_run(KxActivation *self)
 				KxObject *obj = kxactivation_inner_stack_pop(self);
 				REF_REMOVE(self->locals[3]);
 				self->locals[3] = obj;
-				REF_ADD(obj);
-				kxactivation_inner_stack_push(self, obj);
 				continue;
 			}
 
@@ -791,8 +783,6 @@ kxactivation_run(KxActivation *self)
 				KxObject *obj = kxactivation_inner_stack_pop(self);
 				REF_REMOVE(self->locals[4]);
 				self->locals[4] = obj;
-				REF_ADD(obj);
-				kxactivation_inner_stack_push(self, obj);
 				continue;
 			}
 
@@ -802,8 +792,6 @@ kxactivation_run(KxActivation *self)
 				KxObject *obj = kxactivation_inner_stack_pop(self);
 				REF_REMOVE(self->locals[5]);
 				self->locals[5] = obj;
-				REF_ADD(obj);
-				kxactivation_inner_stack_push(self, obj);
 				continue;
 			}
 
@@ -813,8 +801,6 @@ kxactivation_run(KxActivation *self)
 				KxObject *obj = kxactivation_inner_stack_pop(self);
 				REF_REMOVE(self->locals[6]);
 				self->locals[6] = obj;
-				REF_ADD(obj);
-				kxactivation_inner_stack_push(self, obj);
 				continue;
 			}
 
@@ -824,8 +810,6 @@ kxactivation_run(KxActivation *self)
 				KxObject *obj = kxactivation_inner_stack_pop(self);
 				REF_REMOVE(self->locals[7]);
 				self->locals[7] = obj;
-				REF_ADD(obj);
-				kxactivation_inner_stack_push(self, obj);
 				continue;
 			}
 
@@ -836,8 +820,6 @@ kxactivation_run(KxActivation *self)
 				int pos = (int)(*((codep)++));
 				REF_REMOVE(self->locals[pos]);
 				self->locals[pos] = obj;
-				REF_ADD(obj);
-				kxactivation_inner_stack_push(self, obj);
 				continue;
 			}
 

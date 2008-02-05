@@ -15,7 +15,9 @@ libkxcompiler_a_SOURCES = \
 		kxcompiler.h \
 		block.c \
 		block.h \
-		kxinstr.h
+		kxinstr.h \
+		block_optimise.c \
+		block_optimise.h
 
 #libkxcompiler_a_LDFLAGS = -L../utils kxutils
 libkxcompiler_a_LIBADD = ../utils/libkxutils.a

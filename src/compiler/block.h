@@ -80,4 +80,7 @@ void kxcblock_put_character(KxcBlock *block, char character);
 int kxcblock_bytecode_size(KxcBlock *block);
 void kxcblock_bytecode_write(KxcBlock *block, char **bytecode);
 
+void kxcblock_push_local(KxcBlock *block, int pos);
+
+
 #endif
