@@ -93,6 +93,9 @@ kxcodeblock_free(KxCodeBlock *self) {
 	
 	if (data->code)
 		kxfree(data->code);
+	
+	if (data->prealocated_locals) 
+		kxfree(data->prealocated_locals);
 	kxfree(data);
 }
 
@@ -432,7 +435,12 @@ kxcodeblock_run(KxCodeBlock *self, KxObject *target, KxMessage *message)
 
 	KxActivation *activation = kxactivation_new(KXCORE); // = kxactivation_clone_with_new_data(prototype);
 
-	activation->locals = kxmalloc(sizeof(KxObject *) * data->locals_total_count);
+	if (data->prealocated_locals) {
+		activation->locals = data->prealocated_locals;
+		data->prealocated_locals = NULL;
+	} else {
+		activation->locals = kxmalloc(sizeof(KxObject *) * data->locals_total_count);
+	}
 	
 	return kxcodeblock_run_activation(self, target, activation, message);
 }

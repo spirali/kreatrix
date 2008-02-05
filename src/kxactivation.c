@@ -57,8 +57,13 @@ kxactivation_free(KxActivation *self)
 		REF_REMOVE(self->locals[t]);
 	}
 
-	if (!self->is_scoped)
-		kxfree(self->locals);
+	if (!self->is_scoped) {
+		if (cdata->prealocated_locals) {
+			kxfree(self->locals);
+		} else {
+			cdata->prealocated_locals = self->locals;
+		}
+	}
 	
 	REF_REMOVE(self->codeblock);
 	REF_REMOVE(self->slot_holder_of_codeblock);

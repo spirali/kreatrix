@@ -38,6 +38,8 @@ struct KxCodeBlockData {
 
 	int locals_total_count;
 
+	KxObject **prealocated_locals;
+
 	int symbol_frame_size;
 	KxSymbol **symbol_frame;
 
