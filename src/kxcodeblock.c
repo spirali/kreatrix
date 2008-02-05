@@ -361,9 +361,6 @@ kxcodeblock_run_activation(KxCodeBlock *self, KxObject *target, KxActivation *ac
 	activation->slot_holder_of_codeblock = message->slot_holder;
 	REF_ADD(activation->slot_holder_of_codeblock);
 
-
-	activation->target = activation->receiver;
-
 	int t;
 	for (t=0; t<message->params_count;t++) {
 		KxObject *param = message->params[t];
@@ -434,7 +431,7 @@ kxcodeblock_run(KxCodeBlock *self, KxObject *target, KxMessage *message)
 
 
 	KxActivation *activation = kxactivation_new(KXCORE); // = kxactivation_clone_with_new_data(prototype);
-
+	activation->long_return = NULL;
 	if (data->prealocated_locals) {
 		activation->locals = data->prealocated_locals;
 		data->prealocated_locals = NULL;

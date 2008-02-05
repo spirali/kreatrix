@@ -32,14 +32,7 @@ struct KxActivation {
 
 	KxObject *receiver; /* Reference to receiver */
 
-	/* TODO: rename to: implicit_target */
-	KxObject *target; /* normal call : target=activation
-						 direct call : target=self
-						*/
-
 	KxSymbol *message_name; 
-
-//	KxStack *stack;
 
 	KxActivation *long_return; /* - for long returns
 		method where scopedblock which activate start this activation was created, 

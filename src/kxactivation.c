@@ -83,8 +83,6 @@ kxactivation_mark(KxActivation *self)
 	}
 	kxobject_mark(self->codeblock);
 	kxobject_mark(self->receiver);
-	kxobject_mark(self->target);
-	//if (data->slot_holder_of_codeblock)
 	kxobject_mark(self->slot_holder_of_codeblock);
 
 	int t;
@@ -166,6 +164,10 @@ KxActivation *kxactivation_new(KxCore *core)
 {
 	KxActivation *self = kxcore_raw_activation_get(core);
 	ALLOCTEST(self);
+	self->message_num = 0;
+	self->message_name = NULL;
+	self->is_over = 0;
+	self->is_scoped = 0;
 	self->core = core;
 	self->ref_count = 1;
 	return self;
@@ -322,7 +324,6 @@ kxactivation_return(KxActivation *self, KxReturn ret)
 KxObject * 
 kxactivation_run(KxActivation *self) 
 {
-	
 	// Init inner stack
 	self->inner_stack_pos = 0;
 
@@ -420,7 +421,6 @@ kxactivation_run(KxActivation *self)
 			{
 				KxActivation *long_return = self->long_return;
 
-				// TODO: prevest is_over na novy rezim
 				if (long_return->is_over) {
 					KxException *exception = kxexception_new_with_text(KXCORE,"Blok with '^' evaluated when scope isn't running");
 					kxstack_throw_object(KXSTACK,exception);

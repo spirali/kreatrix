@@ -739,15 +739,12 @@ void * kxcore_slot_cache_resize(KxCore *core, int old_size, int new_size, void *
 
 void * kxcore_raw_activation_get(KxCore *core) 
 {
-	void *activation;
-
 	if (core->activation_cache_count) {
-		activation = core->activation_cache[--core->activation_cache_count];
-		bzero(activation, sizeof(KxActivation));
-		return activation;
+		return core->activation_cache[--core->activation_cache_count];
 	}
 
-	activation = kxcalloc(1,sizeof(KxActivation));
+	void *activation;
+	activation = kxmalloc(sizeof(KxActivation));
 	ALLOCTEST(activation);
 	return activation;
 }
