@@ -15,6 +15,7 @@
 #include "kxactivation.h"
 #include "kxexception.h"
 #include "kxlist.h"
+#include "compiler/kxinstr.h"
 
 #define GET_BYTECODE_CHAR *((*bytecode)++)
 
@@ -22,22 +23,19 @@ KxObjectExtension kxcodeblock_extension;
 
 static void kxcodeblock_free(KxCodeBlock *self);
 
-void kxcodeblock_mark(KxObject *self);
-KxObject * kxcodeblock_activate(KxCodeBlock *self, KxObject *target, KxMessage *message);
+static void kxcodeblock_mark(KxObject *self);
+static KxCodeBlockData *kxcodeblock_data_new_return_self();
 
 static void 
 kxcodeblock_add_method_table(KxCodeBlock *self);
 
-
-
-// TODO: proto object data!=NULL, condtions eliminationg
 void 
 kxcodeblock_init_extension()
 {
 	kxobjectext_init(&kxcodeblock_extension);
 	kxcodeblock_extension.type_name = "CodeBlock";
 	kxcodeblock_extension.free = kxcodeblock_free;
-	kxcodeblock_extension.activate = kxcodeblock_activate;
+	kxcodeblock_extension.activate = kxcodeblock_run;
 	kxcodeblock_extension.mark = kxcodeblock_mark;
 }
 
@@ -46,11 +44,12 @@ KxObject *
 kxcodeblock_new_prototype(KxCore *core) {
 	KxObject *codeblock = kxcore_clone_base_object(core);
 	codeblock->extension = &kxcodeblock_extension;
+	codeblock->data.ptr = kxcodeblock_data_new_return_self();
 	kxcodeblock_add_method_table(codeblock);
 	return codeblock;
 }
 
-KxCodeBlock *
+static KxCodeBlock *
 kxcodeblock_new(KxCore *core) {
 	KxObject *prototype = kxcore_get_basic_prototype(core, KXPROTO_CODEBLOCK);
 	KxCodeBlock *codeblock =  kxobject_raw_clone(prototype);
@@ -65,13 +64,11 @@ static void
 kxcodeblock_free(KxCodeBlock *self) {
 
 	KxCodeBlockData *data = KXCODEBLOCK_DATA(self);
-	if (!data)
-		return;
-
-
 
 	kxfree(data->source_filename); 
-	kxfree(data->message_linenumbers);
+
+	if (data->message_linenumbers)
+		kxfree(data->message_linenumbers);
 
 	int t;
 	for (t=0;t<data->subcodeblocks_size;t++)
@@ -80,10 +77,12 @@ kxcodeblock_free(KxCodeBlock *self) {
 	/*if (data->parent_codeblock)
 		REF_REMOVE(data->parent_codeblock);*/
 
-	for (t=0;t<data->symbol_frame_size;t++) {
-		REF_REMOVE(data->symbol_frame[t]);
+	if (data->symbol_frame) {
+		for (t=0;t<data->symbol_frame_size;t++) {
+			REF_REMOVE(data->symbol_frame[t]);
+		}
+		kxfree(data->symbol_frame);
 	}
-	kxfree(data->symbol_frame);
 	
 	if (data->subcodeblocks)
 		kxfree(data->subcodeblocks);
@@ -95,6 +94,24 @@ kxcodeblock_free(KxCodeBlock *self) {
 	if (data->code)
 		kxfree(data->code);
 	kxfree(data);
+}
+
+KxCodeBlockData *
+kxcodeblock_data_new_return_self() 
+{
+	KxCodeBlockData *data;
+
+	data = kxcalloc(1, sizeof(KxCodeBlockData));
+	ALLOCTEST(data);
+
+	data->type = KXCODEBLOCK_METHOD;
+	data->source_filename = strdup("<build-in>");
+	data->code = kxmalloc(1);
+	ALLOCTEST(data->code);
+
+	data->code[0] = KXCI_RETURNSELF;
+
+	return data;
 }
 
 static void 
@@ -274,6 +291,11 @@ kxcodeblock_read_message_linenumbers(KxCodeBlock *self, char **bytecode)
 
 	KxCodeBlockData *data = KXCODEBLOCK_DATA(self);
 
+	if (size == 0) {
+		data->message_linenumbers = NULL;
+		return;
+	}
+
 	data->message_linenumbers = kxmalloc(sizeof(int) * size);
 	ALLOCTEST(data->message_linenumbers);
 
@@ -415,20 +437,7 @@ kxcodeblock_run(KxCodeBlock *self, KxObject *target, KxMessage *message)
 	return kxcodeblock_run_activation(self, target, activation, message);
 }
 
-
-
-KxObject *
-kxcodeblock_activate(KxCodeBlock *self, KxObject *target, KxMessage *message) 
-{
-	KxCodeBlockData *data = self->data.ptr;
-	if (data == NULL) {
-		// TODO: Better solution!
-		KXTHROW_EXCEPTION("Call proto codeblock is prohibited, TODO: Better solution of this");
-	}
-	return kxcodeblock_run(self,target, message);
-}
-
-void
+static void
 kxcodeblock_mark(KxObject *self) 
 {
 	KxCodeBlockData *data = KXCODEBLOCK_DATA(self);
