@@ -4,9 +4,10 @@
  *
  **********************************************************************/
 
+
 #include <stdio.h>
 #include <stdlib.h>
-#include <config.h>
+#include <kxconfig.h>
 
 #ifdef KX_THREADS_SUPPORT
 #include <sched.h>

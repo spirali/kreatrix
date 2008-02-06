@@ -15,7 +15,7 @@ AC_EXEEXT
 
 AC_CHECK_LIB(dl, dlopen)
 
-AC_CONFIG_HEADERS([config.h])
+AC_CONFIG_HEADERS([kxconfig.h])
 AC_CONFIG_FILES([
         Makefile
         src/Makefile

@@ -2,7 +2,7 @@
 #ifndef __KX_UTILS_LOG
 #define __KX_UTILS_LOG
 
-#include "../../config.h"
+#include "kxconfig.h"
 
 #ifdef KX_LOG
 

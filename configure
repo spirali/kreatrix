@@ -3448,7 +3448,7 @@ _ACEOF
 fi
 
 
-ac_config_headers="$ac_config_headers config.h"
+ac_config_headers="$ac_config_headers kxconfig.h"
 
 ac_config_files="$ac_config_files Makefile src/Makefile src/utils/Makefile src/compiler/Makefile src/tools/Makefile src/tools/kx2carray/Makefile src/tools/docgen/Makefile src/tools/objgen/Makefile src/tools/wrapgen/Makefile src/vminit/Makefile modules/Makefile modules/test/Makefile modules/system/Makefile modules/sockets/Makefile modules/time/Makefile modules/pool/Makefile modules/cgi/Makefile modules/random/Makefile modules/threads/Makefile modules/xml/Makefile modules/gtk/Makefile tests/Makefile docs/Makefile docs/examples/Makefile"
 
@@ -4582,7 +4582,7 @@ for ac_config_target in $ac_config_targets
 do
   case $ac_config_target in
     "depfiles") CONFIG_COMMANDS="$CONFIG_COMMANDS depfiles" ;;
-    "config.h") CONFIG_HEADERS="$CONFIG_HEADERS config.h" ;;
+    "kxconfig.h") CONFIG_HEADERS="$CONFIG_HEADERS kxconfig.h" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "src/Makefile") CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
     "src/utils/Makefile") CONFIG_FILES="$CONFIG_FILES src/utils/Makefile" ;;

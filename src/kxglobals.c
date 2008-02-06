@@ -1,4 +1,4 @@
-#include <config.h>
+#include <kxconfig.h>
 #include <stdio.h>
 #include <stdlib.h>
 

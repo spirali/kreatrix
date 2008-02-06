@@ -9,7 +9,7 @@
 #include "kxcomp.h"
 #include "../utils/list.h"
 #include "../utils/utils.h"
-#include "../../config.h"
+#include "kxconfig.h"
 
 
 /**

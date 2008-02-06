@@ -22,4 +22,5 @@ utils_pkginclude_HEADERS =\
 	hash.h \
 	utils.h \
 	bytearray.h \
-	dictionary.h
+	dictionary.h \
+	log.h

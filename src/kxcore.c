@@ -14,7 +14,7 @@
 #include <string.h>
 #include <stdarg.h>
 
-#include <config.h>
+#include <kxconfig.h>
 
 #include "utils/utils.h"
 #include "kxcore.h"
