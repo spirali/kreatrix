@@ -43,6 +43,11 @@
 #include "kxset.h"
 #include "kxarray2d.h"
 
+#ifndef KX_MULTI_STATE
+
+KxCore *kx_global_core = NULL;
+
+#endif
 
 /*#ifdef KX_DEBUG_GC
 	#define GC_COUNTDOWN_INIT_VALUE 1 // DEBUG-GC option
@@ -91,6 +96,15 @@ kxcore_new()
 {
 	KxCore *core = kxcalloc(1,sizeof(KxCore));
 	ALLOCTEST(core);
+
+	#ifndef KX_MULTI_CORE
+	if (kx_global_core) {
+		fprintf(stderr,"kxcore_new: Kreatrix is compiled without --enable-multistate, there can't be two cores");
+		abort();
+	}
+	kx_global_core = core;
+	#endif
+
 
 	#ifdef KX_THREADS_SUPPORT
 		core->yield_counter = KX_DEFAULT_YIELD_INTERVAL;
@@ -327,6 +341,10 @@ kxcore_free(KxCore *self)
 	if (kx_verbose || self->objects_count)
 		printf("core->objects_count = %i\n", self->objects_count);
 	kxfree(self);
+
+	#ifndef KX_MULTI_STATE
+	kx_global_core = NULL;
+	#endif
 }
 
 KxObject *

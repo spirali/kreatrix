@@ -58,8 +58,10 @@ kxobject_new_from(KxObject *self)
 
 	KxObject *object = kxobject_new();
 
-	object->core = self->core;
-	++self->core->objects_count;
+	#ifdef KX_MULTI_CORE
+		object->core = self->core;
+	#endif
+	++(KXCORE->objects_count);
 	object->extension = self->extension;
 
 	KxObject *tmp = self->gc_next;
@@ -131,7 +133,7 @@ kxobject_free(KxObject *self)
 	KxObject *prev = self->gc_prev;
 	next->gc_prev = prev;
 	prev->gc_next = next;
-	self->core->objects_count--;
+	KXCORE->objects_count--;
 	kxfree(self);
 }
 

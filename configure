@@ -1261,6 +1261,7 @@ Optional Features:
   --enable-dependency-tracking   do not reject slow dependency extractors
   --enable-debug-gc   If this option is enabled, GC runs before every activation of CodeBlock
   --enable-vm-log   Debug option. Activities of VM is logged
+  --enable-multistate   Enable support for more VMs in one application
   --disable-threads   Disable threads support
   --disable-xml   Disable building xml module
   --disable-gtk   Disable building GTK module
@@ -3488,6 +3489,28 @@ _ACEOF
 
 { echo "$as_me:$LINENO: DEBUG OPTIONS: vm-log enabled" >&5
 echo "$as_me: DEBUG OPTIONS: vm-log enabled" >&6;}
+
+fi
+
+
+# MultiCore VM
+# Check whether --enable-threads was given.
+if test "${enable_threads+set}" = set; then
+  enableval=$enable_threads;
+kx_multistate="${enableval}"
+
+else
+  kx_multistate=no
+fi
+
+
+if test "$kx_multistate" = yes; then
+{ echo "$as_me:$LINENO: Multi state ENABLED" >&5
+echo "$as_me: Multi state ENABLED" >&6;}
+
+cat >>confdefs.h <<_ACEOF
+#define KX_MULTI_STATE 1
+_ACEOF
 
 fi
 

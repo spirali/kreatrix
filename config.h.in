@@ -9,6 +9,9 @@
 /* DEBUG! Activities of VM is logged */
 #undef KX_LOG
 
+/* More KxCore's in one application */
+#undef KX_MULTI_STATE
+
 /* Support threads in VM */
 #undef KX_THREADS_SUPPORT
 

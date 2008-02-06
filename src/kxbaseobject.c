@@ -32,7 +32,10 @@ KxObject *
 kxbaseobject_new(KxCore *core)
 {
 	KxObject *object = kxobject_new();
-	object->core = core;
+
+	#ifdef KX_MULTICORE
+		object->core = core;
+	#endif
 
 
 	return object;
