@@ -43,7 +43,7 @@ am__aclocal_m4_deps = $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
-CONFIG_HEADER = $(top_builddir)/config.h
+CONFIG_HEADER = $(top_builddir)/kxconfig.h
 CONFIG_CLEAN_FILES =
 LIBRARIES = $(noinst_LIBRARIES)
 AR = ar
@@ -185,7 +185,8 @@ utils_pkginclude_HEADERS = \
 	hash.h \
 	utils.h \
 	bytearray.h \
-	dictionary.h
+	dictionary.h \
+	log.h
 
 all: all-am
 

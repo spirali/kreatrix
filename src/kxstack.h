@@ -12,7 +12,7 @@
 #define KXSTACK_MESSAGES_SIZE 1024
 
 #include "kxobject_struct.h"
-#include <config.h>
+#include "kxconfig.h"
 
 struct KxActionation;
 
