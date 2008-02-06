@@ -22,7 +22,7 @@ queryString = { |string len|
 }.
 
 
-decodeUrl: = { :aUrlString |  |aUrlString pos out start|
+decodeUrl: = { :aUrlString |  |pos out start|
 	aUrlString << aUrlString replace: "+" to: " ".
 	pos << 0.
 	out << "".
