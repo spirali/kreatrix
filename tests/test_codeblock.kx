@@ -1,0 +1,39 @@
+
+import: "test".
+
+codeblockTest = test TestCase clone do: {
+
+	testParams = {
+		|method|
+
+		method << { :a :b | }.
+
+		(method params == #(#a #b)) assertTrue.
+	}.
+
+	testActivation = {
+		|method act|
+		method << { :a :b | 
+			|local act| 
+			local << 123.
+			act << activation.
+			act local: #b put: #c.
+			^activation.
+		}.
+		act << do: method parameters: #(3 11).
+		method << nil.
+		(act codeblock params == #(#a #b)) assertTrue.
+
+		((act local: #a) == 3) assertTrue.
+		((act local: #b) == #c) assertTrue.
+		((act local: #local) == 123) assertTrue.
+	}.
+
+	testRunPrototype = { |result|
+		result << CodeBlock.
+		(result == self) assertTrue.
+	}.
+}.
+
+codeblockTest run.
+
