@@ -71,7 +71,7 @@ kxactivation_free(KxActivation *self)
 	if (self->message_name)
 		REF_REMOVE(self->message_name);
 
-	kxcore_raw_activation_return(self->core,self);
+	kxcore_raw_activation_return(KXCORE,self);
 
 }
 
@@ -168,7 +168,11 @@ KxActivation *kxactivation_new(KxCore *core)
 	self->message_name = NULL;
 	self->is_over = 0;
 	self->is_scoped = 0;
+
+	#ifdef KX_MULTI_STATE
 	self->core = core;
+	#endif
+	
 	self->ref_count = 1;
 	return self;
 }

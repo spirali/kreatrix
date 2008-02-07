@@ -14,6 +14,7 @@
 
 #include "kxcodeblock.h"
 #include "kxmessage.h"
+#include "kxconfig.h"
 
 /*#define IS_KXACTIVATION(kxobject) ((kxobject)->extension==&kxactivation_extension)
 
@@ -52,7 +53,9 @@ struct KxActivation {
 
 	KxObject *slot_holder_of_codeblock;
 
-	KxCore *core;
+	#ifdef KX_MULTI_STATE
+		KxCore *core;
+	#endif
 
 	int ref_count;
 };

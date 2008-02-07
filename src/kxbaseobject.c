@@ -32,9 +32,6 @@ KxObject *
 kxbaseobject_new(KxCore *core)
 {
 	KxObject *object = kxobject_new(core);
-	object->core = core;
-
-
 	return object;
 }
 

@@ -64,6 +64,19 @@ AC_DEFINE_UNQUOTED([KX_LOG],[1],[DEBUG! Activities of VM is logged])
 AC_MSG_NOTICE([DEBUG OPTIONS: vm-log enabled])
 ],[])
 
+# MultiCore VM
+AC_ARG_ENABLE(threads,
+[  --enable-multistate   Enable support for more VMs in one application ],
+[ 
+kx_multistate="${enableval}"
+],[kx_multistate=no])
+
+if test "$kx_multistate" = yes; then
+AC_MSG_NOTICE([Multi state ENABLED])
+AC_DEFINE_UNQUOTED([KX_MULTI_STATE],[1],[More KxCore's in one application])
+fi
+
+
 
 # Threads support
 AC_ARG_ENABLE(threads,

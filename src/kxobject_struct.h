@@ -27,12 +27,6 @@ typedef struct KxSlot KxSlot;
 
 struct KxCore;
 
-#define KXCORE ((self)->core)
-#define KXCORE_FROM(object) ((object)->core)
-
-#define KXSTACK KXCORE->stack
-#define KXSTACK_FROM(object) KXCORE_FROM(object)->stack
-
 struct KxParentSlot {
 	KxObject *parent;
 	KxParentSlot *next;
@@ -63,7 +57,9 @@ struct KxObject {
 
 	KxObjectExtension *extension;
 
+	#ifdef KX_MULTI_STATE
 	struct KxCore *core;
+	#endif
 };
 
 struct KxSlot {

@@ -41,6 +41,24 @@ KXDICTIONARY_SIZE
 
 typedef struct KxCore KxCore;
 
+#ifdef KX_MULTI_STATE
+
+	#define KXCORE ((self)->core)
+	#define KXCORE_FROM(object) ((object)->core)
+
+	#else // not KX_MULTI_STATE
+
+	extern KxCore *kx_global_core;
+
+	#define KXCORE (kx_global_core)
+	#define KXCORE_FROM(object) (kx_global_core)
+
+#endif // KX_MULTI_STATE
+
+#define KXSTACK KXCORE->stack
+#define KXSTACK_FROM(object) KXCORE_FROM(object)->stack
+
+
 #define KXSYMBOL(cstring) kxcore_get_symbol(KXCORE,cstring)
 
 #ifdef KX_THREADS_SUPPORT

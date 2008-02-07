@@ -40,10 +40,14 @@ kxobject_new(KxCore *core)
 
 	KxObject *object = kxcore_raw_object_get(core);
 
+	#ifdef KX_MULTI_CORE
+		object->core = self->core;
+	#endif
+
+	object->ref_count = 1;
 	//object->slots = hashtable_new();
 	kxobject_slots_init(object);
 
-	object->ref_count = 1;
 
 	return object;
 }
@@ -57,8 +61,8 @@ kxobject_new_from(KxObject *self)
 
 	KxObject *object = kxobject_new(KXCORE);
 
-	object->core = self->core;
-	++self->core->objects_count;
+
+	++(KXCORE->objects_count);
 	object->extension = self->extension;
 
 	KxObject *tmp = self->gc_next;
@@ -130,8 +134,7 @@ kxobject_free(KxObject *self)
 	KxObject *prev = self->gc_prev;
 	next->gc_prev = prev;
 	prev->gc_next = next;
-	self->core->objects_count--;
-
+	KXCORE->objects_count--;
 	kxcore_raw_object_return(KXCORE,self);
 }
 
