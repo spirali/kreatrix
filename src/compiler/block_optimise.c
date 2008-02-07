@@ -15,8 +15,8 @@ static void kxcblock_optimise_remove_pops(KxcBlock *block)
 		if (i->type == KXCI_POP) {
 			KxcInstruction *prev = block->code->items[t-1];
 			if (prev->type >= KXCI_PUSH_LOCAL0 && prev->type <= KXCI_PUSH_LOCALN) {
-				list_fast_remove(block->code, t);
-				list_fast_remove(block->code, t - 1);
+				kxcblock_remove_instruction(block, t);
+				kxcblock_remove_instruction(block, t - 1);
 				t--;
 			}
 		}

@@ -972,3 +972,11 @@ kxcblock_bytecode_write(KxcBlock *block, char **bytecode)
 		kxcblock_bytecode_write(block->subblocks->items[t],bytecode);
 	}
 }
+
+void 
+kxcblock_remove_instruction(KxcBlock *block, int position)
+{
+	KxcInstruction *i = block->code->items[position];
+	list_fast_remove(block->code, position);
+	kxcinstruction_free(i);
+}

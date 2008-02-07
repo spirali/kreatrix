@@ -82,5 +82,8 @@ void kxcblock_bytecode_write(KxcBlock *block, char **bytecode);
 
 void kxcblock_push_local(KxcBlock *block, int pos);
 
+void kxcblock_remove_instruction(KxcBlock *block, int position);
+
+
 
 #endif
