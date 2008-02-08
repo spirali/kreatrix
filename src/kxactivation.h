@@ -35,9 +35,7 @@ struct KxActivation {
 
 	KxSymbol *message_name; 
 
-	KxActivation *long_return; /* - for long returns
-		method where scopedblock which activate start this activation was created, 
-		if activation is for method, long_return == NULL */
+	KxActivation *parent;
 
 	KxMessage message;
 
@@ -48,8 +46,6 @@ struct KxActivation {
 	KxObject *inner_stack[KXACTIVATION_INNER_STACK_SIZE];
 
 	int is_over; // activation is dead, running of method is over and activation isn't on stack
-
-	int is_scoped;
 
 	KxObject *slot_holder_of_codeblock;
 

@@ -29,6 +29,34 @@ codeblockTest = test TestCase clone do: {
 		((act local: #local) == 123) assertTrue.
 	}.
 
+	testActivation2 = { |list list2|
+		list << #().
+
+		0 to: 4 do: [ :i | |z|
+			z << i + 1.
+			list add: [ z ].
+		].
+
+		list2 << list collect: [ :each | each value ].
+		
+		(list2 == #(1 2 3 4)) assertTrue.
+	}.
+
+	testActivation3 = {
+		|block x z|
+		x << 0.
+		z << 0.
+		block << [ |z|
+			x < 4 ifTrue: [ 
+				x << x + 1.
+				(z == nil) assertTrue.
+				block value.
+			].
+		].
+		block value.
+		(x == 4) assertTrue.
+	}.
+
 	testRunPrototype = { |result|
 		result << CodeBlock.
 		(result == self) assertTrue.

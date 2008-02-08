@@ -9,6 +9,12 @@
 #include "kxinstr.h"
 
 typedef struct KxcInstruction KxcInstruction;
+typedef struct KxcLocal KxcLocal;
+
+struct KxcLocal { 
+	int index;
+	int scope; 
+};
 
 struct KxcInstruction {
 	KxInstructionType type;
@@ -20,7 +26,7 @@ struct KxcInstruction {
 		int charval;
 		int integer;
         double floatval;
-		char local;
+		KxcLocal local;
 	} value;
 };
 
@@ -33,8 +39,6 @@ struct KxcBlock {
 
 	/*char *params;*/
 	
-	int locals_start_pos;
-
 	char *locals;
 
 	int params_count;
@@ -61,7 +65,7 @@ void kxcblock_end_of_code(KxcBlock *block);
 
 void kxcblock_end_of_main_block(KxcBlock *block);
 
-int kxcblock_local_pos(KxcBlock *block, char *messagename);
+int kxcblock_find_local(KxcBlock *block, char *messagename, KxcLocal *local);
 
 
 void kxcblock_put_pop(KxcBlock *block);
@@ -80,7 +84,7 @@ void kxcblock_put_character(KxcBlock *block, char character);
 int kxcblock_bytecode_size(KxcBlock *block);
 void kxcblock_bytecode_write(KxcBlock *block, char **bytecode);
 
-void kxcblock_push_local(KxcBlock *block, int pos);
+void kxcblock_push_local(KxcBlock *block, KxcLocal *local);
 
 void kxcblock_remove_instruction(KxcBlock *block, int position);
 

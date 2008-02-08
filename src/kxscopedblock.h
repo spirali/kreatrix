@@ -24,7 +24,6 @@ struct KxActivation;
 struct KxScopedBlockData {
 	KxCodeBlock *codeblock;
 	struct KxActivation *scope;
-	int is_running;
 };
 
 void kxscopedblock_init_extension();

@@ -45,7 +45,6 @@ kxscopedblock_clone_with(KxScopedBlock *self, KxCodeBlock *codeblock, struct KxA
 
 	scope->ref_count++;
 	data->scope = scope;
-	data->is_running = 0;
 	
 	REF_ADD(codeblock);
 	data->codeblock = codeblock;
@@ -123,15 +122,10 @@ kxscopedblock_run(KxScopedBlock *self, KxMessage *message)
 {
 	kxstack_push_object(KXSTACK,self);
 	KxScopedBlockData *data = self->data.ptr;
-	if (data->is_running) {
-		kxstack_pop_object(KXSTACK);
-		KxException *excp = kxexception_new_with_text(KXCORE, "ScopedBlock (with same scope) is already running");
-		KXTHROW(excp);
-	}
-	data->is_running = 1;
+
 	message->slot_holder = data->scope->slot_holder_of_codeblock;
 	KxObject * retobj =  kxcodeblock_run_scoped(data->codeblock,data->scope, message);
-	data->is_running = 0;
+
 	kxstack_pop_object(KXSTACK);
 	return retobj;
 }

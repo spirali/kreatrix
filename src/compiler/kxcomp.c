@@ -373,18 +373,19 @@ kxcomp_put_alias(KxCompiler *self, int message_type, char *message_name, int sub
 {
 	char *symbol = kxparser_token_string_value(self->parser);
 
-	int local_pos;
+	int is_local;
+	KxcLocal local;
 
 	if (substitution_check) {
-		local_pos = kxcblock_local_pos(self->block, symbol);
+		is_local = kxcblock_find_local(self->block, symbol, &local);
 	} else {
-		local_pos = -1;
+		is_local = 0;
 	}
 
 	int doc_type;
 	char *doc_string = NULL;
 	
-	if (local_pos == -1) {
+	if (!is_local) {
 		doc_string = kxparser_get_documentation_string(self->parser, &doc_type);
 		if (doc_string) {
 			kxcblock_put_symbol(self->block, strdup(symbol));
@@ -409,11 +410,11 @@ kxcomp_put_alias(KxCompiler *self, int message_type, char *message_name, int sub
 		kxcblock_put_message(self->block,KXCI_KEYWORD_MSG,strdup("__asDocTo:"), self->parser->line_number); 
 	}*/
 
-	if (local_pos == -1) {
+	if (!is_local) {
 		kxcblock_put_message(self->block,message_type,strdup(message_name), self->parser->line_number); 
 	} else {
-		kxcblock_put_local_update(self->block, local_pos);
-		kxcblock_push_local(self->block, local_pos);
+		kxcblock_put_local_update(self->block, &local);
+		kxcblock_push_local(self->block, &local);
 		free(symbol);
 	}
 

@@ -157,13 +157,11 @@ kxcodeblock_read_params(KxCodeBlock *self, char **bytecode)
 static void
 kxcodeblock_read_localslots(KxCodeBlock *self, char **bytecode) 
 {
-	int start_pos = GET_BYTECODE_CHAR;
 	int size = GET_BYTECODE_CHAR;
 	
 	KxCodeBlockData *data = KXCODEBLOCK_DATA(self);
 
 	data->locals_count = size;
-	data->locals_pos = start_pos;
 
 	if (size == 0) {
 		data->locals_symbols = NULL;
@@ -327,8 +325,8 @@ kxcodeblock_read_subblock(KxCore *core, char **bytecode, KxCodeBlock *parent_cod
 	
 	kxcodeblock_read_subblocks(codeblock, bytecode, source_filename);
 
-	KxCodeBlockData *data = KXCODEBLOCK_DATA(codeblock);
-	data->locals_total_count = kxcodeblock_locals_total_count(codeblock);
+	//KxCodeBlockData *data = KXCODEBLOCK_DATA(codeblock);
+	//data->locals_total_count = kxcodeblock_locals_total_count(codeblock);
 
 	return codeblock;
 }
@@ -361,23 +359,31 @@ kxcodeblock_run_activation(KxCodeBlock *self, KxObject *target, KxActivation *ac
 	activation->slot_holder_of_codeblock = message->slot_holder;
 	REF_ADD(activation->slot_holder_of_codeblock);
 
+	if (data->prealocated_locals) {
+		activation->locals = data->prealocated_locals;
+		data->prealocated_locals = NULL;
+	} else {
+		activation->locals = kxmalloc(sizeof(KxObject *) * data->locals_count);
+	}
+
+
 	int t;
 	for (t=0; t<message->params_count;t++) {
 		KxObject *param = message->params[t];
 		REF_ADD(param);
-		activation->locals[t+data->locals_pos] = param;
+		activation->locals[t] = param;
 	}
 
 	for (t=message->params_count; t<data->locals_count;t++) {
 		REF_ADD(KXCORE->object_nil);
-		activation->locals[t+data->locals_pos] = KXCORE->object_nil;
+		activation->locals[t] = KXCORE->object_nil;
 	}
 
 
 
 
 	KxObject * retobj = kxactivation_run(activation);
-	
+
 	activation->ref_count--;
 	if (activation->ref_count == 0) {
 		kxactivation_free(activation);
@@ -402,14 +408,13 @@ kxcodeblock_run_scoped(KxCodeBlock *self, KxActivation *parent_activation, KxMes
 	KxActivation *activation = kxactivation_new(KXCORE); // = kxactivation_clone_with_new_data(prototype);
 
 	
-	if (parent_activation->long_return) {
+	/*if (parent_activation->long_return) {
 		activation->long_return = parent_activation->long_return;
 	} else {
 		activation->long_return = parent_activation;
-	}
+	}*/
 		
-	activation->locals = parent_activation->locals;
-	activation->is_scoped = 1;
+	activation->parent = parent_activation;
 	
 	return kxcodeblock_run_activation(self, parent_activation->receiver, activation, message);
 
@@ -431,13 +436,8 @@ kxcodeblock_run(KxCodeBlock *self, KxObject *target, KxMessage *message)
 
 
 	KxActivation *activation = kxactivation_new(KXCORE); // = kxactivation_clone_with_new_data(prototype);
-	activation->long_return = NULL;
-	if (data->prealocated_locals) {
-		activation->locals = data->prealocated_locals;
-		data->prealocated_locals = NULL;
-	} else {
-		activation->locals = kxmalloc(sizeof(KxObject *) * data->locals_total_count);
-	}
+	//activation->long_return = NULL;
+	activation->parent = NULL;
 	
 	return kxcodeblock_run_activation(self, target, activation, message);
 }

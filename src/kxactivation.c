@@ -27,6 +27,8 @@
 #include "kxcharacter.h"
 #include "kxactivation_object.h"
 
+#define FETCH_BYTE(codep) *(codep++)
+
 //static void kxactivation_add_method_table(KxObject *self);
 
 
@@ -52,17 +54,15 @@ kxactivation_free(KxActivation *self)
 
 	KxCodeBlockData *cdata = self->codeblock->data.ptr;
 	int t;
-	for (t=cdata->locals_pos; t < cdata->locals_pos + cdata->locals_count; t++) 
+	for (t=0; t < cdata->locals_count; t++) 
 	{
 		REF_REMOVE(self->locals[t]);
 	}
 
-	if (!self->is_scoped) {
-		if (cdata->prealocated_locals) {
-			kxfree(self->locals);
-		} else {
-			cdata->prealocated_locals = self->locals;
-		}
+	if (cdata->prealocated_locals) {
+		kxfree(self->locals);
+	} else {
+		cdata->prealocated_locals = self->locals;
 	}
 	
 	REF_REMOVE(self->codeblock);
@@ -91,7 +91,7 @@ kxactivation_mark(KxActivation *self)
 	}
 
 	KxCodeBlockData *cdata = KXCODEBLOCK_DATA(self->codeblock);
-	for (t=cdata->locals_pos;t<cdata->locals_pos + cdata->locals_count;t++) {
+	for (t=0;t<cdata->locals_count;t++) {
 		kxobject_mark(self->locals[t]);
 	}
 	// TODO: params
@@ -167,7 +167,6 @@ KxActivation *kxactivation_new(KxCore *core)
 	self->message_num = 0;
 	self->message_name = NULL;
 	self->is_over = 0;
-	self->is_scoped = 0;
 
 	#ifdef KX_MULTI_STATE
 	self->core = core;
@@ -423,7 +422,11 @@ kxactivation_run(KxActivation *self)
 			
 			case KXCI_LONGRETURN:
 			{
-				KxActivation *long_return = self->long_return;
+				KxActivation *long_return = self->parent;
+
+				while(long_return->parent) {
+					long_return = long_return->parent;
+				}
 
 				if (long_return->is_over) {
 					KxException *exception = kxexception_new_with_text(KXCORE,"Blok with '^' evaluated when scope isn't running");
@@ -827,6 +830,37 @@ kxactivation_run(KxActivation *self)
 				continue;
 			}
 
+			case KXCI_PUSH_OUTER_LOCAL: 
+			{
+				int scope = (int) FETCH_BYTE(codep);
+				KxActivation *act = self->parent;
+				int t;
+				for (t=0;t<scope;t++) {
+					act = act->parent;
+				}
+				KxObject *obj = act->locals[(int)FETCH_BYTE(codep)];
+				REF_ADD(obj);
+				kxactivation_inner_stack_push(self, obj);
+				continue;
+			}
+
+			case KXCI_UPDATE_OUTER_LOCAL:
+			{
+				int scope = (int) FETCH_BYTE(codep);
+				KxActivation *act = self->parent;
+				int t;
+				for (t=0;t<scope;t++) {
+					act = act->parent;
+				}
+				KxObject *obj = kxactivation_inner_stack_pop(self);
+				int pos = (int)FETCH_BYTE(codep);
+				REF_REMOVE(act->locals[pos]);
+				act->locals[pos] = obj;
+				continue;
+			}
+
+
+
 			default: 
 				fprintf(stderr,"Invalid instruction\n");
 				abort();
@@ -843,7 +877,7 @@ kxactivation_get_local(KxActivation *self, KxSymbol *name)
 	int t;
 	for (t=0;t<cdata->locals_count;t++) {
 		if (name == cdata->locals_symbols[t]) {
-			KxObject *obj = self->locals[t + cdata->locals_pos];
+			KxObject *obj = self->locals[t];
 			REF_ADD(obj);
 			return obj;
 		}
@@ -860,8 +894,8 @@ kxactivation_put_local(KxActivation *self, KxSymbol *name, KxObject *newobject)
 	for (t=0;t<cdata->locals_count;t++) {
 		if (name == cdata->locals_symbols[t]) {
 			REF_ADD(newobject);
-			KxObject *obj = self->locals[t + cdata->locals_pos];
-			self->locals[t + cdata->locals_pos] = newobject;
+			KxObject *obj = self->locals[t];
+			self->locals[t] = newobject;
 			REF_REMOVE(obj);
 			return 1;
 		}

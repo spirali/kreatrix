@@ -31,12 +31,8 @@ struct KxCodeBlockData {
 
 	int params_count;
 
-	int locals_pos;
-
 	int locals_count;
 	KxSymbol **locals_symbols;
-
-	int locals_total_count;
 
 	KxObject **prealocated_locals;
 
