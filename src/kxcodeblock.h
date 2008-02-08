@@ -27,18 +27,21 @@ struct KxCodeBlockData {
 
 	KxCodeBlockType type;
 
+
+	KxObject **literals;
+	KxSymbol **symbol_frame;
+
+	KxObject **prealocated_locals;
+
+	int symbol_frame_size;
+	int literals_count;
+
 	char *code;
 
 	int params_count;
 
 	int locals_count;
 	KxSymbol **locals_symbols;
-
-	KxObject **prealocated_locals;
-
-	int symbol_frame_size;
-	KxSymbol **symbol_frame;
-
 
 	
 	//KxCodeBlock *parent_codeblock; // NULL for method

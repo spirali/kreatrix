@@ -22,7 +22,7 @@ kxcinstruction_new(KxInstructionType type)
 	KxcInstruction *instruction = malloc(sizeof(KxcInstruction));
 	ALLOCTEST(instruction);
 	instruction->type = type;
-	instruction->value.integer = 0;
+	instruction->value.symbol = 0;
 	return instruction;
 }
 
@@ -32,9 +32,6 @@ kxcinstruction_new(KxInstructionType type)
 static void
 kxcinstruction_free(KxcInstruction *instruction)
 {   
-	if (instruction->type == KXCI_PUSH_STRING) {
-		free(instruction->value.string);
-	}
 	free(instruction);
 }
 
@@ -58,21 +55,6 @@ kxcinstruction_bytecode_size(KxcInstruction *instruction)
 		case KXCI_RESEND_KEYWORD_MSG:
 			return typesize+2*sizeof(char); // symbol id, params count
 
-		case KXCI_PUSH_INTEGER:
-			return typesize+sizeof(int);
-
-		case KXCI_PUSH_STRING:
-			return typesize+strlen(instruction->value.string)+1;
-
-		case KXCI_PUSH_FLOAT:
-			return typesize+sizeof(double);
-
-		case KXCI_PUSH_SYMBOL:
-			return typesize+sizeof(char); // symbol id
-
-		case KXCI_PUSH_CHARACTER:
-			return typesize+sizeof(int); 
-	
 		case KXCI_POP:
 			return typesize;
 		
@@ -88,6 +70,14 @@ kxcinstruction_bytecode_size(KxcInstruction *instruction)
 		case KXCI_LONGRETURN:
 		case KXCI_RETURNSELF:
 			return typesize;
+
+		case KXCI_PUSH_LITERAL0:
+		case KXCI_PUSH_LITERAL1:
+		case KXCI_PUSH_LITERAL2:
+		case KXCI_PUSH_LITERAL3:
+		case KXCI_PUSH_LITERAL4:
+		case KXCI_PUSH_LITERAL5:
+		case KXCI_PUSH_LITERAL6:
 
 		case KXCI_PUSH_LOCAL0:
 		case KXCI_PUSH_LOCAL1:
@@ -110,6 +100,7 @@ kxcinstruction_bytecode_size(KxcInstruction *instruction)
 			return typesize;
 
 
+		case KXCI_PUSH_LITERALN:
 		case KXCI_PUSH_LOCALN:
 		case KXCI_UPDATE_LOCALN:
 			return typesize + 1;
@@ -122,6 +113,26 @@ kxcinstruction_bytecode_size(KxcInstruction *instruction)
 	abort();
 	return typesize;
 }
+
+static KxcLiteral*
+kxcliteral_new(KxcLiteralType type)
+{
+	KxcLiteral *literal = malloc(sizeof(KxcLiteral));
+	ALLOCTEST(literal);
+	literal->type = type;
+	literal->value.string = NULL;
+	return literal;
+}
+
+static void
+kxcliteral_free(KxcLiteral *literal)
+{   
+	if (literal->type == KXC_LITERAL_STRING || literal->type == KXC_LITERAL_SYMBOL) {
+		free(literal->value.string);
+	}
+	free(literal);
+}
+
 
 static char
 params_count(char *name) 
@@ -149,7 +160,6 @@ kxcinstruction_bytecode_write(KxcInstruction *instruction, char **bytecode, KxcB
 		case KXCI_BINARY_MSG:
 		case KXCI_LOCAL_UNARY_MSG:
 		case KXCI_RESEND_UNARY_MSG:
-		case KXCI_PUSH_SYMBOL:
 			BYTECODE_WRITE_CHAR(instruction->value.symbol);
 			return;
 
@@ -167,24 +177,6 @@ kxcinstruction_bytecode_write(KxcInstruction *instruction, char **bytecode, KxcB
 			BYTECODE_WRITE_INT(instruction->value.list_size);
 			return;
 
-		case KXCI_PUSH_INTEGER:
-			BYTECODE_WRITE_INT(instruction->value.integer);
-			return;
-
-		case KXCI_PUSH_CHARACTER:
-			BYTECODE_WRITE_INT(instruction->value.charval);
-			return;
-
-
-		case KXCI_PUSH_STRING:
-			BYTECODE_WRITE_STRING(instruction->value.string);
-			return;
-
-		case KXCI_PUSH_FLOAT:
-            BYTECODE_WRITE_DOUBLE(instruction->value.floatval);
-			return;
-
-	
 		case KXCI_POP:
 		case KXCI_END_OF_BLOCK:
 		case KXCI_RETURN:
@@ -196,6 +188,15 @@ kxcinstruction_bytecode_write(KxcInstruction *instruction, char **bytecode, KxcB
 		case KXCI_PUSH_BLOCK:
 			BYTECODE_WRITE_CHAR(instruction->value.codeblock);
 			return;
+
+		case KXCI_PUSH_LITERAL0:
+		case KXCI_PUSH_LITERAL1:
+		case KXCI_PUSH_LITERAL2:
+		case KXCI_PUSH_LITERAL3:
+		case KXCI_PUSH_LITERAL4:
+		case KXCI_PUSH_LITERAL5:
+		case KXCI_PUSH_LITERAL6:
+
 
 		case KXCI_PUSH_LOCAL0:
 		case KXCI_PUSH_LOCAL1:
@@ -215,6 +216,11 @@ kxcinstruction_bytecode_write(KxcInstruction *instruction, char **bytecode, KxcB
 		case KXCI_UPDATE_LOCAL5:
 		case KXCI_UPDATE_LOCAL6:
 		case KXCI_UPDATE_LOCAL7:
+			return;
+
+
+		case KXCI_PUSH_LITERALN:
+			BYTECODE_WRITE_CHAR(instruction->value.literal);
 			return;
 
 		case KXCI_PUSH_LOCALN:
@@ -257,6 +263,7 @@ kxcblock_new(int type, KxcBlock * parent, List *parameters, List *localslots, Li
 		block->parent_block = parent;
 
 	block->symbols = list_new();
+	block->literals = list_new();
 
 	block->type = type;
 
@@ -299,6 +306,10 @@ kxcblock_free(KxcBlock *block)
 	// Free instructions
 	list_foreach(block->code, (ListForeachFcn*) &kxcinstruction_free);
 	list_free(block->code);
+
+
+	list_foreach(block->literals, (ListForeachFcn*) &kxcliteral_free);
+	list_free(block->literals);
 	
 	list_free(block->message_linenumbers);
 
@@ -685,6 +696,61 @@ kxcblock_end_of_main_block(KxcBlock *block)
 	}
 }
 
+static int
+kxcblock_literals_equals(KxcLiteral *literal1, KxcLiteral *literal2)
+{
+	if (literal1->type != literal2->type)
+		return 0;
+	switch(literal1->type) {
+		case KXC_LITERAL_STRING:
+		case KXC_LITERAL_SYMBOL:
+			return !strcmp(literal1->value.string, literal2->value.string);
+		case KXC_LITERAL_INTEGER:
+			return literal1->value.integer == literal2->value.integer;
+		case KXC_LITERAL_CHAR:
+			return literal1->value.charval == literal2->value.charval;
+		case KXC_LITERAL_FLOAT:
+			return literal1->value.floatval == literal2->value.floatval;
+	}
+}
+
+static int
+kxcblock_add_literal(KxcBlock *block, KxcLiteral *literal)
+{
+	int t;
+	for (t=0;t<block->literals->size;t++) {
+		if (kxcblock_literals_equals(literal, block->literals->items[t])) {
+			kxcliteral_free(literal);
+			return t;
+		}
+	}
+	list_append (block->literals, literal);
+	return block->literals->size - 1;
+}
+
+static void
+kxcblock_put_literal(KxcBlock *block, KxcLiteral *literal)
+{
+	int literal_id = kxcblock_add_literal(block,literal);
+	KxInstructionType itype;
+
+	switch(literal_id) {
+		case 0: itype = KXCI_PUSH_LITERAL0; break;
+		case 1: itype = KXCI_PUSH_LITERAL1; break;
+		case 2: itype = KXCI_PUSH_LITERAL2; break;
+		case 3: itype = KXCI_PUSH_LITERAL3; break;
+		case 4: itype = KXCI_PUSH_LITERAL4; break;
+		case 5: itype = KXCI_PUSH_LITERAL5; break;
+		case 6: itype = KXCI_PUSH_LITERAL6; break;
+		default: itype = KXCI_PUSH_LITERALN; break;
+	}
+
+	KxcInstruction *i = kxcinstruction_new(itype);
+	i->value.literal = literal_id;
+	
+	kxcblock_add_instruction(block,i);
+}
+
 
 /**
  *	Put instuction KXCI_PUSH_INTEGER into codeblock
@@ -694,10 +760,10 @@ kxcblock_put_integer(KxcBlock *block, int integer)
 {
 	PDEBUG("Push integer %i\n", integer);
 
-	KxcInstruction *i = kxcinstruction_new(KXCI_PUSH_INTEGER);
-	i->value.integer = integer;
-	
-	kxcblock_add_instruction(block,i);
+	KxcLiteral *l = kxcliteral_new(KXC_LITERAL_INTEGER);
+	l->value.integer = integer;
+
+	kxcblock_put_literal(block, l);
 }
 
 /**
@@ -708,10 +774,10 @@ kxcblock_put_character(KxcBlock *block, char character)
 {
 	PDEBUG("Push character %c\n", character);
 
-	KxcInstruction *i = kxcinstruction_new(KXCI_PUSH_CHARACTER);
-	i->value.charval = character;
-	
-	kxcblock_add_instruction(block,i);
+	KxcLiteral *l = kxcliteral_new(KXC_LITERAL_CHAR);
+	l->value.charval = character;
+
+	kxcblock_put_literal(block, l);
 }
 
 
@@ -723,10 +789,10 @@ kxcblock_put_float(KxcBlock *block, double floatval)
 {
 	PDEBUG("Push integer %lg\n", floatval);
 
-	KxcInstruction *i = kxcinstruction_new(KXCI_PUSH_FLOAT);
-	i->value.floatval = floatval;
-	
-	kxcblock_add_instruction(block,i);
+	KxcLiteral *l = kxcliteral_new(KXC_LITERAL_FLOAT);
+	l->value.floatval = floatval;
+
+	kxcblock_put_literal(block, l);
 }
 
 /**
@@ -737,10 +803,10 @@ kxcblock_put_string(KxcBlock *block, char *string)
 {
 	PDEBUG("Push string %s\n", string);
 
-	KxcInstruction *i = kxcinstruction_new(KXCI_PUSH_STRING);
-	i->value.string = string;
+	KxcLiteral *l = kxcliteral_new(KXC_LITERAL_STRING);
+	l->value.string = string;
 
-	kxcblock_add_instruction(block,i);
+	kxcblock_put_literal(block, l);
 }
 
 /**
@@ -751,10 +817,10 @@ kxcblock_put_symbol(KxcBlock *block, char *symbolname)
 {
 	PDEBUG("Push symbol %s\n", symbolname);
 
-	KxcInstruction *i = kxcinstruction_new(KXCI_PUSH_SYMBOL);
-	i->value.symbol = kxcblock_get_symbol(block,symbolname);
+	KxcLiteral *l = kxcliteral_new(KXC_LITERAL_SYMBOL);
+	l->value.string = symbolname;
 
-	kxcblock_add_instruction(block,i);
+	kxcblock_put_literal(block, l);
 }
 
 /**
@@ -848,6 +914,34 @@ kxcblock_bytecode_symboltable_size(KxcBlock *block)
 	return size;
 }
 
+static int 
+kxcblock_bytecode_literals_size(KxcBlock *block) 
+{
+	int size = 1;
+	int t;
+	for(t=0;t<block->literals->size;t++) {
+		KxcLiteral *literal = block->literals->items[t];
+		size += 1;
+		switch(literal->type) {
+			case KXC_LITERAL_STRING:
+			case KXC_LITERAL_SYMBOL:
+				size += strlen(literal->value.string) + 1;
+				break;
+
+			case KXC_LITERAL_INTEGER:
+			case KXC_LITERAL_CHAR:
+				size += sizeof(int);
+				break;
+
+			case KXC_LITERAL_FLOAT:
+				size += sizeof(double);
+				break;
+		}
+	}
+	return size;
+}
+
+
 /**
  * Get bytecode's size of code
  */
@@ -879,6 +973,7 @@ kxcblock_bytecode_size(KxcBlock *block)
 	int size = sizeof(char); // count of instruction
 
 	size += kxcblock_bytecode_symboltable_size(block);
+	size += kxcblock_bytecode_literals_size(block);
 	size += block->locals_count + 1; // 1 byte for count of local slots
 	size += 1; // 1 byte for count of params
 
@@ -892,6 +987,33 @@ kxcblock_bytecode_size(KxcBlock *block)
 		size += kxcblock_bytecode_size(block->subblocks->items[t]);
 	}
 	return size;
+}
+
+static void 
+kxcblock_bytecode_literals_write(KxcBlock *block, char **bytecode) 
+{
+	BYTECODE_WRITE_CHAR(block->literals->size);
+	int t;
+	for(t=0;t<block->literals->size;t++) {
+		KxcLiteral *literal = block->literals->items[t];
+		BYTECODE_WRITE_CHAR(literal->type);
+		switch(literal->type) {
+			case KXC_LITERAL_STRING:
+			case KXC_LITERAL_SYMBOL:
+				BYTECODE_WRITE_STRING(literal->value.string);
+				break;
+			case KXC_LITERAL_INTEGER:
+				BYTECODE_WRITE_INT(literal->value.integer);
+				break;
+			case KXC_LITERAL_CHAR:
+				BYTECODE_WRITE_INT(literal->value.charval);
+				break;
+			case KXC_LITERAL_FLOAT:
+				BYTECODE_WRITE_DOUBLE(literal->value.floatval);
+				break;
+
+		}
+	}
 }
 
 /**
@@ -911,7 +1033,6 @@ kxcblock_bytecode_symboltable_write(KxcBlock *block, char **bytecode)
 	BYTECODE_WRITE_CHAR(block->symbols->size);
 	int t;
 	for(t=0;t<block->symbols->size;t++) {
-		char *z = *bytecode;
 		BYTECODE_WRITE_STRING(block->symbols->items[t]);
 
 	}
@@ -975,6 +1096,7 @@ kxcblock_bytecode_write(KxcBlock *block, char **bytecode)
 {
 	BYTECODE_WRITE_CHAR(block->type);
 	kxcblock_bytecode_symboltable_write(block,bytecode);	
+	kxcblock_bytecode_literals_write(block,bytecode);	
 	kxcblock_bytecode_params_write(block, bytecode);
 	kxcblock_bytecode_locals_write(block, bytecode);
 	kxcblock_bytecode_lineno_write(block, bytecode);

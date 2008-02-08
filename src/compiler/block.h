@@ -10,10 +10,24 @@
 
 typedef struct KxcInstruction KxcInstruction;
 typedef struct KxcLocal KxcLocal;
+typedef struct KxcLiteral KxcLiteral;
+
 
 struct KxcLocal { 
 	int index;
 	int scope; 
+};
+
+
+struct KxcLiteral {
+	KxcLiteralType type;
+	union {
+		int integer;
+		int symbol;
+		int charval;
+		double floatval;
+		char *string;
+	} value;
 };
 
 struct KxcInstruction {
@@ -22,10 +36,7 @@ struct KxcInstruction {
 		int symbol;
 		int codeblock;
 		int list_size;
-		char *string;
-		int charval;
-		int integer;
-        double floatval;
+		int literal;
 		KxcLocal local;
 	} value;
 };
@@ -45,6 +56,8 @@ struct KxcBlock {
 	int locals_count;
 
 	struct List *symbols;
+
+	struct List *literals;
 
 	struct List *code; // List of instructions
 

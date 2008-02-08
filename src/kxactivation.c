@@ -342,7 +342,10 @@ kxactivation_run(KxActivation *self)
 //	kxcore_gc_countdown(KXCORE);
 	kxcore_gc_check(KXCORE);	
 
-	char *codep = KXCODEBLOCK_DATA(self->codeblock)->code;
+
+	KxCodeBlockData *cdata = KXCODEBLOCK_DATA(self->codeblock);
+	char *codep = cdata->code;
+	KxObject **symbol_frame = cdata->symbol_frame;
 	
 	//printf("-=BEGIN=-\n");
 	for(;;) {
@@ -352,45 +355,59 @@ kxactivation_run(KxActivation *self)
 		//KxActivationInstrFcn *fcn = (instr_fcn[(int)instruction]);
 
 		switch(instruction) {
-			case KXCI_PUSH_INTEGER: 
-			{
-				int integer = *((int*)codep);
-				codep += sizeof(int);
-				kxactivation_inner_stack_push(self, KXINTEGER(integer));
+			case KXCI_PUSH_LITERAL0: {
+				KxObject *obj = cdata->literals[0];
+				REF_ADD(obj);
+				kxactivation_inner_stack_push(self, obj);
 				continue;
 			}
 
-			case KXCI_PUSH_CHARACTER:
-			{
-				int integer = *((int*)codep);
-				codep += sizeof(int);
-				kxactivation_inner_stack_push(self, KXCHARACTER(integer));
+			case KXCI_PUSH_LITERAL1: {
+				KxObject *obj = cdata->literals[1];
+				REF_ADD(obj);
+				kxactivation_inner_stack_push(self, obj);
 				continue;
 			}
 
-			case KXCI_PUSH_FLOAT:
-			{
-				double floatval = *((double*)codep);
-				codep += sizeof(double);
-				kxactivation_inner_stack_push(self, KXFLOAT(floatval));
-				continue;
-			}
-			
-			case KXCI_PUSH_STRING:
-			{
-				char *str = codep;
-				codep += strlen(str)+1;
-				kxactivation_inner_stack_push(self, KXSTRING(str));
+			case KXCI_PUSH_LITERAL2: {
+				KxObject *obj = cdata->literals[2];
+				REF_ADD(obj);
+				kxactivation_inner_stack_push(self, obj);
 				continue;
 			}
 
-			case KXCI_PUSH_SYMBOL:
-			{
-				KxCodeBlock *codeblock = self->codeblock;
-				KxSymbol **symbol_frame = KXCODEBLOCK_DATA(codeblock)->symbol_frame;
-				KxSymbol *symbol = symbol_frame[(int)(*((codep)++))];
-				REF_ADD(symbol);
-				kxactivation_inner_stack_push(self, symbol);
+			case KXCI_PUSH_LITERAL3: {
+				KxObject *obj = cdata->literals[3];
+				REF_ADD(obj);
+				kxactivation_inner_stack_push(self, obj);
+				continue;
+			}
+
+			case KXCI_PUSH_LITERAL4: {
+				KxObject *obj = cdata->literals[4];
+				REF_ADD(obj);
+				kxactivation_inner_stack_push(self, obj);
+				continue;
+			}
+
+			case KXCI_PUSH_LITERAL5: {
+				KxObject *obj = cdata->literals[5];
+				REF_ADD(obj);
+				kxactivation_inner_stack_push(self, obj);
+				continue;
+			}
+
+			case KXCI_PUSH_LITERAL6: {
+				KxObject *obj = cdata->literals[6];
+				REF_ADD(obj);
+				kxactivation_inner_stack_push(self, obj);
+				continue;
+			}
+
+			case KXCI_PUSH_LITERALN: {
+				KxObject *obj = cdata->literals[(int)FETCH_BYTE(codep)];
+				REF_ADD(obj);
+				kxactivation_inner_stack_push(self, obj);
 				continue;
 			}
 
@@ -450,8 +467,6 @@ kxactivation_run(KxActivation *self)
 				if (self->message.target)
 					REF_REMOVE(self->message.target);
 				self->message_num++;
-				KxCodeBlock *codeblock = self->codeblock;
-				KxSymbol **symbol_frame = KXCODEBLOCK_DATA(codeblock)->symbol_frame;
 
 				kxactivation_message_prepare_from_inner_stack(self, NULL, 0, symbol_frame[(int)(*((codep)++))]);
 				
@@ -470,8 +485,6 @@ kxactivation_run(KxActivation *self)
 				if (self->message.target)
 					REF_REMOVE(self->message.target);
 				self->message_num++;
-				KxCodeBlock *codeblock = self->codeblock;
-				KxSymbol **symbol_frame = KXCODEBLOCK_DATA(codeblock)->symbol_frame;
 
 				kxactivation_message_prepare_from_inner_stack(self,NULL, 1,symbol_frame[(int)(*((codep)++))]);
 
@@ -490,9 +503,6 @@ kxactivation_run(KxActivation *self)
 				if (self->message.target)
 					REF_REMOVE(self->message.target);
 				self->message_num++;
-				KxCodeBlock *codeblock = self->codeblock;
-
-				KxSymbol **symbol_frame = KXCODEBLOCK_DATA(codeblock)->symbol_frame;
 
 				self->message.message_name = symbol_frame[(int)(*((codep)++))];
 				REF_ADD(self->message.message_name);
@@ -525,9 +535,6 @@ kxactivation_run(KxActivation *self)
 					REF_REMOVE(self->message.target);
 
 				self->message_num++;
-				KxCodeBlock *codeblock = self->codeblock;
-
-				KxSymbol **symbol_frame = KXCODEBLOCK_DATA(codeblock)->symbol_frame;
 
 				self->message.message_name = symbol_frame[(int)(*((codep)++))];
 				REF_ADD(self->message.message_name);
@@ -551,9 +558,7 @@ kxactivation_run(KxActivation *self)
 				if (self->message.target)
 					REF_REMOVE(self->message.target);
 				self->message_num++;
-				KxCodeBlock *codeblock = self->codeblock;
 
-				KxSymbol **symbol_frame = KXCODEBLOCK_DATA(codeblock)->symbol_frame;
 				KxSymbol *symbol = symbol_frame[(int)(*((codep)++))];
 
 				int params = (int)(*((codep)++));
@@ -575,9 +580,7 @@ kxactivation_run(KxActivation *self)
 				if (self->message.target)
 					REF_REMOVE(self->message.target);
 				self->message_num++;
-				KxCodeBlock *codeblock = self->codeblock;
 
-				KxSymbol **symbol_frame = KXCODEBLOCK_DATA(codeblock)->symbol_frame;
 				KxSymbol *symbol = symbol_frame[(int)(*((codep)++))];
 
 				int params = (int)(*((codep)++));
@@ -598,9 +601,7 @@ kxactivation_run(KxActivation *self)
 				if (self->message.target)
 					REF_REMOVE(self->message.target);
 				self->message_num++;
-				KxCodeBlock *codeblock = self->codeblock;
 
-				KxSymbol **symbol_frame = KXCODEBLOCK_DATA(codeblock)->symbol_frame;
 				KxSymbol *symbol = symbol_frame[(int)(*((codep)++))];
 				int params = (int)(*((codep)++));
 

@@ -57,6 +57,15 @@ codeblockTest = test TestCase clone do: {
 		(x == 4) assertTrue.
 	}.
 
+	testLiterals = {
+		|list|
+		list << #("a" "c" 'a' 'b' 'c' "AAAaaaAAA" #a #b #c 1 
+		          10.5 10.4 10.1 "a" "a" "a"). 
+		
+		(#("a" "c" 'a' 'b' 'c' "AAAaaaAAA" #a #b #c 1
+		          10.5 10.4 10.1 "a" "a" "a") == list) assertTrue.
+	}.
+
 	testRunPrototype = { |result|
 		result << CodeBlock.
 		(result == self) assertTrue.

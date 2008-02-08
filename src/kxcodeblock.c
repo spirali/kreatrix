@@ -15,6 +15,9 @@
 #include "kxactivation.h"
 #include "kxexception.h"
 #include "kxlist.h"
+#include "kxinteger.h"
+#include "kxcharacter.h"
+#include "kxfloat.h"
 #include "compiler/kxinstr.h"
 
 #define GET_BYTECODE_CHAR *((*bytecode)++)
@@ -22,7 +25,7 @@
 KxObjectExtension kxcodeblock_extension;
 
 static void kxcodeblock_free(KxCodeBlock *self);
-
+static void kxcodeblock_clean(KxCodeBlock *self);
 static void kxcodeblock_mark(KxObject *self);
 static KxCodeBlockData *kxcodeblock_data_new_return_self();
 
@@ -35,6 +38,7 @@ kxcodeblock_init_extension()
 	kxobjectext_init(&kxcodeblock_extension);
 	kxcodeblock_extension.type_name = "CodeBlock";
 	kxcodeblock_extension.free = kxcodeblock_free;
+	kxcodeblock_extension.clean = kxcodeblock_clean;
 	kxcodeblock_extension.activate = kxcodeblock_run;
 	kxcodeblock_extension.mark = kxcodeblock_mark;
 }
@@ -61,6 +65,19 @@ kxcodeblock_new(KxCore *core) {
 }
 
 static void
+kxcodeblock_clean(KxCodeBlock *self) {
+	KxCodeBlockData *data = KXCODEBLOCK_DATA(self);
+	int t;
+	if (data->literals) {
+		for (t=0; t<data->literals_count; t++) {
+			REF_REMOVE(data->literals[t]);
+		}
+		kxfree(data->literals);
+		data->literals = NULL;
+	}
+}
+
+static void
 kxcodeblock_free(KxCodeBlock *self) {
 
 	KxCodeBlockData *data = KXCODEBLOCK_DATA(self);
@@ -83,6 +100,14 @@ kxcodeblock_free(KxCodeBlock *self) {
 		}
 		kxfree(data->symbol_frame);
 	}
+
+	if (data->literals) {
+		for (t=0; t<data->literals_count; t++) {
+			REF_REMOVE(data->literals[t]);
+		}
+		kxfree(data->literals);
+	}
+
 	
 	if (data->subcodeblocks)
 		kxfree(data->subcodeblocks);
@@ -143,6 +168,55 @@ kxcodeblock_read_symbol_frame (KxCodeBlock *self, char **bytecode)
 		data->symbol_frame[t] = kxcore_get_symbol(KXCORE, symbol);
 
 		*bytecode += strlen(symbol)+1;
+	}
+}
+
+static void 
+kxcodeblock_read_literals (KxCodeBlock *self, char **bytecode)
+{
+	int size = GET_BYTECODE_CHAR;
+
+	KxCodeBlockData *data = KXCODEBLOCK_DATA(self);
+	data->literals_count = size;
+	data->literals = kxmalloc(sizeof(KxObject*) * size);
+	ALLOCTEST(data->literals);
+
+	int t;
+	for (t=0;t<size;t++) {
+		KxcLiteralType type = GET_BYTECODE_CHAR;
+		switch (type) {
+			case KXC_LITERAL_SYMBOL: {
+				char *symbol = *bytecode;
+				data->literals[t] = kxcore_get_symbol(KXCORE, symbol);
+				*bytecode += strlen(symbol)+1;
+				continue;
+			}	
+			case KXC_LITERAL_STRING: {
+				char *string = *bytecode;
+				data->literals[t] = KXSTRING(string);
+				*bytecode += strlen(string)+1;
+				continue;
+			}		
+			case KXC_LITERAL_INTEGER: {
+				int integer = *((int*)*bytecode);
+				*bytecode += sizeof(int);
+				data->literals[t] = KXINTEGER(integer);
+				continue;
+			} 
+			case KXC_LITERAL_CHAR: {
+				int charval = *((int*)*bytecode);
+				*bytecode += sizeof(int);
+				data->literals[t] = KXCHARACTER(charval);
+				continue;
+			} 
+			case KXC_LITERAL_FLOAT: {
+				double floatval = *((double*)*bytecode);
+				*bytecode += sizeof(double);
+				data->literals[t] = KXFLOAT(floatval);
+				continue;
+			} 
+
+		}
 	}
 }
 
@@ -315,6 +389,8 @@ kxcodeblock_read_subblock(KxCore *core, char **bytecode, KxCodeBlock *parent_cod
 	
 	kxcodeblock_init_data(codeblock, bytecode,source_filename);
 	
+	kxcodeblock_read_literals(codeblock, bytecode);
+
 	kxcodeblock_read_params(codeblock, bytecode);
 
 	kxcodeblock_read_localslots(codeblock, bytecode);
@@ -454,6 +530,9 @@ kxcodeblock_mark(KxObject *self)
 		kxobject_mark(data->symbol_frame[t]);
 	}
 
+	for (t=0;t<data->literals_count;t++) {
+		kxobject_mark(data->literals[t]);
+	}
 
 	for (t=0;t<data->subcodeblocks_size;t++) {
 		kxobject_mark(data->subcodeblocks[t]);

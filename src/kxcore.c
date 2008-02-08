@@ -268,9 +268,8 @@ kxcore_free(KxCore *self)
 	if (kx_verbose) {
 		printf("kxcore_free() ... \n");
 	}
-	kxobject_clean(self->lobby);
-
-	kxgc_collect(self);
+	//kxobject_clean(self->lobby);
+	//kxgc_collect(self);
 
 	REF_REMOVE(self->lobby);
 
