@@ -71,38 +71,14 @@ kxcinstruction_bytecode_size(KxcInstruction *instruction)
 		case KXCI_RETURNSELF:
 			return typesize;
 
-		case KXCI_PUSH_LITERAL0:
-		case KXCI_PUSH_LITERAL1:
-		case KXCI_PUSH_LITERAL2:
-		case KXCI_PUSH_LITERAL3:
-		case KXCI_PUSH_LITERAL4:
-		case KXCI_PUSH_LITERAL5:
-		case KXCI_PUSH_LITERAL6:
-
-		case KXCI_PUSH_LOCAL0:
-		case KXCI_PUSH_LOCAL1:
-		case KXCI_PUSH_LOCAL2:
-		case KXCI_PUSH_LOCAL3:
-		case KXCI_PUSH_LOCAL4:
-		case KXCI_PUSH_LOCAL5:
-		case KXCI_PUSH_LOCAL6:
-		case KXCI_PUSH_LOCAL7:
 		case KXCI_PUSH_SELF:
 		case KXCI_PUSH_ACTIVATION:
-		case KXCI_UPDATE_LOCAL0:
-		case KXCI_UPDATE_LOCAL1:
-		case KXCI_UPDATE_LOCAL2:
-		case KXCI_UPDATE_LOCAL3:
-		case KXCI_UPDATE_LOCAL4:
-		case KXCI_UPDATE_LOCAL5:
-		case KXCI_UPDATE_LOCAL6:
-		case KXCI_UPDATE_LOCAL7:
 			return typesize;
 
 
-		case KXCI_PUSH_LITERALN:
-		case KXCI_PUSH_LOCALN:
-		case KXCI_UPDATE_LOCALN:
+		case KXCI_PUSH_LITERAL:
+		case KXCI_PUSH_LOCAL:
+		case KXCI_UPDATE_LOCAL:
 			return typesize + 1;
 
 		case KXCI_UPDATE_OUTER_LOCAL:
@@ -189,42 +165,16 @@ kxcinstruction_bytecode_write(KxcInstruction *instruction, char **bytecode, KxcB
 			BYTECODE_WRITE_CHAR(instruction->value.codeblock);
 			return;
 
-		case KXCI_PUSH_LITERAL0:
-		case KXCI_PUSH_LITERAL1:
-		case KXCI_PUSH_LITERAL2:
-		case KXCI_PUSH_LITERAL3:
-		case KXCI_PUSH_LITERAL4:
-		case KXCI_PUSH_LITERAL5:
-		case KXCI_PUSH_LITERAL6:
-
-
-		case KXCI_PUSH_LOCAL0:
-		case KXCI_PUSH_LOCAL1:
-		case KXCI_PUSH_LOCAL2:
-		case KXCI_PUSH_LOCAL3:
-		case KXCI_PUSH_LOCAL4:
-		case KXCI_PUSH_LOCAL5:
-		case KXCI_PUSH_LOCAL6:
-		case KXCI_PUSH_LOCAL7:
 		case KXCI_PUSH_SELF:
 		case KXCI_PUSH_ACTIVATION:
-		case KXCI_UPDATE_LOCAL0:
-		case KXCI_UPDATE_LOCAL1:
-		case KXCI_UPDATE_LOCAL2:
-		case KXCI_UPDATE_LOCAL3:
-		case KXCI_UPDATE_LOCAL4:
-		case KXCI_UPDATE_LOCAL5:
-		case KXCI_UPDATE_LOCAL6:
-		case KXCI_UPDATE_LOCAL7:
 			return;
 
-
-		case KXCI_PUSH_LITERALN:
+		case KXCI_PUSH_LITERAL:
 			BYTECODE_WRITE_CHAR(instruction->value.literal);
 			return;
 
-		case KXCI_PUSH_LOCALN:
-		case KXCI_UPDATE_LOCALN:
+		case KXCI_PUSH_LOCAL:
+		case KXCI_UPDATE_LOCAL:
 			BYTECODE_WRITE_CHAR(instruction->value.local.index);
 			return;
 
@@ -438,19 +388,10 @@ kxcblock_add_params_and_locals(KxcBlock *block, List *parameters, List *locals, 
 void
 kxcblock_push_local(KxcBlock *block, KxcLocal *local)
 {
-	int itype;
+	KxInstructionType itype;
+
 	if (local->scope == 0) {
-		switch(local->index) {
-			case 0: itype = KXCI_PUSH_LOCAL0; break;
-			case 1: itype = KXCI_PUSH_LOCAL1; break;
-			case 2: itype = KXCI_PUSH_LOCAL2; break;
-			case 3: itype = KXCI_PUSH_LOCAL3; break;
-			case 4: itype = KXCI_PUSH_LOCAL4; break;
-			case 5: itype = KXCI_PUSH_LOCAL5; break;
-			case 6: itype = KXCI_PUSH_LOCAL6; break;
-			case 7: itype = KXCI_PUSH_LOCAL7; break;
-			default: itype = KXCI_PUSH_LOCALN; break;
-		}
+		itype = KXCI_PUSH_LOCAL;
 	} else {
 		itype = KXCI_PUSH_OUTER_LOCAL;
 	}
@@ -570,23 +511,14 @@ kxcblock_put_new_block(KxcBlock *block, int type, List *parameters, List *locals
 void
 kxcblock_put_local_update(KxcBlock *block, KxcLocal *local)
 {
-	int itype;
-	if (local->scope == 0) {
-		switch(local->index) {
-			case 0: itype = KXCI_UPDATE_LOCAL0; break;
-			case 1: itype = KXCI_UPDATE_LOCAL1; break;
-			case 2: itype = KXCI_UPDATE_LOCAL2; break;
-			case 3: itype = KXCI_UPDATE_LOCAL3; break;
-			case 4: itype = KXCI_UPDATE_LOCAL4; break;
-			case 5: itype = KXCI_UPDATE_LOCAL5; break;
-			case 6: itype = KXCI_UPDATE_LOCAL6; break;
-			case 7: itype = KXCI_UPDATE_LOCAL7; break;
-			default: itype = KXCI_UPDATE_LOCALN; break;
+	KxInstructionType itype;
 
-		}
+	if (local->scope == 0) {
+		itype = KXCI_UPDATE_LOCAL;
 	} else {
 		itype = KXCI_UPDATE_OUTER_LOCAL;
 	}
+
 	KxcInstruction *i = kxcinstruction_new(itype);
 	i->value.local = *local;
 	kxcblock_add_instruction(block, i);
@@ -689,20 +621,8 @@ static void
 kxcblock_put_literal(KxcBlock *block, KxcLiteral *literal)
 {
 	int literal_id = kxcblock_add_literal(block,literal);
-	KxInstructionType itype;
 
-	switch(literal_id) {
-		case 0: itype = KXCI_PUSH_LITERAL0; break;
-		case 1: itype = KXCI_PUSH_LITERAL1; break;
-		case 2: itype = KXCI_PUSH_LITERAL2; break;
-		case 3: itype = KXCI_PUSH_LITERAL3; break;
-		case 4: itype = KXCI_PUSH_LITERAL4; break;
-		case 5: itype = KXCI_PUSH_LITERAL5; break;
-		case 6: itype = KXCI_PUSH_LITERAL6; break;
-		default: itype = KXCI_PUSH_LITERALN; break;
-	}
-
-	KxcInstruction *i = kxcinstruction_new(itype);
+	KxcInstruction *i = kxcinstruction_new(KXCI_PUSH_LITERAL);
 	i->value.literal = literal_id;
 	
 	kxcblock_add_instruction(block,i);

@@ -307,56 +307,7 @@ kxactivation_run(KxActivation *self)
 		//KxActivationInstrFcn *fcn = (instr_fcn[(int)instruction]);
 
 		switch(instruction) {
-			case KXCI_PUSH_LITERAL0: {
-				KxObject *obj = cdata->literals[0];
-				REF_ADD(obj);
-				kxactivation_inner_stack_push(self, obj);
-				continue;
-			}
-
-			case KXCI_PUSH_LITERAL1: {
-				KxObject *obj = cdata->literals[1];
-				REF_ADD(obj);
-				kxactivation_inner_stack_push(self, obj);
-				continue;
-			}
-
-			case KXCI_PUSH_LITERAL2: {
-				KxObject *obj = cdata->literals[2];
-				REF_ADD(obj);
-				kxactivation_inner_stack_push(self, obj);
-				continue;
-			}
-
-			case KXCI_PUSH_LITERAL3: {
-				KxObject *obj = cdata->literals[3];
-				REF_ADD(obj);
-				kxactivation_inner_stack_push(self, obj);
-				continue;
-			}
-
-			case KXCI_PUSH_LITERAL4: {
-				KxObject *obj = cdata->literals[4];
-				REF_ADD(obj);
-				kxactivation_inner_stack_push(self, obj);
-				continue;
-			}
-
-			case KXCI_PUSH_LITERAL5: {
-				KxObject *obj = cdata->literals[5];
-				REF_ADD(obj);
-				kxactivation_inner_stack_push(self, obj);
-				continue;
-			}
-
-			case KXCI_PUSH_LITERAL6: {
-				KxObject *obj = cdata->literals[6];
-				REF_ADD(obj);
-				kxactivation_inner_stack_push(self, obj);
-				continue;
-			}
-
-			case KXCI_PUSH_LITERALN: {
+			case KXCI_PUSH_LITERAL: {
 				KxObject *obj = cdata->literals[(int)FETCH_BYTE(codep)];
 				REF_ADD(obj);
 				kxactivation_inner_stack_push(self, obj);
@@ -600,78 +551,7 @@ kxactivation_run(KxActivation *self)
 				continue;
 			}
 
-			case KXCI_PUSH_LOCAL0:
-			{
-				KxObject *obj = self->locals[0];
-				REF_ADD(obj);
-				kxactivation_inner_stack_push(self, obj);
-				continue;
-			}
-
-			case KXCI_PUSH_LOCAL1:
-			{
-				KxObject *obj = self->locals[1];
-				REF_ADD(obj);
-				kxactivation_inner_stack_push(self, obj);
-				continue;
-
-			}
-
-
-			case KXCI_PUSH_LOCAL2:
-			{
-				KxObject *obj = self->locals[2];
-				REF_ADD(obj);
-				kxactivation_inner_stack_push(self, obj);
-				continue;
-
-			}
-
-			case KXCI_PUSH_LOCAL3:
-			{
-				KxObject *obj = self->locals[3];
-				REF_ADD(obj);
-				kxactivation_inner_stack_push(self, obj);
-				continue;
-
-			}
-
-			case KXCI_PUSH_LOCAL4:
-			{
-				KxObject *obj = self->locals[4];
-				REF_ADD(obj);
-				kxactivation_inner_stack_push(self, obj);
-				continue;
-
-			}
-
-			case KXCI_PUSH_LOCAL5:
-			{
-				KxObject *obj = self->locals[5];
-				REF_ADD(obj);
-				kxactivation_inner_stack_push(self, obj);
-				continue;
-
-			}
-
-			case KXCI_PUSH_LOCAL6:
-			{
-				KxObject *obj = self->locals[6];
-				REF_ADD(obj);
-				kxactivation_inner_stack_push(self, obj);
-				continue;
-
-			}
-
-			case KXCI_PUSH_LOCAL7:
-			{
-				KxObject *obj = self->locals[7];
-				REF_ADD(obj);
-				kxactivation_inner_stack_push(self, obj);
-				continue;
-			}
-
-			case KXCI_PUSH_LOCALN:
+			case KXCI_PUSH_LOCAL:
 			{
 				KxObject *obj = self->locals[(int)(*((codep)++))];
 				REF_ADD(obj);
@@ -697,77 +577,7 @@ kxactivation_run(KxActivation *self)
 
 			}
 
-			case KXCI_UPDATE_LOCAL0:
-			{
-				KxObject *obj = kxactivation_inner_stack_pop(self);
-				REF_REMOVE(self->locals[0]);
-				self->locals[0] = obj;
-				continue;
-			}
-
-			case KXCI_UPDATE_LOCAL1:
-			{
-				KxObject *obj = kxactivation_inner_stack_pop(self);
-				REF_REMOVE(self->locals[1]);
-				self->locals[1] = obj;
-				continue;
-			}
-
-			case KXCI_UPDATE_LOCAL2:
-			{
-				KxObject *obj = kxactivation_inner_stack_pop(self);
-				REF_REMOVE(self->locals[2]);
-				self->locals[2] = obj;
-				continue;
-			}
-
-
-			case KXCI_UPDATE_LOCAL3:
-			{
-				KxObject *obj = kxactivation_inner_stack_pop(self);
-				REF_REMOVE(self->locals[3]);
-				self->locals[3] = obj;
-				continue;
-			}
-
-
-			case KXCI_UPDATE_LOCAL4:
-			{
-				KxObject *obj = kxactivation_inner_stack_pop(self);
-				REF_REMOVE(self->locals[4]);
-				self->locals[4] = obj;
-				continue;
-			}
-
-
-			case KXCI_UPDATE_LOCAL5:
-			{
-				KxObject *obj = kxactivation_inner_stack_pop(self);
-				REF_REMOVE(self->locals[5]);
-				self->locals[5] = obj;
-				continue;
-			}
-
-
-			case KXCI_UPDATE_LOCAL6:
-			{
-				KxObject *obj = kxactivation_inner_stack_pop(self);
-				REF_REMOVE(self->locals[6]);
-				self->locals[6] = obj;
-				continue;
-			}
-
-
-			case KXCI_UPDATE_LOCAL7:
-			{
-				KxObject *obj = kxactivation_inner_stack_pop(self);
-				REF_REMOVE(self->locals[7]);
-				self->locals[7] = obj;
-				continue;
-			}
-
-
-			case KXCI_UPDATE_LOCALN:
+			case KXCI_UPDATE_LOCAL:
 			{
 				KxObject *obj = kxactivation_inner_stack_pop(self);
 				int pos = (int)(*((codep)++));
