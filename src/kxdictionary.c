@@ -71,12 +71,6 @@ kxdictionary_mark(KxDictionary *self)
 	kxbasedictionary_mark(self->data.ptr);
 }
 
-/*static KxObject *
-kxdictionary_eq(KxInteger *self, KxMessage *message) 
-{
-	KXRETURN_BOOLEAN(self == message->params[0]);
-}*/
-
 static KxObject *
 kxdictionary_add(KxDictionary *self, KxMessage *message)
 {
@@ -108,7 +102,6 @@ kxdictionary_foreach(KxDictionary *self, KxMessage *message)
 	}
 
 	KxMessage msg;
-	//msg.stack = message->stack;
 	msg.message_name = NULL;
 	msg.params_count = 1;
 	msg.target = block;
@@ -145,14 +138,6 @@ kxdictionary_clone(KxDictionary *self)
 	clone->data.ptr= out;
 	return clone;
 }
-
-/*KxDictionary * 
-kxdictionary_new_with(KxCore *core, Dictionary *dictionary) 
-{
-	KxObject *clone = kxobject_raw_clone(kxcore_get_basic_prototype(core,KXPROTO_LIST));
-	clone->data.ptr = dictionary;
-	return clone;
-}*/
 
 static KxObject * 
 kxdictionary_remove(KxDictionary *self, KxMessage *message) 

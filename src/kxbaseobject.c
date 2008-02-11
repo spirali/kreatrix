@@ -45,9 +45,7 @@ static KxObject *
 kxbaseobject_set_slot(KxObject *self, KxMessage *message)
 {
 	KxObject *symbol = message->params[0];
-	/*if (!IS_KXSYMBOL(symbol)) {
-		KXTHROW_EXCEPTION("Symbol expected\n");
-	}*/
+
 	KXCHECK_SYMBOL(symbol);
 	kxobject_set_slot(self,symbol,message->params[1]);
 

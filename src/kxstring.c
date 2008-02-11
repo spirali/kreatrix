@@ -34,15 +34,12 @@ KxObjectExtension kxstring_extension;
 static void kxstring_add_method_table(KxString *self);
 static void kxstring_free(KxString *self);
 
-//static int kxstring_compare(KxString *self, KxObject *param);
-
 void
 kxstring_init_extension() 
 {
 	kxobjectext_init(&kxstring_extension);
 	kxstring_extension.type_name = "String";
 	kxstring_extension.free = kxstring_free;
-	//kxstring_extension.compare = kxstring_compare;
 }
 
 static void 

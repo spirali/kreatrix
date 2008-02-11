@@ -71,14 +71,6 @@ kxset_mark(KxSet *self)
 	kxbaseset_mark(self->data.ptr);
 }
 
-/*static KxObject *
-kxset_eq(KxInteger *self, KxMessage *message) 
-{
-	KXRETURN_BOOLEAN(self == message->params[0]);
-}*/
-
-
-
 static KxObject *
 kxset_add(KxSet *self, KxMessage *message)
 {
@@ -86,8 +78,6 @@ kxset_add(KxSet *self, KxMessage *message)
 	if (!kxbaseset_add(set, message->params[0]))
 		return NULL;
 
-/*	kxbaseset_dump(set);
-	printf("+++%i+++\n", set->items_count);*/
 	KXRETURN(self);
 }
 
@@ -103,7 +93,6 @@ kxset_foreach(KxSet *self, KxMessage *message)
 	}
 
 	KxMessage msg;
-	//msg.stack = message->stack;
 	msg.message_name = NULL;
 	msg.params_count = 1;
 	msg.target = block;

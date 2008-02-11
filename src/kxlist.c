@@ -205,7 +205,6 @@ kxlist_foreach(KxList *self, KxMessage *message)
 	}
 
 	KxMessage msg;
-	//msg.stack = message->stack;
 	msg.message_name = NULL;
 	msg.params_count = 1;
 	msg.target = block;
@@ -233,7 +232,6 @@ kxlist_reverse_foreach(KxList *self, KxMessage *message)
 	}
 
 	KxMessage msg;
-//	msg.stack = message->stack;
 	msg.message_name = NULL;
 	msg.params_count = 1;
 	msg.target = block;
@@ -455,7 +453,6 @@ static KxObject *
 kxlist_sort(KxList *self, KxMessage *message) 
 {
 	KxMessage msg;
-	//msg.stack = message->stack;
 	msg.params_count = 2;
 	List *list = self->data.ptr;
 	if (list->size == 0) {
@@ -526,7 +523,6 @@ kxlist_eq(KxList *self, KxMessage *message)
 			KXRETURN(KXCORE->object_false);
 
 		KxMessage msg;
-	//	msg.stack = message->stack;
 		int t;
 		for (t=0;t<ls;t++) {
 			kxmessage_init(&msg, list->items[t], 1, KXCORE->dictionary[KXDICT_EQ]);

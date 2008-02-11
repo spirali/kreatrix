@@ -30,7 +30,6 @@ kxfloat_init_extension()
 {
 	kxobjectext_init(&kxfloat_extension);
 	kxfloat_extension.type_name = "Float";
-	//kxfloat_extension.free = kxfloat_free;
 }
 
 
@@ -48,15 +47,6 @@ kxfloat_new_prototype(KxCore *core)
 
 	return object;
 }
-
-/*
-static void
-kxfloat_free(KxFloat *self) 
-{
-	// do notning
-	//   prevent from freeing data 
-}
-*/
 
 KxFloat *
 kxfloat_clone_with(KxFloat *self, double value)

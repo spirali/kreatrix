@@ -226,9 +226,6 @@ kxcore_get_prototype(KxCore *self, KxObjectExtension *prototype_extension)
 {
 	KxObject *obj = (KxObject*) dictionary_get(self->prototypes,prototype_extension);
 
-/*	fprintf(stderr,"get '%s' \n", prototype_extension->type_name);
-	kxcore_dump_prototypes(self);*/
-	
 	if (obj == NULL) {
 		fprintf(stderr,"Fatal error: Prototype '%s' not found\n", prototype_extension->type_name);
 		abort();

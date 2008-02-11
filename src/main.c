@@ -220,12 +220,6 @@ int parse_arguments(int argc, char **argv)
 		exit(0);
 
       case '?':
- /*       if (isprint (optopt))
-          fprintf (stderr, "Unknown option `-%c'.\n", optopt);
-        else
-          fprintf (stderr,
-                   "Unknown option character `\\x%x'.\n",
-                   optopt);*/
       default:
 	  	exit(1);
       }
@@ -361,11 +355,6 @@ main(int argc, char **argv)
 	kxobject_set_slot_no_ref2(core->lobby,kxcore_get_symbol(core,"args"),kxlist_new_with(core,list));
 
 	if (script_filename) {
-	/*	kxobject_set_slot_no_ref2(
-			core->lobby, 
-			kxcore_get_symbol(core, "localImportPath"), 
-			kxstring_new_with(core, dirname(script_filename))
-		); */
 		char *fname = strdup(script_filename);
 		kxcore_push_local_import_path(core, strdup(dirname(fname)));
 		kxfree(fname);
@@ -401,7 +390,6 @@ main(int argc, char **argv)
 	}
 	
 	kxcore_unregister_and_free_all_stacks(core);
-	//kxstack_free(stack);
 
 	kxcore_free(core);
 

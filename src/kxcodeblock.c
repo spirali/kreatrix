@@ -91,9 +91,6 @@ kxcodeblock_free(KxCodeBlock *self) {
 	for (t=0;t<data->subcodeblocks_size;t++)
 		REF_REMOVE(data->subcodeblocks[t]);
 	
-	/*if (data->parent_codeblock)
-		REF_REMOVE(data->parent_codeblock);*/
-
 	if (data->symbol_frame) {
 		for (t=0;t<data->symbol_frame_size;t++) {
 			REF_REMOVE(data->symbol_frame[t]);
@@ -260,33 +257,13 @@ kxcodeblock_init_data(KxCodeBlock *self, char **bytecode, char *source_filename)
 
 	data->source_filename = strdup(source_filename);
 
-	/*if (**bytecode == -1) {
-		PDEBUG("new block\n");
-		// BLOCK
-		if (parent_codeblock == NULL) {
-			fprintf(stderr,"Internal error: kxcodeblock_new_from_bytecode: parent_codeblock is NULL");
-			exit(-1);
-		}
-*/
-		/* !! TEMPORATY - proti leaku dokud nebude GC, az bude GC zapnout !! */
-		//REF_ADD(parent_codeblock);
-		//data->parent_codeblock = parent_codeblock;
-/*
-		data->type = KXCODEBLOCK_BLOCK;
-		data->symbol_frame = KXCODEBLOCK_DATA(parent_codeblock)->symbol_frame;
-		data->symbol_frame_size = -1;
-		(*bytecode)++;
-	} else {
-		PDEBUG("new method\n");*/
-
 	char c = GET_BYTECODE_CHAR;
 	if (c == 0)
 		data->type = KXCODEBLOCK_METHOD;
 	else
 		data->type = KXCODEBLOCK_BLOCK;
-	//data->parent_codeblock = NULL;
+
 	kxcodeblock_read_symbol_frame(self,bytecode);
-//	}
 }
 
 static void
@@ -304,7 +281,6 @@ kxcodeblock_read_code(KxCodeBlock *self, char **bytecode)
 		return;
 	}
 
-	//printf("code size = %i\n", size);
 	data->code = kxmalloc(size);
 	ALLOCTEST(data->code);
 
@@ -401,9 +377,6 @@ kxcodeblock_read_subblock(KxCore *core, char **bytecode, KxCodeBlock *parent_cod
 	
 	kxcodeblock_read_subblocks(codeblock, bytecode, source_filename);
 
-	//KxCodeBlockData *data = KXCODEBLOCK_DATA(codeblock);
-	//data->locals_total_count = kxcodeblock_locals_total_count(codeblock);
-
 	return codeblock;
 }
 
@@ -481,15 +454,8 @@ kxcodeblock_run_scoped(KxCodeBlock *self, KxActivation *parent_activation, KxMes
 	}
 
 
-	KxActivation *activation = kxactivation_new(KXCORE); // = kxactivation_clone_with_new_data(prototype);
+	KxActivation *activation = kxactivation_new(KXCORE);
 
-	
-	/*if (parent_activation->long_return) {
-		activation->long_return = parent_activation->long_return;
-	} else {
-		activation->long_return = parent_activation;
-	}*/
-		
 	activation->parent = parent_activation;
 	
 	return kxcodeblock_run_activation(self, parent_activation->receiver, activation, message);
@@ -511,8 +477,8 @@ kxcodeblock_run(KxCodeBlock *self, KxObject *target, KxMessage *message)
 	}
 
 
-	KxActivation *activation = kxactivation_new(KXCORE); // = kxactivation_clone_with_new_data(prototype);
-	//activation->long_return = NULL;
+	KxActivation *activation = kxactivation_new(KXCORE);	
+	
 	activation->parent = NULL;
 	
 	return kxcodeblock_run_activation(self, target, activation, message);
@@ -537,9 +503,6 @@ kxcodeblock_mark(KxObject *self)
 	for (t=0;t<data->subcodeblocks_size;t++) {
 		kxobject_mark(data->subcodeblocks[t]);
 	}
-
-	/*if (data->parent_codeblock)
-		kxobject_mark(data->parent_codeblock);*/
 }
 
 static KxObject *

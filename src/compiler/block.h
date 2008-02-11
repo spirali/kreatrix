@@ -48,8 +48,6 @@ struct KxcBlock {
 	int type; // values: KXCBLOCK_TYPE_*
 	KxcBlock *parent_block;
 
-	/*char *params;*/
-	
 	char *locals;
 
 	int params_count;

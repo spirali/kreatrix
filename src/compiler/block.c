@@ -267,8 +267,6 @@ kxcblock_new(int type, KxcBlock * parent, List *parameters, List *localslots, Li
 
 	block->type = type;
 
-	//block->params_list = parameters;
-	
 	kxcblock_add_params_and_locals(block,parameters, localslots, errors);
 
 	block->code = list_new();
@@ -296,12 +294,8 @@ kxcblock_free(KxcBlock *block)
 
 	list_free_all(block->symbols);
 
-	/*if (block->params)
-		free(block->params);*/
-
 	if (block->locals)
 		free(block->locals);
-
 
 	// Free instructions
 	list_foreach(block->code, (ListForeachFcn*) &kxcinstruction_free);
@@ -440,43 +434,6 @@ kxcblock_add_params_and_locals(KxcBlock *block, List *parameters, List *locals, 
 	if (locals)
 		list_free(locals);
 }
-
-/**
- *	Add name of local slots into block
- *	"parameters" is list of names of parameters
- */
-/*static void 
-kxcblock_add_localslots(KxcBlock *block, List *slots, List *errors) 
-{
-	if (slots == NULL) {
-		block->localslots_count = 0;
-		block->localslots = NULL;
-		return;
-	}
-
-	block->localslots_count = slots->size;
-	block->localslots = malloc(slots->size * sizeof(char));
-	ALLOCTEST(block->localslots);
-
-
-	int t;
-	for (t=0;t<slots->size;t++) {
-		PDEBUG("local slot :%s\n",slots->items[t]);
-		int symbol = kxcblock_get_symbol(block, (char*)slots->items[t]);
-		block->localslots[t] = symbol;
-		int s;
-		for (s=0;s<t;s++) {
-			if (block->localslots[s] == symbol) {
-				char tmp[250];
-				snprintf(tmp,250, "Two local slots has same name '%s'",slots->items[s]);
-				list_append(errors, strdup(tmp));
-				break;
-			}
-
-		}
-	}
-	list_free(slots);	
-}*/
 
 void
 kxcblock_push_local(KxcBlock *block, KxcLocal *local)
@@ -903,9 +860,6 @@ kxcblock_put_list(KxcBlock *block, int list_size)
 static int 
 kxcblock_bytecode_symboltable_size(KxcBlock *block)
 {
-	/*if (block->type == KXCBLOCK_TYPE_BLOCK)
-		return 1; // block hasn't own symbol table (writes one byte with value -1)*/
-
 	int size=1; // count of symbols
 	int t;
 	for (t=0;t<block->symbols->size;t++) {
@@ -1024,12 +978,6 @@ kxcblock_bytecode_literals_write(KxcBlock *block, char **bytecode)
 static void 
 kxcblock_bytecode_symboltable_write(KxcBlock *block, char **bytecode) 
 {
-
-	/*if (block->type == KXCBLOCK_TYPE_BLOCK) {
-		**bytecode = -1;
-		(*bytecode)++;
-		return; // block hasn't own symbol table, downt write anything
-	}*/
 	BYTECODE_WRITE_CHAR(block->symbols->size);
 	int t;
 	for(t=0;t<block->symbols->size;t++) {
@@ -1042,8 +990,6 @@ static void
 kxcblock_bytecode_params_write(KxcBlock *block, char **bytecode) 
 {
 	BYTECODE_WRITE_CHAR(block->params_count);
-	/*memcpy(*bytecode, block->params, sizeof(char) * block->params_count);
-	*bytecode += block->params_count;*/
 }
 
 static void

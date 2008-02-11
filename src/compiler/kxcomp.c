@@ -393,9 +393,6 @@ kxcomp_put_alias(KxCompiler *self, int message_type, char *message_name, int sub
 			kxcblock_put_symbol(self->block, symbol);
 		}
 	}
-	/*if (doc_string) {
-		kxcblock_put_string(self->block,doc_string);
-	}*/
 
 	kxcomp_next_token(self);
 	if(grammar_keyword_message(self) == 0) {
@@ -405,10 +402,6 @@ kxcomp_put_alias(KxCompiler *self, int message_type, char *message_name, int sub
 		}
 		return 0;
 	}
-
-	/*if (doc_string) {
-		kxcblock_put_message(self->block,KXCI_KEYWORD_MSG,strdup("__asDocTo:"), self->parser->line_number); 
-	}*/
 
 	if (!is_local) {
 		kxcblock_put_message(self->block,message_type,strdup(message_name), self->parser->line_number); 

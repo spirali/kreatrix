@@ -113,12 +113,6 @@ kxbytearray_as_string(KxByteArray *self, KxMessage *message)
 	return KXSTRING(str);
 }
 
-/*static KxObject *
-kxbytearray_as_bytearray(KxByteArray *self, KxMessage *message)
-{
-	KXRETURN(self);
-}*/
-
 static KxObject *
 kxbytearray_as_int32(KxByteArray *self, KxMessage *message)
 {

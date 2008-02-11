@@ -96,7 +96,6 @@ kxtrue_lazy_and(KxObject *self, KxMessage *message)
 static KxObject *
 kxtrue_lazy_or(KxObject *self, KxMessage *message)
 {
-	//RETURN_TRUE;
 	KXRETURN(KXCORE->object_true);
 }
 

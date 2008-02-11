@@ -22,9 +22,6 @@
 #include "kxglobals.h"
 
 
-// TODO: kx_verbose do globals.h
-extern int kx_verbose;
-
 KxObjectExtension kxmodule_extension;
 
 static void kxmodule_free(KxModule *self);
@@ -152,7 +149,6 @@ kxmodule_load(KxModule *self, KxMessage *message)
 
 	List *paths = kxlist_to_list_of_cstrings(paths_obj);
 	char kx_filename[256];
-	//snprintf(lib_filename,256,"%s/%s%s",param, param, SHARE_EXT);
 	
 	/* Looking for NAME/NAME.kx" */
 	snprintf(kx_filename,256,"%s/%s.kx",param, param);

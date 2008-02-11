@@ -76,10 +76,6 @@ kxmessage_send_to_message_hook(KxMessage *self, KxObject *message_hook)
 static void
 kxmessage_throw_slot_not_found(KxCore *core, char *slot_name)
 {
-	/*	KxException *excp = kxexception_new_with_text(
-				core,
-				"Slot '%s' not found.", 
-				(char*) self->message_name->data.ptr);*/
 		KxException *excp = kxcore_clone_registered_exception_text(core, "vm", "DoesNotUnderstand","Slot '%s' not found.", slot_name);
 		kxstack_throw_object(core->stack, excp);
 }
@@ -89,8 +85,6 @@ kxmessage_send(KxMessage *self)
 {
 	int flags;
 	KxObject *object = kxobject_find_slot_and_holder(self->target,self->message_name, &self->slot_holder, &flags);
-
-//	printf("SEND: %s\n",(char*)self->message_name->data.ptr);
 
 	int params_count = self->params_count;
 	
@@ -120,7 +114,6 @@ kxmessage_send(KxMessage *self)
 			if (KXCORE_FROM(self->target)->gil) {
 				KxCore *core = KXCORE_FROM(object);
 				if (--core->yield_counter == 0) {
-	//				kxmessage_dump(self);
 					core->yield_counter = core->yield_interval;
 					KxStack *stack = core->stack;
 					core->gil_unlock(core);
@@ -152,8 +145,6 @@ kxmessage_resend(KxMessage *self, KxObject *start_of_lookup)
 	int flags;
 	KxObject *object = kxobject_find_slot_in_ancestors(start_of_lookup,self->message_name, &self->slot_holder, &flags);
 
-	//printf("SEND: %s\n",(char*)self->message_name->data.ptr);
-
 	int params_count = self->params_count;
 	
 	KxObject * retobj;
@@ -167,11 +158,6 @@ kxmessage_resend(KxMessage *self, KxObject *start_of_lookup)
 		if (hook) {
 			return kxmessage_send_to_message_hook(self, hook);
 		}
-	/*	KxException *excp = kxexception_new_with_text(
-				core,
-				"Slot '%s' not found.", 
-				(char*) self->message_name->data.ptr);
-		kxstack_throw_object(KXSTACK_FROM(self->target), excp);*/
 		kxmessage_throw_slot_not_found(core, (char*) self->message_name->data.ptr);
 		
 		retobj = NULL;

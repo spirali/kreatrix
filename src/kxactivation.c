@@ -29,9 +29,6 @@
 
 #define FETCH_BYTE(codep) *(codep++)
 
-//static void kxactivation_add_method_table(KxObject *self);
-
-
 KxObjectExtension kxactivation_extension;
 
 typedef KxReturn (KxActivationInstrFcn)(KxActivation *self, char **codep);
@@ -94,7 +91,6 @@ kxactivation_mark(KxActivation *self)
 	for (t=0;t<cdata->locals_count;t++) {
 		kxobject_mark(self->locals[t]);
 	}
-	// TODO: params
 }
 
 KxReturn 
@@ -260,48 +256,6 @@ kxactivation_return(KxActivation *self, KxReturn ret)
 			return kxactivation_ret_blockreturn(self);
 		case RET_LONGRETURN: 
 			return kxactivation_ret_longreturn(self);
-		/*case RET_METHODRETURN: {
-			kxstack_pop_activation(KXSTACK);
-
-			kxactivation_inner_stack_free(self);
-
-			if (self->message.target)
-				REF_REMOVE(self->message.target);
-
-			if (KXCODEBLOCK_DATA(self->codeblock)->type == KXCODEBLOCK_METHOD) {
-				return kxstack_get_and_reset_return_object(KXSTACK);
-			}
-			else {
-				return NULL;
-			}
-		}
-
-		case RET_BLOCKRETURN: {
-			if (self->message.target)
-				REF_REMOVE(self->message.target);
-
-			kxstack_pop_activation(KXSTACK);
-			KxObject *obj = kxactivation_inner_stack_pop(self);
-			kxactivation_inner_stack_free(self);
-			return obj;
-		}
-
-		case RET_LONGRETURN: {
-			kxstack_pop_activation(KXSTACK);
-
-			kxactivation_inner_stack_free(self);
-
-			if (self->message.target)
-				REF_REMOVE(self->message.target);
-
-			KxActivation *longret = kxstack_get_long_return_to_activation(KXSTACK);
-			if (KXCODEBLOCK_DATA(self->codeblock)->type == KXCODEBLOCK_METHOD && longret == self) {
-				return kxstack_get_and_reset_return_object(KXSTACK);
-			} else {
-				return NULL;
-			}
-		}*/
-
 		case RET_THROW: {
 			kxactivation_process_throw(self);
 			kxactivation_inner_stack_free(self);
@@ -333,13 +287,11 @@ kxactivation_run(KxActivation *self)
 	self->message_num=0;
 
 	KxStack *stack = KXSTACK;
-	//self->message.stack = stack;
 	
 	self->message.target = NULL;
 
 	kxstack_push_activation(stack,self);
 	
-//	kxcore_gc_countdown(KXCORE);
 	kxcore_gc_check(KXCORE);	
 
 
@@ -522,13 +474,6 @@ kxactivation_run(KxActivation *self)
 
 			}
 
-			/*static void
-			kxactivation_resend_error() 
-			{
-				printf("Fatal Error: resend instruction without slot_holder_of_scopeblock");
-				abort();
-			}*/
-			
 			case KXCI_RESEND_UNARY_MSG:
 			{
 				if (self->message.target)

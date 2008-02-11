@@ -32,7 +32,6 @@ kxinteger_init_extension()
 {
 	kxobjectext_init(&kxinteger_extension);
 	kxinteger_extension.type_name = "Integer";
-	//kxinteger_extension.free = kxinteger_free;
 	kxinteger_extension.clone = kxinteger_clone;
 }
 
@@ -59,15 +58,6 @@ kxinteger_new_prototype(KxCore *core)
 
 	return object;
 }
-
-/*
-static void
-kxinteger_free(KxInteger *self) 
-{
-	// do notning
-	//   prevent from freeing data 
-}
-*/
 
 KxInteger *
 kxinteger_clone_with(KxInteger *self, KxInt value)
@@ -193,7 +183,6 @@ kxinteger_repeat(KxInteger *self, KxMessage *message)
 	// Param is block with 1 param
 	if (IS_KXSCOPEDBLOCK(param) && (KXCODEBLOCK_DATA(KXSCOPEDBLOCK_DATA(param)->codeblock)->params_count == 1)) {
 		KxMessage msg;
-	//	msg.stack = message->stack;
 		msg.message_name = NULL;
 		msg.params_count = 1;
 		msg.target = self;
@@ -239,9 +228,7 @@ kxinteger_to_by_do(KxInteger *self, KxMessage *message)
 	KxObject *block = message->params[2];
 	KxInt selfvalue = KXINTEGER_VALUE(self);
 
-	//printf("%i %i %i\n", selfvalue, param0, selfvalue >= param0);
 	KxMessage msg;
-	//msg.stack = message->stack;
 	msg.message_name = NULL;
 	msg.params_count = 1;
 	msg.target = self;

@@ -19,7 +19,6 @@ KxObjectExtension kxscopedblock_extension;
 
 static void kxscopedblock_free(KxScopedBlock *self);
 static void kxscopedblock_mark(KxScopedBlock *self);
-//static KxReturn kxscopedblock_activate(KxScopedBlock *self, KxObject *target, KxMessage *message);
 static void kxscopedblock_clean(KxScopedBlock *self);
 
 
@@ -29,7 +28,6 @@ kxscopedblock_init_extension()
 	kxobjectext_init(&kxscopedblock_extension);
 	kxscopedblock_extension.type_name = "ScopedBlock";
 	kxscopedblock_extension.free = kxscopedblock_free;
-	//kxscopedblock_extension.activate = kxscopedblock_activate;
 	kxscopedblock_extension.mark = kxscopedblock_mark;
 	kxscopedblock_extension.clean = kxscopedblock_clean;
 }
@@ -134,16 +132,11 @@ static KxObject *
 kxscopedblock_catch_all(KxObject *self, KxMessage *message)
 {
 	KxStack *stack = KXSTACK;
-/*	KxStackSave stacksave;
-	kxstack_save(stack, &stacksave);*/
-
 	KxObject * retobj = kxobject_evaluate_block_simple(self);
 
 	if (retobj == NULL) {
 		if (kxstack_get_return_state(stack) == RET_THROW)
 		{
-//			kxstack_resume(stack, &stacksave);
-
 			KxObject *obj = kxstack_catch_thrown_object(stack);
 
 			KxMessage msg;
@@ -164,14 +157,11 @@ static KxObject *
 kxscopedblock_catch(KxObject *self, KxMessage *message)
 {
 	KxStack *stack = KXSTACK;
-/*	KxStackSave stacksave;
-	kxstack_save(stack, &stacksave);*/
 
 	KxObject *retobj = kxobject_evaluate_block_simple(self);
 	if (retobj == NULL) {
 		if (kxstack_get_return_state(stack) == RET_THROW)
 		{
-	//		kxstack_resume(stack, &stacksave);
 			KxObject *obj = kxstack_get_thrown_object(stack);
 			if (!kxobject_is_kind_of(obj,message->params[0])) {
 				return NULL;
@@ -230,7 +220,6 @@ kxscopedblock_while_false(KxObject *self, KxMessage *message)
 	KxObject *retobj;
 	do {
 		retobj = kxscopedblock_run(self, message);
-	//	REF_REMOVE(retobj);
 		KXCHECK(retobj);
 		REF_REMOVE(retobj);
 	} while(retobj == KXCORE->object_false);

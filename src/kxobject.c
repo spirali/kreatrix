@@ -45,7 +45,7 @@ kxobject_new(KxCore *core)
 	#endif
 
 	object->ref_count = 1;
-	//object->slots = hashtable_new();
+
 	kxobject_slots_init(object);
 
 
@@ -110,11 +110,6 @@ kxobject_free(KxObject *self)
 	if (self->extension && self->extension->free) {
 		self->extension->free(self);
 	}	
-	// Clean reference in slots
-	/*hashtable_foreach(self->slots, kxobject_ref_remove);
-	hashtable_foreach_key(self->slots, kxobject_ref_remove);
-
-	hashtable_free(self->slots);*/
 
 	if (self->parent_slot.parent) {
 		REF_REMOVE(self->parent_slot.parent);
@@ -137,13 +132,6 @@ kxobject_free(KxObject *self)
 	KXCORE->objects_count--;
 	kxcore_raw_object_return(KXCORE,self);
 }
-
-/*void
-kxobject_free_slots(KxObject *self) {
-	hashtable_foreach(self->slots, kxobject_ref_remove);
-	hashtable_foreach_key(self->slots, kxobject_ref_remove);
-	hashtable_clean(self->slots);
-}	kxobject_dump(self->base_object);*/
 
 void 
 kxobject_clean(KxObject *self) {
@@ -313,7 +301,6 @@ kxobject_set_parent(KxObject *self, KxObject *parent)
 	}
 	self->parent_slot.parent = parent;
 	REF_ADD(parent);
-	//kxobject_insert_parent(self, parent);
 }
 
 
@@ -387,7 +374,6 @@ kxobject_set_slot(KxObject *self, KxSymbol *key, KxObject *value)
 {
 	REF_ADD(value);
 
-	//KxObject *old = hashtable_get(self->slots,key);
 	KxSlot *slot = kxobject_slot_find(self, key);
 	if (slot) {
 		REF_REMOVE(slot->value);
@@ -404,7 +390,6 @@ kxobject_set_slot_with_flags(KxObject *self, KxSymbol *key, KxObject *value, int
 {
 	REF_ADD(value);
 
-	//KxObject *old = hashtable_get(self->slots,key);
 	KxSlot *slot = kxobject_slot_find(self, key);
 	if (slot) {
 		REF_REMOVE(slot->value);
@@ -426,7 +411,6 @@ kxobject_set_slot_no_ref(KxObject *self, KxSymbol *key, KxObject *value)
 {
 	REF_ADD(value);
 
-	//KxObject *old = hashtable_get(self->slots,key);
 	KxSlot *slot = kxobject_slot_find(self, key);
 	if (slot) {
 		REF_REMOVE(key);
@@ -443,7 +427,6 @@ kxobject_set_slot_no_ref(KxObject *self, KxSymbol *key, KxObject *value)
 void 
 kxobject_set_slot_no_ref2(KxObject *self, KxSymbol *key, KxObject *value) 
 {
-	//KxObject *old = hashtable_get(self->slots,key);
 	KxSlot *slot = kxobject_slot_find(self, key);
 	if (slot) {
 		REF_REMOVE(key);
@@ -693,18 +676,6 @@ kxobject_send_unary_message(KxObject *self, KxSymbol *message_name)
 KxString *
 kxobject_type_name(KxObject *self)
 {
-	/*KxObject * obj = kxobject_find_slot(self, KXCORE->dictionary[KXDICT_TYPE]);
-	if (obj == NULL) {
-		return KXSTRING(kxobject_raw_type_name(self));
-	}
-	KxObject * type = kxobject_activate(obj,self, NULL);
-
-	if (type) {
-		return type;
-	}
-
-	KxReturn ret = kxstack_get_return_state(KXSTACK);*/
-
 	KxObject * obj = kxobject_send_unary_message(self, KXCORE->dictionary[KXDICT_TYPE]);
 
 	if (obj) {
@@ -772,9 +743,6 @@ kxobject_activate_with_message(KxObject *self, KxMessage *message)
 void 
 kxobject_mark(KxObject *self) 
 {
-	/*printf("MARK::");
-	kxobject_dump(self);*/
-
 	if (kxobject_flag_test(self, KXOBJECT_FLAG_GC)) {
  		return;
 	}
@@ -797,10 +765,7 @@ kxobject_mark(KxObject *self)
 		self->extension->mark(self);
 	}
 
-	/*hashtable_foreach_key(self->slots, (HashForeachFcn*) kxobject_mark);
-	hashtable_foreach(self->slots, (HashForeachFcn*) kxobject_mark);*/
 	kxobject_slots_mark(self);
-
 }
 
 static KxObject * 
@@ -846,7 +811,6 @@ kxobject_evaluate_block(KxObject *self, KxMessage *message)
 	KxMessage msg;
 	msg.target = self;
 	msg.params_count = message->params_count;
-//	msg.slot_holder = NULL;
 	int t;
 	for (t=0;t<msg.params_count;t++) {
 		msg.params[t] = message->params[t];
@@ -861,7 +825,6 @@ kxobject_evaluate_block_simple(KxObject *self)
 	msg.target = self;
 	msg.message_name = NULL;
 	msg.params_count = 0;
-//	msg.slot_holder = NULL;
 	if (IS_KXSCOPEDBLOCK(self)) {
 		return kxscopedblock_run(self, &msg);
 	}

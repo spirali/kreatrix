@@ -30,17 +30,7 @@ kxcharacter_init_extension()
 {
 	kxobjectext_init(&kxcharacter_extension);
 	kxcharacter_extension.type_name = "Character";
-	kxcharacter_extension.free = kxcharacter_free;
 }
-
-void
-kxcharacter_free(KxCharacter *self) 
-{
-	// Do notning, prevent from freeing data
-}
-
-
-
 
 
 KxObject *

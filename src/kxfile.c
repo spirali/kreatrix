@@ -111,14 +111,6 @@ kxfile_stderr(KxCore *core)
 }
 
 
-/*static KxObject* 
-kxfile_get_io_exception(KxFile *self)
-{
-	char *path[] = {"IOException"};
-	return kxobject_secured_clone_object_by_path(self, path, 1);
-};
-*/
-
 static void
 kxfile_throw_io_exception(KxFile *self, char *msg) 
 {
@@ -263,7 +255,6 @@ kxfile_open_for_appending(KxFile *self, KxMessage *message)
 	KXCHECK(ret);
 
 	data->flag = KXFILE_FLAG_WRITE;
-	//KXRETURN(self);
 	return ret;
 }
 

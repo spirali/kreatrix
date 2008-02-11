@@ -32,7 +32,8 @@
 */
 
 /**
-	Metody nesplnujici pravidlo navratu s referenci:
+	Following methods don't return referenced object
+	(you need add own referece)
 	
 	kxcore_get_basic_prototype()
 	kxobject_get_slot()
