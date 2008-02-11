@@ -65,10 +65,9 @@ kxcinstruction_bytecode_size(KxcInstruction *instruction)
 		case KXCI_LIST:
 			return typesize+sizeof(int); // size of list
 
-		case KXCI_END_OF_BLOCK:
-		case KXCI_RETURN:
+		case KXCI_RETURN_STACK_TOP:
 		case KXCI_LONGRETURN:
-		case KXCI_RETURNSELF:
+		case KXCI_RETURN_SELF:
 			return typesize;
 
 		case KXCI_PUSH_SELF:
@@ -154,10 +153,9 @@ kxcinstruction_bytecode_write(KxcInstruction *instruction, char **bytecode, KxcB
 			return;
 
 		case KXCI_POP:
-		case KXCI_END_OF_BLOCK:
-		case KXCI_RETURN:
+		case KXCI_RETURN_STACK_TOP:
 		case KXCI_LONGRETURN:
-		case KXCI_RETURNSELF:
+		case KXCI_RETURN_SELF:
 			return; // No aditional data
 	
 		case KXCI_PUSH_METHOD:			
@@ -536,7 +534,7 @@ kxcblock_end_of_code(KxcBlock *block)
 
 	KxcInstruction *i =  (KxcInstruction*)list_top(block->code);
 
-	if (i && (i->type == KXCI_RETURN || i->type==KXCI_LONGRETURN))
+	if (i && (i->type == KXCI_RETURN_STACK_TOP || i->type==KXCI_LONGRETURN))
 		append_end = 0;
 
 	if (block->type == KXCBLOCK_TYPE_METHOD) {
@@ -550,7 +548,7 @@ kxcblock_end_of_code(KxcBlock *block)
 				list_fast_pop(block->code);
 				kxcinstruction_free(i);
 			} else if (i == NULL) {
-				// TODO: Vracet rozumny objekt
+				// TODO: return something else
 				kxcblock_put_integer(block,0);
 			}
 			kxcblock_put_endofblock(block);
@@ -572,7 +570,7 @@ kxcblock_end_of_main_block(KxcBlock *block)
 
 	KxcInstruction *i =  (KxcInstruction*)list_top(block->code);
 
-	if (!i || i->type != KXCI_RETURN) {
+	if (!i || i->type != KXCI_RETURN_STACK_TOP) {
 		if (i && i->type == KXCI_POP) {
 				list_pop(block->code);
 				kxcinstruction_free(i);
@@ -710,9 +708,8 @@ kxcblock_put_pop(KxcBlock *block)
 
 	if (i) {
 		switch(i->type) {
-			case KXCI_RETURN:
-			case KXCI_RETURNSELF:
-			case KXCI_END_OF_BLOCK:
+			case KXCI_RETURN_STACK_TOP:
+			case KXCI_RETURN_SELF:
 			case KXCI_LONGRETURN:
 				return;
 		}
@@ -723,15 +720,12 @@ kxcblock_put_pop(KxcBlock *block)
 	kxcblock_add_instruction(block,i);
 }
 
-/**
- *	Put instuction KXCI_RETURN into codeblock
- */
 void
 kxcblock_put_return(KxcBlock *block)
 {
 	if (block->type == KXCBLOCK_TYPE_METHOD) {
 		PDEBUG("Return\n");
-		KxcInstruction *i = kxcinstruction_new(KXCI_RETURN);
+		KxcInstruction *i = kxcinstruction_new(KXCI_RETURN_STACK_TOP);
 		kxcblock_add_instruction(block,i);
 	} else {
 		KxcInstruction *i = kxcinstruction_new(KXCI_LONGRETURN);
@@ -740,24 +734,21 @@ kxcblock_put_return(KxcBlock *block)
 }
 
 /**
- *	Put instuction KXCI_RETURNSELF into codeblock
+ *	Put instuction KXCI_RETURN_SELF into codeblock
  */
 void 
 kxcblock_put_returnself(KxcBlock *block)
 {
 	PDEBUG("Return self\n");
-	KxcInstruction *i = kxcinstruction_new(KXCI_RETURNSELF);
+	KxcInstruction *i = kxcinstruction_new(KXCI_RETURN_SELF);
 	kxcblock_add_instruction(block,i);
 }
 
-/**
- *	Put instuction KXCI_END_OF_BLOCK into codeblock
- */
 void 
 kxcblock_put_endofblock(KxcBlock *block)
 {
 	PDEBUG("End-Of-Block\n");
-	KxcInstruction *i = kxcinstruction_new(KXCI_END_OF_BLOCK);
+	KxcInstruction *i = kxcinstruction_new(KXCI_RETURN_STACK_TOP);
 	kxcblock_add_instruction(block,i);
 }
 

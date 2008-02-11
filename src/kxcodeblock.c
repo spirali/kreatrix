@@ -134,7 +134,7 @@ kxcodeblock_data_new_return_self()
 	data->code = kxmalloc(1);
 	ALLOCTEST(data->code);
 
-	data->code[0] = KXCI_RETURNSELF;
+	data->code[0] = KXCI_RETURN_SELF;
 
 	return data;
 }

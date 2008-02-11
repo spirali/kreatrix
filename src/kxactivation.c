@@ -194,37 +194,18 @@ kxactivation_message_prepare_from_inner_stack(KxActivation *self, KxObject *targ
 	}
 }
 
-static inline KxObject * 
-kxactivation_ret_methodreturn(KxActivation *self) 
+static inline KxObject *
+kxactivation_return_object(KxActivation *self, KxObject *obj)
 {
 	self->is_over = 1;
 	kxstack_pop_activation(KXSTACK);
-
 	kxactivation_inner_stack_free(self);
 
-	if (self->message.target)
+	if (self->message.target) 
 		REF_REMOVE(self->message.target);
-
-	if (KXCODEBLOCK_DATA(self->codeblock)->type == KXCODEBLOCK_METHOD) {
-		return kxstack_get_and_reset_return_object(KXSTACK);
-	}
-	else {
-		return NULL;
-	}
-}
-
-static inline KxObject * 
-kxactivation_ret_blockreturn(KxActivation *self)
-{
-	self->is_over = 1;
-	if (self->message.target)
-		REF_REMOVE(self->message.target);
-
-	kxstack_pop_activation(KXSTACK);
-	KxObject *obj = kxactivation_inner_stack_pop(self);
-	kxactivation_inner_stack_free(self);
+	
 	return obj;
-} 
+}
 
 static inline KxObject *
 kxactivation_ret_longreturn(KxActivation *self)
@@ -238,7 +219,7 @@ kxactivation_ret_longreturn(KxActivation *self)
 		REF_REMOVE(self->message.target);
 
 	KxActivation *longret = kxstack_get_long_return_to_activation(KXSTACK);
-	if (KXCODEBLOCK_DATA(self->codeblock)->type == KXCODEBLOCK_METHOD && longret == self) {
+	if (longret == self) {
 		return kxstack_get_and_reset_return_object(KXSTACK);
 	} else {
 		return NULL;
@@ -250,10 +231,6 @@ kxactivation_return(KxActivation *self, KxReturn ret)
 {
 	self->is_over = 1;
 	switch(ret) {
-		case RET_METHODRETURN:
-			return kxactivation_ret_methodreturn(self);
-		case RET_BLOCKRETURN: 
-			return kxactivation_ret_blockreturn(self);
 		case RET_LONGRETURN: 
 			return kxactivation_ret_longreturn(self);
 		case RET_THROW: {
@@ -263,15 +240,11 @@ kxactivation_return(KxActivation *self, KxReturn ret)
 		} break;
 
 		case RET_EXIT: {
-			kxactivation_inner_stack_free(self);
-			if (self->message.target)
-				REF_REMOVE(self->message.target);
-			kxstack_pop_activation(KXSTACK);
-			return NULL;
+			return kxactivation_return_object(self, NULL);
 		}
 
 		default:
-			fprintf(stderr,"Invalid return code\n");
+			fprintf(stderr,"Invalid return code %i\n", ret);
 			exit(-1);
 			return NULL;
 	}
@@ -321,23 +294,16 @@ kxactivation_run(KxActivation *self)
 				continue;
 			}
 
-			case KXCI_RETURNSELF:
+			case KXCI_RETURN_SELF:
 			{
 				KxObject *self_obj = self->receiver;
 				REF_ADD(self_obj);
-				KxStack *stack = KXSTACK;
-				kxstack_set_return_object(stack,self_obj);
-				kxstack_set_return_state(stack, RET_METHODRETURN);
-				return kxactivation_ret_methodreturn(self);
+				return kxactivation_return_object(self, self_obj);
 			}
 
-			case KXCI_RETURN:
+			case KXCI_RETURN_STACK_TOP:
 			{
-				KxObject *obj = kxactivation_inner_stack_pop(self);
-				KxStack *stack = KXSTACK;
-				kxstack_set_return_object(stack,obj);
-				kxstack_set_return_state(stack, RET_METHODRETURN);
-				return kxactivation_ret_methodreturn(self);
+				return kxactivation_return_object(self, kxactivation_inner_stack_pop(self));
 			}
 			
 			case KXCI_LONGRETURN:
@@ -359,12 +325,9 @@ kxactivation_run(KxActivation *self)
 				kxstack_set_long_return_to_activation(stack, long_return);
 				kxstack_set_return_object(stack,obj);
 				kxstack_set_return_state(stack, RET_LONGRETURN);
-				return kxactivation_ret_longreturn(self);
+				return kxactivation_return_object(self, NULL);
 			}
 			
-			case KXCI_END_OF_BLOCK:
-				return kxactivation_ret_blockreturn(self);
-
 			case KXCI_UNARY_MSG:
 			{
 				if (self->message.target)
