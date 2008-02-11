@@ -13,7 +13,8 @@ TESTS=	test_integer.kx \
 	test_compiler.kx \
 	test_bytearray.kx \
 	test_array2d.kx \
-	test_codeblock.kx
+	test_codeblock.kx \
+	test_vm.kx
 
 MOSTLYCLEANFILES=test_file.data
 
@@ -31,5 +32,7 @@ EXTRA_DIST= \
 	test_compiler.kx \
 	test_threads.kx \
 	test_bytearray.kx \
-	test_array2d.kx
+	test_array2d.kx \
+	test_codeblock.kx \
+	test_vm.kx
 

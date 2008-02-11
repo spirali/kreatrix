@@ -1,0 +1,31 @@
+
+import: "test".
+
+vmTest = test TestCase clone do: {
+	
+	testGC = { |list|
+		VM collect.
+		VM collect.
+		VM collect.
+		VM collect.
+		VM collect.
+		VM collect.
+
+		list << #().
+		list add: list.
+		list add: list.
+		list add: list.
+		list add: list.
+		list add: #().
+		list add: "a".
+		list << nil.
+
+		VM collect.
+		VM collect.
+		VM collect.
+		VM collect.
+	}.
+}.
+
+vmTest run.
+

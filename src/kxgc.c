@@ -15,7 +15,7 @@ void
 kxgc_collect(KxCore *core) 
 {
 
-	core->base_object->gc_mark = 0;
+	kxobject_flag_reset(core->base_object, KXOBJECT_FLAG_GC);
 
 	kxcore_mark(core);
 
@@ -28,7 +28,7 @@ kxgc_collect(KxCore *core)
 	if (kx_verbose) {
 		printf("--------------COLLECT---------------\n");
 		while(obj != base_object) {
-			if (!obj->gc_mark) {
+			if (!kxobject_flag_test(obj, KXOBJECT_FLAG_GC)) {
 				printf("COLLECT::");
 				kxobject_dump(obj);
 			}
@@ -59,7 +59,7 @@ kxgc_collect(KxCore *core)
 	printf("|--> count = %i\n", count);*/
 
 	while(obj != base_object) {
-		if (!obj->gc_mark) {
+		if (!kxobject_flag_test(obj, KXOBJECT_FLAG_GC)) {
 			REF_ADD(obj);
 			kxobject_clean(obj);
 			KxObject *next = obj->gc_next;
@@ -70,7 +70,7 @@ kxgc_collect(KxCore *core)
 			REF_REMOVE(obj);
 			obj = next;
 		} else {
-			obj->gc_mark = 0;
+			kxobject_flag_reset(obj, KXOBJECT_FLAG_GC);
 			obj = obj->gc_next;
 		}
 	}
