@@ -1,0 +1,84 @@
+
+(isLoaded: #bytecode) ifTrue: [ ^getModule: #bytecode ].
+
+loadCLibrary: "bytecode".
+
+DecompiledCodeBlock = Object clone do: {
+	type = "DecompiledCodeBlock".
+
+	codeblock <- CodeBlock.
+	instructions <- #()
+}.
+
+Instruction do: {
+	
+	_msgDict = #(
+		(PUSH_LITERAL => #_detailStringForLiteral)
+		(PUSH_LOCAL => #_detailStringForLocal)
+		(UPDATE_LOCAL => #_detailStringForLocal)
+
+
+		(SEND_BINARY => #_detailStringForMessage)
+		(SEND_UNARY => #_detailStringForMessage)
+		(SEND_KEYWORD => #_detailStringForMessage)
+
+		(SEND_LOCAL_UNARY => #_detailStringForMessage)
+		(SEND_LOCAL_KEYWORD => #_detailStringForMessage)
+
+		(SEND_RESEND_UNARY => #_detailStringForMessage)
+		(SEND_RESEND_KEYWORD => #_detailStringForMessage)
+
+
+	) asDictionary.
+
+
+	asString = { ^name }.
+
+	prettyString = { |list msg message|
+		list << #(name).
+
+
+		0 to: parametersCount do: [ :i | |param|
+			list add: " ".
+			list add: (parameterAt: i).
+		].
+
+
+		message << _msgDict at: instructionType ifAbsent: [ nil ].
+		message ifNotNil: [ 
+			list add: " (".
+			list add: (perform: message).
+			list add: ")".
+		].
+
+		^list asString.
+	}.
+
+	_detailStringForLiteral = {
+		^(codeblock literals at: (parameterAt: 0)) printString.
+	}.
+
+	_detailStringForMessage = {
+		^(codeblock messageNames at: (parameterAt: 0)) printString.
+	}.
+
+	_detailStringForLocal = {
+		^(codeblock locals at: (parameterAt: 0)) printString.
+	}.
+
+
+}.
+
+CodeBlock do: {
+	
+	decompile = {
+		|decompiled|
+		decompiled << bytecode DecompiledCodeBlock clone.
+		decompiled codeblock: self.
+		decompiled instructions: instructionsList.
+		^decompiled.
+	}
+}.
+
+registerAs: #bytecode.
+

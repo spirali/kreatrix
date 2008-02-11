@@ -3,6 +3,7 @@
 #define __KX_UTILS_LOG
 
 #include "kxconfig.h"
+#include <stdlib.h>
 
 #ifdef KX_LOG
 

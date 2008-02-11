@@ -19,6 +19,7 @@
 #include "kxcharacter.h"
 #include "kxfloat.h"
 #include "compiler/kxinstr.h"
+#include "kxdecompiler.h"
 
 #define GET_BYTECODE_CHAR *((*bytecode)++)
 
@@ -466,8 +467,14 @@ kxcodeblock_run_scoped(KxCodeBlock *self, KxActivation *parent_activation, KxMes
 KxObject *  
 kxcodeblock_run(KxCodeBlock *self, KxObject *target, KxMessage *message)
 {
-
+	
 	KxCodeBlockData *data = self->data.ptr;
+
+	/*printf("source file: %s %i\n", data->source_filename, data->message_linenumbers[0]);
+	List *list = kxdecompiler_instructions_list(self);
+	kxdecompiler_dump_instructions(list);
+	list_foreach(list, (ListForeachFcn*)kxinstructionwrapper_free);
+	list_free(list);*/
 	
 	if (data->params_count != message->params_count) {
 		KxException *excp = kxexception_new_with_text(KXCORE,
@@ -522,11 +529,65 @@ kxcodeblock_params(KxCodeBlock *self, KxMessage *message)
 	return KXLIST(list);
 }
 
+static KxObject *
+kxcodeblock_literals(KxCodeBlock *self, KxMessage *message) 
+{
+	KxCodeBlockData *data = self->data.ptr;
+	if (data == NULL) {
+	 	List *list = list_new();
+		return KXLIST(list);
+	}
+	List *list = list_new_size(data->literals_count);
+	int t;
+	for (t=0;t<data->literals_count;t++) {
+		list->items[t] = data->literals[t];
+		REF_ADD(data->literals[t]);
+	}
+	return KXLIST(list);
+}
+
+static KxObject *
+kxcodeblock_locals(KxCodeBlock *self, KxMessage *message) 
+{
+	KxCodeBlockData *data = self->data.ptr;
+	if (data == NULL) {
+	 	List *list = list_new();
+		return KXLIST(list);
+	}
+	List *list = list_new_size(data->locals_count);
+	int t;
+	for (t=0;t<data->locals_count;t++) {
+		list->items[t] = data->locals_symbols[t];
+		REF_ADD((KxObject*)list->items[t]);
+	}
+	return KXLIST(list);
+}
+
+static KxObject *
+kxcodeblock_message_names(KxCodeBlock *self, KxMessage *message) 
+{
+	KxCodeBlockData *data = self->data.ptr;
+	if (data == NULL) {
+	 	List *list = list_new();
+		return KXLIST(list);
+	}
+	List *list = list_new_size(data->symbol_frame_size);
+	int t;
+	for (t=0;t<data->symbol_frame_size;t++) {
+		list->items[t] = data->symbol_frame[t];
+		REF_ADD((KxObject*)list->items[t]);
+	}
+	return KXLIST(list);
+}
+
 static void 
 kxcodeblock_add_method_table(KxCodeBlock *self)
 {
 	KxMethodTable table[] = {
 		{"params",0, kxcodeblock_params },
+		{"literals",0, kxcodeblock_literals },
+		{"locals",0, kxcodeblock_locals },
+		{"messageNames",0, kxcodeblock_message_names },
 		{NULL,0, NULL}
 	};
 	kxobject_add_methods(self, table);

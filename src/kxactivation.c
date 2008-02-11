@@ -497,8 +497,8 @@ kxactivation_run(KxActivation *self)
 			
 			case KXCI_LIST:
 			{
-				int size = *((int*)codep);
-				codep += sizeof(int);
+				int size = *((char*)codep);
+				codep += sizeof(char);
 
 				List *list = list_new_size(size);
 				int t;

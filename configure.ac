@@ -38,6 +38,7 @@ AC_CONFIG_FILES([
 		modules/threads/Makefile
 		modules/xml/Makefile
 		modules/gtk/Makefile
+		modules/bytecode/Makefile
 		tests/Makefile
 		docs/Makefile
 		docs/examples/Makefile

@@ -20,6 +20,8 @@ Lobby type = "Lobby".
 true asString = "true".
 true type = true asString.
 
+Lobby freezeSlot: #CodeBlock.
+
 false asString = "false".
 false type = false asString.
 

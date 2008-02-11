@@ -43,5 +43,15 @@ typedef enum {
 	KXC_LITERAL_CHAR
 } KxcLiteralType;
 
+typedef struct KxInstructionInfo KxInstructionInfo;
+
+struct KxInstructionInfo {
+	char *name;
+	int params_count;
+};
+
+extern KxInstructionInfo kxinstructions_info[KXCI_INSTRUCTIONS_COUNT];
+
+
 
 #endif

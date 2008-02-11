@@ -1,5 +1,5 @@
 
-SUBDIRS = test system sockets time pool cgi random
+SUBDIRS = test system sockets time pool cgi random bytecode
 
 if KX_THREADS_SUPPORT
 SUBDIRS+=threads

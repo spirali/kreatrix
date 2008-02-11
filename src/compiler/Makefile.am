@@ -16,6 +16,7 @@ libkxcompiler_a_SOURCES = \
 		block.c \
 		block.h \
 		kxinstr.h \
+		kxinstr.c \
 		block_optimise.c \
 		block_optimise.h
 

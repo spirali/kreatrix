@@ -41,52 +41,7 @@ kxcinstruction_free(KxcInstruction *instruction)
 static int 
 kxcinstruction_bytecode_size(KxcInstruction *instruction) 
 {
-	int typesize = sizeof(char);
-	// minimal size is 1 byte for instruction type
-	switch(instruction->type) {
-		case KXCI_UNARY_MSG:
-		case KXCI_BINARY_MSG:
-		case KXCI_LOCAL_UNARY_MSG:
-		case KXCI_RESEND_UNARY_MSG:
-			return typesize+sizeof(char); // symbol id
-
-		case KXCI_KEYWORD_MSG:
-		case KXCI_LOCAL_KEYWORD_MSG:
-		case KXCI_RESEND_KEYWORD_MSG:
-			return typesize+2*sizeof(char); // symbol id, params count
-
-		case KXCI_POP:
-			return typesize;
-		
-		case KXCI_PUSH_METHOD:			
-		case KXCI_PUSH_BLOCK:
-			return typesize + sizeof(char); // block id
-
-		case KXCI_LIST:
-			return typesize+sizeof(int); // size of list
-
-		case KXCI_RETURN_STACK_TOP:
-		case KXCI_LONGRETURN:
-		case KXCI_RETURN_SELF:
-			return typesize;
-
-		case KXCI_PUSH_SELF:
-		case KXCI_PUSH_ACTIVATION:
-			return typesize;
-
-
-		case KXCI_PUSH_LITERAL:
-		case KXCI_PUSH_LOCAL:
-		case KXCI_UPDATE_LOCAL:
-			return typesize + 1;
-
-		case KXCI_UPDATE_OUTER_LOCAL:
-		case KXCI_PUSH_OUTER_LOCAL:
-			return typesize + 2;
-	}
-	fprintf(stderr,"Internal error, invalid instruction type\n");
-	abort();
-	return typesize;
+	return kxinstructions_info[instruction->type].params_count + 1;
 }
 
 static KxcLiteral*
@@ -149,7 +104,7 @@ kxcinstruction_bytecode_write(KxcInstruction *instruction, char **bytecode, KxcB
 			return;
 		}
 		case KXCI_LIST:
-			BYTECODE_WRITE_INT(instruction->value.list_size);
+			BYTECODE_WRITE_CHAR(instruction->value.list_size);
 			return;
 
 		case KXCI_POP:

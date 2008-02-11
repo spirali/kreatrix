@@ -67,7 +67,7 @@ codeblockTest = test TestCase clone do: {
 	}.
 
 	testRunPrototype = { |result|
-		result << CodeBlock.
+		result << do: (slot: #CodeBlock).
 		(result == self) assertTrue.
 	}.
 }.
