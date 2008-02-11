@@ -1,0 +1,14 @@
+
+import: "test".
+
+exceptionTest = test TestCase clone do: {
+	
+	testDNU = {
+		[ 10 unknownMessage ] 
+			assertException: Exception DoesNotUnderstand.
+	}.
+
+}.
+
+
+exceptionTest run.

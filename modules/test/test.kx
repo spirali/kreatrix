@@ -60,3 +60,8 @@ true assertFalse = { throw: (Exception clone message: "Assert failed!")}.
 /** From module "test" */
 false assertTrue = true slot: #assertFalse.
 
+/** From module "test" */
+ScopedBlock assertException: = { :anException | 
+	catch: anException do: [ :e | ^self].
+	throw: (Exception clone message: "Assert failed!").
+}.
