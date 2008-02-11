@@ -81,8 +81,6 @@ gtktreeiter.h \
 gtktreeiter.c \
 gtktreepath.h \
 gtktreepath.c \
-gtktextchildanchor.h \
-gtktextchildanchor.c \
 gdkrectangle.h \
 gdkrectangle.c \
 gtktextattributes.h \
@@ -174,8 +172,6 @@ gtktreeiter.h: kxgenerated.tmp
 gtktreeiter.c: kxgenerated.tmp
 gtktreepath.h: kxgenerated.tmp
 gtktreepath.c: kxgenerated.tmp
-gtktextchildanchor.h: kxgenerated.tmp
-gtktextchildanchor.c: kxgenerated.tmp
 gdkrectangle.h: kxgenerated.tmp
 gdkrectangle.c: kxgenerated.tmp
 gtktextattributes.h: kxgenerated.tmp
@@ -260,8 +256,6 @@ gtktreeiter.h \
 gtktreeiter.c \
 gtktreepath.h \
 gtktreepath.c \
-gtktextchildanchor.h \
-gtktextchildanchor.c \
 gdkrectangle.h \
 gdkrectangle.c \
 gtktextattributes.h \
@@ -343,8 +337,6 @@ gtktreeiter.h \
 gtktreeiter.c \
 gtktreepath.h \
 gtktreepath.c \
-gtktextchildanchor.h \
-gtktextchildanchor.c \
 gdkrectangle.h \
 gdkrectangle.c \
 gtktextattributes.h \

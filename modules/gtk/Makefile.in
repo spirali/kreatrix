@@ -65,11 +65,10 @@ am_gtk_so_OBJECTS = gobject.$(OBJEXT) gtkobject.$(OBJEXT) \
 	gtkliststore.$(OBJEXT) gtktreestore.$(OBJEXT) \
 	gtktreeselection.$(OBJEXT) gtkrequisition.$(OBJEXT) \
 	gtktextiter.$(OBJEXT) gtktreeiter.$(OBJEXT) \
-	gtktreepath.$(OBJEXT) gtktextchildanchor.$(OBJEXT) \
-	gdkrectangle.$(OBJEXT) gtktextattributes.$(OBJEXT) \
-	gtk.$(OBJEXT) gtk_utils.$(OBJEXT) kxclosure.$(OBJEXT) \
-	gdkevent.$(OBJEXT) gtktextbuffer_extra.$(OBJEXT) \
-	kxtree.$(OBJEXT)
+	gtktreepath.$(OBJEXT) gdkrectangle.$(OBJEXT) \
+	gtktextattributes.$(OBJEXT) gtk.$(OBJEXT) gtk_utils.$(OBJEXT) \
+	kxclosure.$(OBJEXT) gdkevent.$(OBJEXT) \
+	gtktextbuffer_extra.$(OBJEXT) kxtree.$(OBJEXT)
 gtk_so_OBJECTS = $(am_gtk_so_OBJECTS)
 gtk_so_LDADD = $(LDADD)
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)
@@ -257,8 +256,6 @@ gtktreeiter.h \
 gtktreeiter.c \
 gtktreepath.h \
 gtktreepath.c \
-gtktextchildanchor.h \
-gtktextchildanchor.c \
 gdkrectangle.h \
 gdkrectangle.c \
 gtktextattributes.h \
@@ -350,8 +347,6 @@ gtktreeiter.h \
 gtktreeiter.c \
 gtktreepath.h \
 gtktreepath.c \
-gtktextchildanchor.h \
-gtktextchildanchor.c \
 gdkrectangle.h \
 gdkrectangle.c \
 gtktextattributes.h \
@@ -433,8 +428,6 @@ gtktreeiter.h \
 gtktreeiter.c \
 gtktreepath.h \
 gtktreepath.c \
-gtktextchildanchor.h \
-gtktextchildanchor.c \
 gdkrectangle.h \
 gdkrectangle.c \
 gtktextattributes.h \
@@ -553,7 +546,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtktextattributes.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtktextbuffer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtktextbuffer_extra.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtktextchildanchor.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtktextiter.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtktexttag.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtktexttagtable.Po@am__quote@
@@ -850,8 +842,6 @@ gtktreeiter.h: kxgenerated.tmp
 gtktreeiter.c: kxgenerated.tmp
 gtktreepath.h: kxgenerated.tmp
 gtktreepath.c: kxgenerated.tmp
-gtktextchildanchor.h: kxgenerated.tmp
-gtktextchildanchor.c: kxgenerated.tmp
 gdkrectangle.h: kxgenerated.tmp
 gdkrectangle.c: kxgenerated.tmp
 gtktextattributes.h: kxgenerated.tmp
