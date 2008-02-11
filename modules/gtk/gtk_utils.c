@@ -462,7 +462,7 @@ kxgtk_mark_gobject(GObject *obj)
 		return;
 	KxObject *self = g_object_get_qdata(obj, kxgtk_wrapper_key);
 	if (self) {
-		if (KXOBJECT_HAS_GC_MARK(self)) {
+		if (kxobject_flag_test(self, KXOBJECT_FLAG_GC)) {
 			return;
 		}
 		kxobject_mark(self);
