@@ -402,7 +402,7 @@ move:afterPosition: void                gtk_list_store_move_after           (Gtk
 //void                gtk_tree_view_set_show_expanders    (GtkTreeView *tree_view,gboolean enabled);
 //O cloneWithModel: GtkWidget*          gtk_tree_view_new_with_model        (GtkTreeModel *model);
 GtkTreeModel*       gtk_tree_view_get_model             (GtkTreeView *tree_view);
-void                gtk_tree_view_set_model             (GtkTreeView *tree_view,GtkTreeModel *model);
+void                gtk_tree_view_set_model             (GtkTreeView *tree_view,GtkTreeModel_NULL *model);
 GtkTreeSelection*   gtk_tree_view_get_selection         (GtkTreeView *tree_view);
 GtkAdjustment*      gtk_tree_view_get_hadjustment       (GtkTreeView *tree_view);
 void                gtk_tree_view_set_hadjustment       (GtkTreeView *tree_view,GtkAdjustment *adjustment);
