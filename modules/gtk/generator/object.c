@@ -62,6 +62,10 @@ kx%name%_new_prototype(KxObject *parent)
 KxObject *
 kx%name%_from(KxCore *core, %ctype% data)
 {
+	if (data == NULL) {
+		REF_ADD(KXCORE->object_nil);
+		return KXCORE->object_nil;
+	}
 	%new_from%
 }
 
