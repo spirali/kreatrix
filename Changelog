@@ -1,5 +1,7 @@
 0.10.5
-    + Added module "bytecode"
+	+ Many optimazitions
+	+ New bytecode and faster interpretation
+	+ Added module "bytecode"
 
 0.10.1
 	+ Local import improved
