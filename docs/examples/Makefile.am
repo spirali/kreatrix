@@ -14,4 +14,5 @@ EXTRA_DIST=\
 	gtk/gtkhelloworld.kx \
 	gtk/gtkbuttons.kx \
 	gtk/gtktextview.kx \
-	gtk/gtktreeview.kx
+	gtk/gtktreeview.kx \
+	gtk/gtkcombobox.kx
