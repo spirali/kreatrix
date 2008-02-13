@@ -1,0 +1,78 @@
+import: "bytecode".
+
+box BrowserMode BytecodeMode = box BrowserMode clone do: {
+
+	name: "Bytecode".
+
+	treeview <- nil.
+	treestore <- nil.
+
+	_createTreeView = { |view column|
+		
+		view << gtk TreeView clone.
+		
+		column << gtk TreeViewColumn clone.
+
+		column renderer: gtk CellRendererText clone
+		       attributes: #("text" 0)
+			   expand: true.
+
+		view appendColumn: column.
+
+		view headersVisible: false.
+		^view.
+	}.
+
+	activate = {   |scrolled|
+		treeview: _createTreeView.
+
+		scrolled << gtk ScrolledWindow clone.
+		scrolled add: treeview show.
+
+		browser modeWidget: scrolled.
+
+		treestore: (gtk TreeStore cloneWithColumns: #(String)).
+		treeview model: treestore.
+	}.
+
+	deactivate = {
+		treeview model: nil. // break cycle
+	}.
+
+	_appendList:iter:name: = { :aList :iter :name |  |i|
+		aList isEmpty ifFalse: [
+			i << treestore appendValues: #(name) parent: iter.
+			aList foreach: [ :each |
+				treestore appendValues: #( (each printString) ) parent: i.
+			]
+		].
+	}.
+
+
+	_fillStoreCodeblock:iter: = { :aCodeblock :iter | |i decompiled|
+		_appendList: aCodeblock literals iter: iter name: "Literals".
+		_appendList: aCodeblock locals iter: iter name: "Locals".
+		_appendList: aCodeblock messageNames iter: iter name: "MessageNames".
+
+		i << treestore appendValues: #("Bytecode") parent: iter.
+		
+		decompiled << aCodeblock decompile.
+		decompiled instructions foreach: [ :each | 
+			treestore appendValues: #( (each prettyString) ) parent: i.
+		].
+	}.
+
+	objectSelected: = { :anObject |
+		treestore clear.
+		(anObject isKindOf: CodeBlock) ifFalse: [ 
+			treestore appendRootValues: #("Object has not bytecode").
+		] ifTrue: [
+			_fillStoreCodeblock: anObject iter: nil.
+		].
+
+		treeview model: treestore.
+	}
+
+
+
+}.

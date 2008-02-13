@@ -1,13 +1,92 @@
 
 
+box BrowserMode = Object clone do: {
+	type = "box BrowserMode".
+	
+	name <- "Generic mode".
+
+	browser <- nil.
+
+	SummaryMode = clone do: {
+		name: "Summary".
+
+		textbuffer <- nil.
+
+		_createTextView = { |scrolled textview|
+			scrolled << gtk ScrolledWindow clone.
+			scrolled policyHorizontal: gtk POLICY_AUTOMATIC 
+					 policyVertical: gtk POLICY_AUTOMATIC.
+
+			textview << gtk TextView clone show.
+			textbuffer: textview buffer.
+			scrolled add: textview.
+			^scrolled.
+		}.
+
+		activate = {  
+			browser modeWidget: _createTextView.
+		}.
+
+		objectSelected: = { :anObject |
+			textbuffer text: #(
+				(anObject asString) "\n"
+				"Type: " (anObject type) "\n"
+				"Parent: " (anObject parent type) "\n"
+			
+			) asString.
+		}
+
+	}.
+
+	DummyMode = clone do: {
+		name: "Dummy".
+
+		activate = { |widget|
+			widget << gtk Button cloneWithLabel: browser selectedObject printString.
+			browser modeWidget: widget.
+		}.
+
+	}.
+
+
+	activate = {
+		browser modeWidget: nil.
+	}.
+
+	deactivate = {}.
+
+	objectSelected: = { :anObject | }.
+
+}.
+
+localImport: "browser_bytecode.kx".
+
 box Browser = gtk Window clone do: {
 	type = "box Browser".
 
 	treeview <- nil.
 	textview <- nil.
 
-	rootObject <- Lobby.
+	rootObject = Lobby.
+
+	rootObject: = { :anObject | rootObject = anObject. freezeSlot: #rootObject }.
 	rootObjectName <- "Lobby".
+
+	modeComboBox <- nil.
+
+	modes = #().
+
+	modeWidget = nil.
+	mode <- box BrowserMode.
+
+	mainBox <- nil.
+
+	openBrowserFor:name: = { :anObject :name | |browser|
+		browser << box Browser clone.
+		browser object: anObject name: name.
+		browser show.
+		^browser
+	}.
 
 	onDestroyQuitGtk = {
 		signal: "destroy" connect: [ :w | gtk mainQuit ].
@@ -15,22 +94,45 @@ box Browser = gtk Window clone do: {
 
 	object:name: = { :anObject :aString | |model path|
 		title: "Browser: ",aString.
-		rootObject <- anObject.
+		rootObject: anObject.
+		rootObjectName: aString.
 
 		model << _createInitModel.
 		treeview model: model.
+
+		activateMode: modes first.
 	}.
 
-	init = { |box scrolled|
-		resize: 300@400.
-	//	borderWidth: 5.
+	_createMenu = { |menu item|
+		menu << gtk Menu clone.
+		
+		item << gtk MenuItem cloneWithLabel: "Browse selected object".
+		item signal: "activate" connect: [ :w | 	
+			openBrowserFor: selectedObject name: selectedName.
+		].
+		menu append: item.
 
-		box << gtk VBox clone.
-		add: box.
-		box spacing: 5.
+
+		item << gtk MenuItem cloneWithLabel: "Open".
+		item submenu: menu.
+
+		^gtk MenuBar clone append: item.
+	}.
+
+	init = { |scrolled|
+		resize: 400@550.
+		borderWidth: 1.
+
+		mainBox:  gtk VBox clone.
+
+		mainBox homogeneous: false.
+		add: mainBox.
+		mainBox spacing: 0.
+
+		mainBox packStart: _createMenu expand: false fill: false padding: 0.
 
 		scrolled << gtk ScrolledWindow clone.
-		box packStart: scrolled.
+		mainBox packStart: scrolled.
 		scrolled policyHorizontal: gtk POLICY_AUTOMATIC 
 		         policyVertical: gtk POLICY_AUTOMATIC.
 
@@ -38,15 +140,30 @@ box Browser = gtk Window clone do: {
 		treeview: _createView.
 		scrolled add: treeview.
 
-		scrolled << gtk ScrolledWindow clone.
-		box packStart: scrolled.
-		scrolled policyHorizontal: gtk POLICY_AUTOMATIC 
-		         policyVertical: gtk POLICY_AUTOMATIC.
+		modeComboBox: gtk ComboBox cloneWithTextModel.
+		
+		modes foreach: [ :mode |
+			modeComboBox appendText: mode name.
+		].
 
-		textview: gtk TextView clone.
-		scrolled add: textview.
+		modeComboBox signal: "changed" connect: [ :w | activateMode: (modes at: w active) ].
 
-		box showAll.
+		mainBox packStart: modeComboBox expand: false fill: false padding: 0.
+
+		mainBox showAll.
+
+	}.
+
+	
+
+	activateMode: = { :newMode |
+		mode deactivate.
+		modeComboBox active: (modes indexOf: newMode).
+		mode: newMode clone.
+		mode browser: self.
+		mode activate.
+		
+		isObjectSelected ifTrue: [ mode objectSelected: selectedObject ].
 
 	}.
 
@@ -67,13 +184,28 @@ box Browser = gtk Window clone do: {
 		].
 	}.
 
+
 	_onSelectRow: = { :aTreeIter | |obj slotName list|
 		obj << treeview model valueAt: aTreeIter column: 0.
+		mode objectSelected: obj.
 		list << #( ("Type: ", obj type)
 		   ("Parent: ", obj parent type)) .
 
-		setText: (list asStringDelimiter: "\n").
+		//setText: (list asStringDelimiter: "\n").
 	}.
+
+	isObjectSelected = {
+		^treeview selection isSelected.
+	}.
+
+	selectedObject = {
+		^treeview model valueAt: (treeview selection selectedIter) column: 0.
+	}.
+
+	selectedName = {
+		^treeview model valueAt: (treeview selection selectedIter) column: 1.
+	}.
+
 
 	_createView = { |column view|
 		view << gtk TreeView clone.
@@ -125,7 +257,18 @@ box Browser = gtk Window clone do: {
 		^model.
 	}.
 
-	setText: = { :aString | 
-		textview buffer text: aString.
-	}
+	modeWidget: = { :aWidget |
+		modeWidget ifNotNil: [ mainBox remove: modeWidget ].
+		modeWidget = aWidget.
+		aWidget ifNotNil: [ aWidget show. mainBox packStart: aWidget ].
+	}.
+
+
+	addMode: = { :aBrowserMode | 
+		modes add: aBrowserMode.
+	}.
+
+	addMode: box BrowserMode SummaryMode.
+	addMode: box BrowserMode BytecodeMode.
+	addMode: box BrowserMode DummyMode.
 }.

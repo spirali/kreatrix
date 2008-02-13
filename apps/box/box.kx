@@ -7,13 +7,9 @@ localImport: "browser.kx".
 
 do: { |browser|
 	
-	browser << box Browser clone.
+	browser << box Browser openBrowserFor: Lobby name: "Lobby".
 	browser onDestroyQuitGtk.
-
-	browser object: Lobby name: "Lobby".
-	browser show.
 	
 	gtk main.
-
+	
 }.
-
