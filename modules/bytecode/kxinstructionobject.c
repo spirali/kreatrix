@@ -29,11 +29,19 @@ kxinstructionobject_free(KxInstructionObject *self)
 	kxfree(data);
 }
 
+static void
+kxinstructionobject_mark(KxInstructionObject *self)
+{
+	KxInstructionObjectData *data = KXINSTRUCTIONOBJECT_DATA(self);
+	kxobject_mark(data->codeblock);
+}
+
 void kxinstructionobject_extension_init() {
 	kxobjectext_init(&kxinstructionobject_extension);
 	kxinstructionobject_extension.type_name = "Instruction";
 
 	kxinstructionobject_extension.free = kxinstructionobject_free;
+	kxinstructionobject_extension.mark = kxinstructionobject_mark;
 }
 
 
@@ -43,6 +51,8 @@ kxinstructionobjectdata_new(KxCodeBlock *codeblock, KxInstructionWrapper *instru
 	KxInstructionObjectData *data = kxmalloc(sizeof(KxInstructionObjectData));
 	ALLOCTEST(data);
 
+
+	REF_ADD(codeblock);
 	data->codeblock = codeblock;
 
 	data->instruction = instruction;
@@ -58,7 +68,6 @@ kxinstructionobject_new_prototype(KxCore *core)
 	KxInstructionWrapper *instruction = kxinstructionwrapper_new();
 	instruction->type = KXCI_RETURN_SELF;
 	KxObject *codeblock = kxcore_get_basic_prototype(core, KXPROTO_CODEBLOCK);
-	REF_ADD(codeblock);
 	self->data.ptr = kxinstructionobjectdata_new(codeblock, instruction);
 	
 	kxinstructionobject_add_method_table(self);
