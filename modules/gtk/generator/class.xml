@@ -3,6 +3,10 @@
 	<class name="GtkObject" abstract="true" >
 		<class name="GtkWidget" abstract="true">
 			<class name="GtkContainer" abstract="true">
+				<class name="GtkMenuShell" abstract="true">
+					<class name="GtkMenu"/>
+					<class name="GtkMenuBar"/>
+				</class>
 				<class name="GtkBin" abstract="true">
 					<class name="GtkWindow" createp="0" unref-new="false"/>
 					<class name="GtkButton">
@@ -17,7 +21,13 @@
 					<class name="GtkComboBox">
 
 					</class>
+					<class name="GtkItem" abstract="true">
+						<class name="GtkMenuItem">
+
+						</class>
+					</class>
 				</class>
+
 				<class name="GtkBox" abstract="true">
 					<class name="GtkVBox" createp="TRUE,0"/>
 					<class name="GtkHBox" createp="TRUE,0"/>

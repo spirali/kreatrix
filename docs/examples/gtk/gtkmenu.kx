@@ -1,0 +1,44 @@
+import: "gtk".
+
+createMenu = { |menu item button|
+
+	menu << gtk Menu clone.
+
+	1 to: 6 do: [ :i |
+		item << gtk MenuItem cloneWithLabel: "Menu Item ", i.
+		item signal: "activate" connect: [ :w | ("item: ", i) println ].
+		menu append: item.
+	].
+
+	item << gtk MenuItem cloneWithLabel: "Menu".
+	item submenu: menu.
+	^item.
+}.
+
+initWindow = { 
+	|window label menubar box|
+	
+	window << gtk Window clone.
+	window title: "Kreatrix GTK example".
+
+	box << gtk VBox clone.
+	box homogeneous: false.
+	window add: box.
+	
+	menubar << gtk MenuBar clone.
+	menubar append: createMenu.
+	box packStart: menubar expand: false fill: false padding: 0.
+
+	label << gtk Label clone.
+	label text: "Hello world with menu".
+	box packStart: label.
+
+	window resize: 200@200.
+	window showAll.
+
+	// Quit app when window is closed
+	window signal: "destroy" connect: [ :w | gtk mainQuit ].
+}.
+
+initWindow.
+gtk main.
