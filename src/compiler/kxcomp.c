@@ -607,10 +607,13 @@ kxcomp_compile_file(char *filename, int compile_docs, KxcBlock **block)
 	char *content = malloc(size+1);
 	ALLOCTEST(content);
 
-	if (fread(content, size, 1, file) != 1) {
-		fclose(file);
-		return kxcomp_one_error_list("Reading from file '%s' failed: %s", filename,strerror(errno));
+	if (size > 0) {
+		if (fread(content, size, 1, file) != 1) {
+			fclose(file);
+			return kxcomp_one_error_list("Reading from file '%s' failed: %s", filename,strerror(errno));
+		}
 	}
+
 	fclose(file);
 	content[size] = 0;
 
