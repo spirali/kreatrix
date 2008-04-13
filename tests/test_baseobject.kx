@@ -40,6 +40,8 @@ testObject = test TestCase clone do: {
 		res << obj perform: #msg: withList: #(20).
 		assert: res equals: 40.
 
+		[ obj perform: #zzz ] assertException: Exception DoesNotUnderstand.
+
 	}.
 
 	testResend = { |Obj o MyList l|
