@@ -209,7 +209,19 @@ testObject = test TestCase clone do: {
 		obj unfreezeSlot: #method.
 		(obj method == "str") assertTrue.
 
-	}
+	}.
+
+	testInsertParent = {
+		|a b c p|
+		a << Object clone.
+		b << Object clone.
+		c << Object clone.
+		p << Object clone.
+		p insertParent: c.
+		p insertParent: b.
+		p insertParent: a.
+		(p parents == #(a b c Object)) assertTrue.
+	}.
 }.
 
 testObject run.

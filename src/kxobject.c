@@ -361,8 +361,11 @@ kxobject_remove_parent(KxObject *self, KxObject *parent)
 void kxobject_insert_parent(KxObject *self, KxObject *parent)
 {
 	if (self->parent_slot.parent) {
-		KxParentSlot *pslot = kxparentslot_new(self->parent_slot.parent);
+		KxObject *obj = self->parent_slot.parent;
+		KxParentSlot *pslot = kxparentslot_new(obj);
+		REF_REMOVE(obj);
 		pslot->next = self->parent_slot.next;
+		self->parent_slot.next = pslot;
 	}
 	REF_ADD(parent);
 	self->parent_slot.parent = parent;
