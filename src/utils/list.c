@@ -294,3 +294,9 @@ list_print_strings(List *list)
 		printf("%s\n", list->items[t]);
 	}
 }
+
+void
+list_collapse(List *list)
+{
+	// TODO: implement collapse
+}

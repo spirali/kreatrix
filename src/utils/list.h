@@ -53,6 +53,6 @@ int list_sort(List *list, CompareFcn *compare);
 
 void list_print_strings(List *list);
 
-// TODO: list_collapse
+void list_collapse(List *list);
 
 #endif // __LIST_H

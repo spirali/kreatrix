@@ -16,7 +16,7 @@
 
 
 static void kxcodeblock_extra_slots(KxObject *self);
-static void kxbytecode_add_contants(KxObject *self);
+static void kxbytecode_add_constants(KxObject *self);
 
 KxObject *
 kxmodule_main(KxModule *self, KxMessage *message) 
@@ -31,7 +31,7 @@ kxmodule_main(KxModule *self, KxMessage *message)
 	codeblock = kxcore_get_basic_prototype(KXCORE, KXPROTO_CODEBLOCK);
 	kxcodeblock_extra_slots(codeblock);
 
-	kxbytecode_add_contants(instructionobject);
+	kxbytecode_add_constants(instructionobject);
 	
 	KXRETURN(self);
 }
@@ -59,9 +59,11 @@ kxcodeblock_instructions_list(KxObject *self, KxMessage *message)
 }
 
 static void
-kxbytecode_add_contants(KxObject *self) 
+kxbytecode_add_constants(KxObject *self) 
 {
 	int t;
+	List *list = list_new();
+
 	for (t=0; t < KXCI_INSTRUCTIONS_COUNT; t++) {
 		KxInstructionInfo *info = &kxinstructions_info[t];
 		if (strcmp(info->name, "reserved")) {
@@ -72,9 +74,16 @@ kxbytecode_add_contants(KxObject *self)
 				str[s] = toupper(info->name[s]);
 			}
 			str[len] = 0;
-		    kxobject_set_slot_no_ref2(self,kxcore_get_symbol(KXCORE,str), KXINTEGER(t));
+			KxSymbol *symbol = kxcore_get_symbol(KXCORE, str);
+			REF_ADD(symbol);
+			list_append(list, symbol);
+		    kxobject_set_slot_no_ref2(self,symbol, KXINTEGER(t));
 		}
 	}
+
+	list_collapse(list);
+	KxList *listobj = KXLIST(list);
+	kxobject_set_slot_no_ref2(self, kxcore_get_symbol(KXCORE, "allTypes"), listobj);
 }
 
 static void 
