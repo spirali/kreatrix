@@ -23,6 +23,7 @@ kxcfunction_init_extenstion()
 	kxcfunction_extension.type_name = "CFunction";
 	kxcfunction_extension.activate = kxcfunction_activate;
 	kxcfunction_extension.free = kxcfunction_free;
+	kxcfunction_extension.is_immutable = 1;
 }
 
 static void

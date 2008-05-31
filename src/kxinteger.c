@@ -33,6 +33,7 @@ kxinteger_init_extension()
 	kxobjectext_init(&kxinteger_extension);
 	kxinteger_extension.type_name = "Integer";
 	kxinteger_extension.clone = kxinteger_clone;
+	kxinteger_extension.is_immutable = 1;
 }
 
 

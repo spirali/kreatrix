@@ -30,6 +30,7 @@ kxcharacter_init_extension()
 {
 	kxobjectext_init(&kxcharacter_extension);
 	kxcharacter_extension.type_name = "Character";
+	kxcharacter_extension.is_immutable = 1;
 }
 
 

@@ -148,6 +148,9 @@ static KxObject *
 kxbaseobject_copy(KxObject *self, KxMessage *message)
 {
 	if (self->extension) {
+		if (self->extension->is_immutable) {
+			KXRETURN(self);
+		}
 		// Object with inner data should override this method!
 		KXTHROW(kxexception_new_with_text(KXCORE,"Can't create copy of object %s", kxobject_raw_type_name(self)));
 	}

@@ -42,6 +42,7 @@ kxcodeblock_init_extension()
 	kxcodeblock_extension.clean = kxcodeblock_clean;
 	kxcodeblock_extension.activate = kxcodeblock_run;
 	kxcodeblock_extension.mark = kxcodeblock_mark;
+	kxcodeblock_extension.is_immutable = 1;
 }
 
 

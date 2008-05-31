@@ -222,6 +222,31 @@ testObject = test TestCase clone do: {
 		p insertParent: a.
 		(p parents == #(a b c Object)) assertTrue.
 	}.
+
+	testDeepCopy = {
+		|a b c p x y|
+		p << Object clone.
+		a << Object clone.
+		b << Object clone.
+		c << Object clone.
+		a slot1 = c.
+		x << Object clone.
+		x slot1 = a.
+		x slot2 = b.
+		x addParent: p.
+		
+		y << x deepCopy.
+
+		(x slot1 == a) assertTrue.
+		(x slot2 == b) assertTrue.
+		(x slot1 slot1 == c) assertTrue.
+
+		(y slot1 == a) assertFalse.
+		(y slot2 == b) assertFalse.
+		(y slot1 slot1 == c) assertFalse.
+
+		(x parents == y parents) assertTrue.
+	}.
 }.
 
 testObject run.

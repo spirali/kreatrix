@@ -31,6 +31,7 @@ void kxsymbol_init_extension()
 	kxsymbol_extension.type_name = "Symbol";
 	kxsymbol_extension.clone = kxsymbol_clone;
 	kxsymbol_extension.free = kxsymbol_free;
+	kxsymbol_extension.is_immutable = 1;
 }
 
 KxSymbol *

@@ -30,6 +30,7 @@ kxscopedblock_init_extension()
 	kxscopedblock_extension.free = kxscopedblock_free;
 	kxscopedblock_extension.mark = kxscopedblock_mark;
 	kxscopedblock_extension.clean = kxscopedblock_clean;
+	kxscopedblock_extension.is_immutable = 1;
 }
 
 

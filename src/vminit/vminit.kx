@@ -81,6 +81,15 @@ Object do: {
 	slot:ifAbsent: = { :slot :aBlock |
 		^(hasSlot: slot) ifTrue: [ slot: slot ] ifFalse: aBlock.
 	}.
+
+	deepCopy = {
+		|new|
+		new << copy.
+		slots foreach: [ :slot | 
+			new slot: slot set: (slot: slot) deepCopy.
+		].
+		^new.
+	}.
 }.
 
 Integer do: {

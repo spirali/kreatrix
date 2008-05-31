@@ -32,12 +32,14 @@ struct KxObjectExtension {
 	KxObjectFcnClone *clone;
 	KxObjectFcnFree *free;
 	KxObjectFcnMark *mark;
-	KxObjectFcnCopy *copy;
+	//KxObjectFcnCopy *copy;
 	//KxObjectFcnDepthCopy *depth_copy;
 	KxObjectFcnClean *clean;
 
 	char *type_name;
 	KxObjectExtension *parent;
+
+	int is_immutable;
 };
 
 void kxobjectext_init(KxObjectExtension *self);

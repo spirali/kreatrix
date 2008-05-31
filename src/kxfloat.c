@@ -30,6 +30,7 @@ kxfloat_init_extension()
 {
 	kxobjectext_init(&kxfloat_extension);
 	kxfloat_extension.type_name = "Float";
+	kxfloat_extension.is_immutable = 1;
 }
 
 
