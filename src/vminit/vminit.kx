@@ -385,6 +385,17 @@ List do: {
 			aBlock value: (at: i * 2) value: (at: (i * 2) + 1).
 		].
 	}.
+
+	allSatisfy: = { :aBlock |
+		foreach: [ :each | (aBlock value: each) ifFalse: [ ^false ] ].
+		^true.
+	}.
+
+	anySatisfy: = { :aBlock |
+		foreach: [ :each | (aBlock value: each) ifTrue: [ ^true ] ].
+		^false.
+	}.
+
 }.
 
 Lobby Association = Object clone do: {

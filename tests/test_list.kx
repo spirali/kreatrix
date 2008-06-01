@@ -195,6 +195,26 @@ listTest = test TestCase clone do: {
 		((list first: 100) == list) assertTrue.
 	}.
 
+	testSatisfy = { |a b|
+		a << #( 2 4 10 30 0 ).
+		b << #( 1 2 3 4 5 ).
+
+		(a allSatisfy: [ :each | each isEven ]) assertTrue.
+		(a anySatisfy: [ :each | each isEven ]) assertTrue.
+		(a allSatisfy: [ :each | each isOdd ]) assertFalse.
+		(a anySatisfy: [ :each | each isOdd ]) assertFalse.
+
+		(b allSatisfy: [ :each | each isEven ]) assertFalse.
+		(b anySatisfy: [ :each | each isEven ]) assertTrue.
+		(b allSatisfy: [ :each | each isOdd ]) assertFalse.
+		(b anySatisfy: [ :each | each isOdd ]) assertTrue.
+
+		(#() anySatisfy: [ true ]) assertFalse.
+		(#() allSatisfy: [ true ]) assertTrue.
+		(#() anySatisfy: [ false ]) assertFalse.
+		(#() allSatisfy: [ false ]) assertTrue.
+
+	}.
 }.
 
 listTest run.
