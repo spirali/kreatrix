@@ -92,6 +92,13 @@ kxcore_std_exceptions(KxCore *core)
 	kxcore_register_simple_exception(core, "vm", "IOException", "IOException");
 }
 
+static void
+kxcore_symbol_into_table(KxCore *self, KxSymbol *symbol)
+{
+	List *table = self->symbol_table;
+	list_append(table, symbol);
+}
+
 KxCore *
 kxcore_new() 
 {
@@ -137,7 +144,10 @@ kxcore_new()
 	
 
 	/* Prototypes */
-	kxcore_add_basic_prototype(core, KXPROTO_SYMBOL, kxsymbol_new_prototype(core));
+	KxSymbol *protosymbol = kxsymbol_new_prototype(core);
+	kxcore_add_basic_prototype(core, KXPROTO_SYMBOL, protosymbol);
+	kxcore_symbol_into_table(core,protosymbol);
+
 	kxcore_add_basic_prototype(core, KXPROTO_CFUNCTION, kxcfunction_new_prototype(core));
 	kxcore_add_basic_prototype(core, KXPROTO_INTEGER, kxinteger_new_prototype(core));
 	kxcore_add_basic_prototype(core, KXPROTO_STRING, kxstring_new_prototype(core));
@@ -391,12 +401,7 @@ kxcore_find_in_symboltable(KxCore *self, char *symbol_name)
 	return NULL;
 }
 
-static void
-kxcore_symbol_into_table(KxCore *self, KxSymbol *symbol)
-{
-	List *table = self->symbol_table;
-	list_append(table, symbol);
-}
+
 
 KxObject *
 kxcore_get_symbol(KxCore *self, char *symbol_name)
@@ -770,4 +775,20 @@ void kxcore_raw_activation_return(KxCore *core, void *activation)
 	} else {
 		core->activation_cache[core->activation_cache_count++] = activation;
 	}
+}
+
+List * kxcore_list_with_all_objects(KxCore *core)
+{
+	KxObject *base_object = core->base_object;
+	KxObject *obj = base_object->gc_next;
+
+	List *list = list_new();
+	REF_ADD(base_object);
+	list_append(list, base_object);
+	while(obj != base_object) {
+		REF_ADD(obj);
+		list_append(list, obj);
+		obj = obj->gc_next;
+	}
+	return list;
 }

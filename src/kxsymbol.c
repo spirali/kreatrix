@@ -39,6 +39,7 @@ kxsymbol_new_prototype(KxCore *core)
 {
 	KxObject *symbol = kxcore_clone_base_object(core);
 	symbol->extension = &kxsymbol_extension;
+	symbol->data.ptr = strdup("void");
 	return symbol;
 }
 
@@ -65,10 +66,8 @@ static KxSymbol
 static void 
 kxsymbol_free(KxSymbol *self) 
 {
-	if (self->data.ptr) {
-		kxcore_symbol_remove(KXCORE,self);
-		kxfree(self->data.ptr);
-	}
+	kxcore_symbol_remove(KXCORE,self);
+	kxfree(self->data.ptr);
 }
 
 KxObject *

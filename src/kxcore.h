@@ -213,6 +213,7 @@ void * kxcore_slot_cache_resize(KxCore *core, int old_size, int new_size, void *
 
 void kxcore_raw_activation_return(KxCore *core, void *activation);
 void * kxcore_raw_activation_get(KxCore *core);
+List * kxcore_list_with_all_objects(KxCore *core);
 
 
 #ifdef KX_THREADS_SUPPORT

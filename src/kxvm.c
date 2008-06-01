@@ -136,6 +136,13 @@ kxvm_log_write(KxObject *self, KxMessage *message)
 	#endif // KX_LOG
 }
 
+static KxObject *
+kxvm_all_objects(KxObject *self, KxMessage *message)
+{
+	List *list = kxcore_list_with_all_objects(KXCORE);
+	return KXLIST(list);
+}
+
 KxObject *
 kxvm_new(KxCore *core)
 {
@@ -157,6 +164,7 @@ kxvm_new(KxCore *core)
 		{"topLocalImportPath", 0, kxvm_top_local_import_path},
 		{"logWrite:", 1, kxvm_log_write},
 		{"supportList", 0, kxvm_support_list},
+		{"allObjects", 0, kxvm_all_objects},
 		{NULL,0, NULL}
 	};
 
