@@ -1,0 +1,43 @@
+
+import: "random".
+
+Benchmark clone do: {
+	rand = random Random clone.
+	rand seed: 512.
+
+	list = #('a' 'b' 'c' 'd' 'e' 'f' 'g' 'h' 'i' 'j' 'k' 'l' 'm' 'n').
+	initRun = {
+		messages = #().
+		list2 = #().
+
+		1 to: 500 do: [ :i | |a b c symbol|
+			a << list pickRandom: rand.
+			b << list pickRandom: rand.
+			c << list pickRandom: rand.
+
+			symbol << (a asString, b, c) asSymbol.
+
+			messages add: symbol.
+		].
+
+		1000 repeat: [
+			list2 add: (messages pickRandom: rand).
+		].
+	}.
+
+	run = { |x bigobject|
+		bigobject << Object clone.
+		
+		x << 0.
+		messages foreach: [ :msg | 
+			bigobject slot: msg set: x.
+			x << x + 1.
+		].
+
+		3000 repeat: [
+			list2 foreach: [ :msg | 
+				bigobject perform: msg.
+			].
+		].
+	}.
+}
