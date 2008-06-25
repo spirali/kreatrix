@@ -63,7 +63,6 @@ kxstring_new_prototype(KxCore *core)
 	return object;
 }
 
-
 /*KXdoc , anObject
   Concatenates receiver and parameter.
 
@@ -707,7 +706,190 @@ kxstring_basename(KxString *self, KxMessage *message)
 	return string;
 }
 
+static KxObject *
+convert_to_kxstring(KxObject *self, KxObject *message_name)
+{
+		KxObject *string = kxobject_send_unary_message(self,message_name);
+		KXCHECK(string);
+	
+		if (!IS_KXSTRING(string)) {
+			KxException *excp = kxexception_new_with_text(KXCORE, 
+				"message %s to parameter hasn't returned String object", 
+				KXSYMBOL_AS_CSTRING(message_name));
+			KXTHROW(excp);
+		}
+		return string;
+}
 
+static KxObject *
+kxstring_convert_for_substition(char type, KxObject *obj)
+{
+	switch(type) {
+		case 's':
+			if (IS_KXSTRING(obj)) {
+				REF_ADD(obj);
+				return obj;
+			}
+			return convert_to_kxstring(obj, KXCORE->dictionary[KXDICT_AS_STRING]);
+		case 'p':
+			return convert_to_kxstring(obj, KXCORE->dictionary[KXDICT_PRINTSTRING]);
+		default: {
+			KxException *excp = kxexception_new_with_text(KXCORE_FROM(obj), "Invalid substitution character '%c' in string", type);
+			KXTHROW(excp);
+		}
+	}
+}
+
+
+static KxObject *
+kxstring_substitution(KxString *self, KxMessage *message)
+{
+	char *str = KXSTRING_VALUE(self);
+	char *c = str;
+	int count = 0;
+	int pos = 0;
+
+	char type = 0;
+	int index = 0;
+
+	while((*c) != 0) {
+		if (*c == '%') {
+			c++;
+			if (*c != '%') {
+				count++;
+				if (count == 2) {
+					break;
+				}
+				index = pos;
+				type = *c;
+			}
+			pos++;
+		}
+		pos++;
+		c++;
+	}
+
+	if (count == 0) {
+		KXTHROW_EXCEPTION("No substition point in string");
+	}
+
+
+	int len = strlen(str);
+
+	KxObject *textobj = kxstring_convert_for_substition(type, message->params[0]);
+	KXCHECK(textobj);
+	char *text = KXSTRING_VALUE(textobj);
+	int textlen = strlen(text);
+
+
+	if (count == 1) {
+		// Final substition
+		char *new = kxmalloc(len + textlen + 1);
+		char *pos = new;
+
+
+		int t;
+		for (t=0; t < index; t++) {
+			*pos = str[t];
+			pos++;
+			if (str[t] == '%') {
+				t++;
+			}
+		}
+		memcpy(pos, text, textlen);
+		pos += textlen;
+
+		for (t=index+2; t <= len; t++) {
+			*pos = str[t];
+			pos++;
+			if (str[t] == '%') {
+				t++;
+			}
+		}
+		REF_REMOVE(textobj);
+		return kxstring_from_cstring(KXCORE, new);
+		
+	} else {
+		char *pos = text;
+		int extra_size = 1;
+		while(*pos != 0) {
+			if (*pos == '%') {
+				extra_size++;
+			}
+			pos++;
+		}
+
+		char *new = kxmalloc(len + textlen + extra_size);
+
+
+		pos = new + index;
+		memcpy(new, str, index);
+
+		if (extra_size == 1) { // No '%' in text
+			memcpy(pos, text, textlen);
+			pos += textlen;
+		} else { // text contains '%'
+			int t;
+			for (t = 0; t < textlen; t++) {
+				*pos = text[t];
+				pos++;
+				if (text[t] == '%') {
+					*pos = '%';
+					pos++;
+				}
+			}
+
+		}
+
+		memcpy(pos, str + index + 2, len - index - 1); 
+		REF_REMOVE(textobj);
+		return kxstring_from_cstring(KXCORE, new);
+
+	}
+
+
+
+	/*char *new = kxmalloc(len + lentext + 1);
+
+	char *pos = new;
+	while( (*str) != 0) {
+		if (*str == '%') {
+			str++;
+
+			if (*str == 's') {
+				memcpy(pos, text, lentext);
+				pos+=lentext;
+				strcpy(pos, str + 1);
+				return new;
+			}
+
+			if (*str != '%') {
+				kxfree(new);
+				return NULL;
+			}
+		}
+		*pos = *str;
+		str++;
+		pos++;
+	}
+	*pos = 0;
+	return new;
+
+
+	KXPARAM_TO_CSTRING(param, 0);
+	char *str;
+	char r = kxstring_substitute_in_c_string(KXSTRING_VALUE(self), param);
+
+	if (r > 0) {
+		return kxstring_from_cstring(KXCORE, str);
+	}
+	
+	if (r == -) {
+		KXTHROW_EXCEPTION("Invalid substitution character in string");
+	}
+
+	KXTHROW_EXCEPTION("No substition point in string");*/
+}
 
 static void 
 kxstring_add_method_table(KxString *self)
@@ -744,6 +926,7 @@ kxstring_add_method_table(KxString *self)
 		{"asIntegerInBase:",1, kxstring_as_integer_in_base},
 		{"replace:to:",2, kxstring_replace_to},
 		{"copy",0, kxstring_copy},
+		{"%", 1, kxstring_substitution},
 		{"dirname",0, kxstring_dirname},
 		{"basename",0, kxstring_basename},
 		{NULL,0, NULL}

@@ -40,6 +40,7 @@ is_binary_msg_char(char c)
 		case '>':
 		case '=':
 		case '@':
+		case '%':
 			return 1;
 		default:
 			return 0;

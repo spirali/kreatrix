@@ -145,6 +145,19 @@ stringTest = test TestCase clone do: {
 		(count3 == 6) assertTrue.
 		
 	}.
+
+	testSubstitution = {
+		( ("abc%sCDE" % "STR") == "abcSTRCDE") assertTrue.
+		( ("%sCDE" % "STR") == "STRCDE") assertTrue.
+		( ("abc%s" % "STR") == "abcSTR") assertTrue.
+
+		( ("%s %%%s:%p:%s%% %s%s" % "%" 
+			% 1 % #(1 2) % #(1 "%" 2) % "%b%" % "") 
+			== "% %1:#(1 2):1%2% %b%") assertTrue.
+
+		[ "%%x%%" % "" ] assertException: Exception.
+		
+	}.
 }.
 
 stringTest run.

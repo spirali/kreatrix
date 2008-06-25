@@ -2,6 +2,7 @@
 	+ Many optimazitions
 	+ New bytecode and faster interpretation
 	+ Added module "bytecode"
+	+ String %s and %p substition
 
 0.10.1
 	+ Local import improved
