@@ -185,6 +185,9 @@ kxcore_new()
 	/* stderr */
 	core->object_stderr = kxfile_stderr(core);
 
+	/** Init integer cache */
+	bzero(core->integer_cache, KXCORE_INTEGER_CACHE_SIZE * sizeof(void*));
+
 	// Bootstrap problem: Methods must be added into baseobject after symbol_prototype is inited
 	kxbaseobject_add_method_table(core->base_object);
 
@@ -313,6 +316,12 @@ kxcore_free(KxCore *self)
 	
 	dictionary_free(self->registered_exceptions);
 
+	/** Clean integer cache */
+	for (t = 0; t < KXCORE_INTEGER_CACHE_SIZE; t++) {
+		if (self->integer_cache[t]) {
+			REF_REMOVE(self->integer_cache[t]);
+		}
+	}
 
 	if (kx_verbose) {
 		printf("kxgc_cleanall()\n");
@@ -456,6 +465,13 @@ kxcore_mark(KxCore *self)
 	kxobject_mark(self->object_false);
 	kxobject_mark(self->object_nil);
 	kxobject_mark(self->lobby);
+
+	/** Mark integer cache */
+	for (t = 0; t < KXCORE_INTEGER_CACHE_SIZE; t++) {
+		if (self->integer_cache[t]) {
+			kxobject_mark(self->integer_cache[t]);
+		}
+	}
 
 
 	kxobject_mark(self->object_stdout);
@@ -774,6 +790,25 @@ void kxcore_raw_activation_return(KxCore *core, void *activation)
 		kxfree(activation);
 	} else {
 		core->activation_cache[core->activation_cache_count++] = activation;
+	}
+}
+
+KxObject *
+kxcore_get_integer(KxCore *core, int integer)
+{
+	int index = integer - KXCORE_INTEGER_CACHE_START;
+	if (index < KXCORE_INTEGER_CACHE_SIZE && index >= 0) {
+		KxObject *obj = core->integer_cache[index];
+		if (obj) {
+			REF_ADD(obj);
+			return obj;
+		}
+		obj = kxinteger_new_with(core, integer);
+		core->integer_cache[index] = obj;
+		REF_ADD(obj);
+		return obj;
+	} else {
+		return kxinteger_new_with(core, integer);
 	}
 }
 

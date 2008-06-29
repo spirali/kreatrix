@@ -27,7 +27,7 @@ typedef struct KxObject KxInteger;
 	{ integer = KXINTEGER_VALUE(tmp); } else { kxobject_type_error(tmp,&kxinteger_extension); return NULL; }} 
 
 
-#define KXINTEGER(integer) kxinteger_new_with(KXCORE,integer)
+#define KXINTEGER(integer) kxcore_get_integer(KXCORE,integer)
 
 typedef long KxInt;
 
