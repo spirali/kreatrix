@@ -16,10 +16,10 @@ typedef struct KxObject KxCharacter;
 
 #define KXCHARACTER_VALUE(kxcharacter) (char) (kxcharacter)->data.charval
 
-#define KXCHARACTER(chr) kxcharacter_new_with(KXCORE, chr)
+#define KXCHARACTER(chr) kxcore_get_char(KXCORE, chr)
 
 #define KXPARAM_TO_CHAR(c, param_id) \
-	char c; { KxObject *tmp = message->params[param_id]; if (IS_KXCHARACTER(tmp)) \
+	unsigned char c; { KxObject *tmp = message->params[param_id]; if (IS_KXCHARACTER(tmp)) \
 	{ c = KXINTEGER_VALUE(tmp); } else { kxobject_type_error(tmp, &kxcharacter_extension); return NULL; }} 
 
 
@@ -27,7 +27,7 @@ void kxcharacter_init_extension();
 
 KxObject *kxcharacter_new_prototype(KxCore *core);
 
-KxCharacter * kxcharacter_new_with(KxCore *core, char ch);
+KxCharacter * kxcharacter_new_with(KxCore *core, unsigned char ch);
 
 
 KxObjectExtension kxcharacter_extension;

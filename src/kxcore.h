@@ -87,6 +87,8 @@ typedef void(KxGILFcn)(KxCore*);
 
 #define KXCORE_ACTIVATION_CACHE_SIZE 20
 
+#define KXCORE_CHAR_CACHE_SIZE 128
+
 typedef void(KxMarkFunction)(KxCore*);
 
 struct KxCore  {
@@ -149,6 +151,7 @@ struct KxCore  {
 	int slot_cache_count[KXCORE_SLOT_CACHE_CAPACITIES_COUNT];
 	void *slot_cache[KXCORE_OBJECT_CACHE_SIZE][KXCORE_SLOT_CACHE_SIZE];
 	
+	KxObject *char_cache[KXCORE_CHAR_CACHE_SIZE];
 };
 
 KxCore *kxcore_new();
@@ -214,6 +217,8 @@ void * kxcore_slot_cache_resize(KxCore *core, int old_size, int new_size, void *
 void kxcore_raw_activation_return(KxCore *core, void *activation);
 void * kxcore_raw_activation_get(KxCore *core);
 List * kxcore_list_with_all_objects(KxCore *core);
+
+KxObject *kxcore_get_char(KxCore *self, unsigned char c);
 
 
 #ifdef KX_THREADS_SUPPORT

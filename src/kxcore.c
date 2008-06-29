@@ -134,6 +134,9 @@ kxcore_new()
 
 	core->object_cache_pos = 0;
 
+	/** Init char cache */
+	bzero(&core->char_cache, KXCORE_CHAR_CACHE_SIZE * sizeof(KxObject*));
+
 	/** Init base object */
 	core->base_object = kxbaseobject_new(core);
 
@@ -313,6 +316,12 @@ kxcore_free(KxCore *self)
 	
 	dictionary_free(self->registered_exceptions);
 
+	/** Clean char cache */
+	for (t=0; t < KXCORE_CHAR_CACHE_SIZE; t++) {
+		if (self->char_cache[t]) {
+			REF_REMOVE(self->char_cache[t]);
+		}
+	}
 
 	if (kx_verbose) {
 		printf("kxgc_cleanall()\n");
@@ -451,6 +460,13 @@ kxcore_mark(KxCore *self)
 		kxobject_mark(self->basic_prototypes[t]);
 	for (t=0;t<KXDICTIONARY_SIZE;t++)
 		kxobject_mark(self->dictionary[t]);
+
+	/** Mark char cache */
+	for (t=0; t < KXCORE_CHAR_CACHE_SIZE; t++) {
+		if (self->char_cache[t]) {
+			kxobject_mark(self->char_cache[t]);
+		}
+	}
 
 	kxobject_mark(self->object_true);
 	kxobject_mark(self->object_false);
@@ -791,4 +807,21 @@ List * kxcore_list_with_all_objects(KxCore *core)
 		obj = obj->gc_next;
 	}
 	return list;
+}
+
+KxObject *
+kxcore_get_char(KxCore *self, unsigned char c)
+{
+	if (c < 128) {
+		if (self->char_cache[c]) {
+			REF_ADD(self->char_cache[c]);
+			return self->char_cache[c];
+		}
+		KxCharacter *chr = kxcharacter_new_with(self, c);
+		REF_ADD(chr);
+		self->char_cache[c] = chr;
+		return chr;
+	} else {
+		return kxcharacter_new_with(self, c);
+	}
 }

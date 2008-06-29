@@ -48,7 +48,7 @@ kxcharacter_new_prototype(KxCore *core)
 }
 
 KxCharacter * 
-kxcharacter_new_with(KxCore *core, char ch)
+kxcharacter_new_with(KxCore *core, unsigned char ch)
 {
 	KxCharacter *self = kxobject_raw_clone(kxcore_get_basic_prototype(core, KXPROTO_CHARACTER));
 	self->data.charval = ch;

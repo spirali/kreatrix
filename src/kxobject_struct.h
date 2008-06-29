@@ -46,7 +46,7 @@ struct KxObject {
 		void *ptr;
 		double doubleval;
 		int intval;
-		char charval;
+		unsigned char charval;
 	} data;
 
 	int flags;
