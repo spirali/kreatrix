@@ -40,7 +40,7 @@ SGF = Object clone do: {
 
 	}.
 
-	Property = {
+	Property = Object clone do: {
 		type = "SGFProperty".
 
 		name <- "".
