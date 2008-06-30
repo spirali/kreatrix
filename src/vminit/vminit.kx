@@ -90,6 +90,12 @@ Object do: {
 		].
 		^new.
 	}.
+
+	isString = false.
+	isInteger = false.
+	isFloat = false.
+	isSymbol = false.
+	isNumber = false.
 }.
 
 Integer do: {
@@ -107,6 +113,8 @@ Integer do: {
 		^(Point clone x: self) y: y.
 	}.
 
+	isInteger = true.
+	isNumeber = true.
 }.
 
 Float do: {
@@ -114,6 +122,8 @@ Float do: {
 		^(Point clone x: self) y: y.
 	}.
 
+	isFloat = true.
+	isNumber = true.
 }.
 
 File do: {
@@ -208,12 +218,16 @@ String do: {
 	contains: = { :aString | 
 		^(find: aString) isNotNil
 	}.
+
+	isString = true.
 }.
 
 Symbol do: {
 	asByteArray = { ^asString asByteArray. }.
 
 	printString = { ^"#",self }.
+
+	isSymbol = true.
 }.
 
 
