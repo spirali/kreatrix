@@ -23,11 +23,11 @@ str size println.
 
 ("Slice = ", (str sliceFrom: 0 to: 5)) println.
 
-"Last character is: " print. 
-str last println.
+("Last character is: %s" % str last) println. 
 
-"First character is: " print. 
-str first println.
+("First character is: %s" % str first) println. 
+
+("Substitions: %% %s %s %p %p" % "a" % 12 % "b" % #(1 2 3)) println.
 
 "ABCDE" foreach: [ :aChar | (aChar asString, "*") println. ].
 
