@@ -181,6 +181,29 @@ kxsocket_listen(KxSocket *self, KxMessage *message)
 }
 
 static KxObject *
+kxsocket_reuse_address(KxSocket *self, KxMessage *message)
+{
+	if (self->data.intval == -1) {
+		KXTHROW_EXCEPTION("Socket isn't inicialized");
+	}
+	
+	int socket = self->data.intval;
+    int one = 1;
+    int retval = 
+		setsockopt(socket,SOL_SOCKET,SO_REUSEADDR,&one,sizeof(one));
+
+	if (retval == -1)	{
+		KxException *excp = kxexception_new_with_text(KXCORE,
+			"setsockopt failed: %s", strerror(errno));
+		KXTHROW(excp);
+    }
+
+
+	KXRETURN(self);
+}
+
+
+static KxObject *
 kxsocket_accept(KxSocket *self, KxMessage *message)
 {
 	if (self->data.intval == -1) {
@@ -454,6 +477,7 @@ kxsocket_add_method_table(KxObject *self) {
 		{"waitForReadingTimeout:",1, kxsocket_wait_for_reading_with_timeout},
 		{"waitForWritingTimeout:",1, kxsocket_wait_for_writing_with_timeout},
 		{"waitForReadingWritingTimeout:",1, kxsocket_wait_for_reading_writing_with_timeout},
+		{"setReuseAddress", 0, kxsocket_reuse_address},
 		{NULL,0, NULL}
 	};
 	kxobject_add_methods(self, table);
