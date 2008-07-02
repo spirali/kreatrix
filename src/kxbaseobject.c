@@ -70,7 +70,7 @@ kxbaseobject_update_slot(KxObject *self, KxMessage *message)
 	if (kxobject_update_slot(message->target,symbol,message->params[1])) {
 		KXRETURN(message->params[1]);
 	} else {
-		KxException *excp = kxexception_new_with_text(KXCORE, "Slot '%s' not found", (char*)symbol->data.ptr);
+		KxException *excp = kxexception_new_with_text(KXCORE, "Slot '%s' not found", KXSYMBOL_AS_CSTRING(symbol));
 		KXTHROW(excp);
 	}
 }
@@ -505,7 +505,12 @@ kxbaseobject_freeze_slot(KxObject *self, KxMessage *message)
 {
 	KxObject *symbol = message->params[0];
 	KXCHECK_SYMBOL(symbol);
-	kxobject_update_slot_flags(message->target, symbol, KXOBJECT_SLOTFLAG_FREEZE);
+
+	if (kxobject_update_slot_flags(message->target, symbol, KXOBJECT_SLOTFLAG_FREEZE) == 0) {
+		KxException *excp = kxexception_new_with_text(KXCORE, "Slot '%s' not found", KXSYMBOL_AS_CSTRING(symbol));
+		KXTHROW(excp);
+	}
+	
 	KXRETURN(self);
 }
 
@@ -518,7 +523,12 @@ kxbaseobject_unfreeze_slot(KxObject *self, KxMessage *message)
 {
 	KxObject *symbol = message->params[0];
 	KXCHECK_SYMBOL(symbol);
-	kxobject_update_slot_flags(message->target, symbol, 0);
+
+	if (kxobject_update_slot_flags(message->target, symbol, 0) == 0) {
+		KxException *excp = kxexception_new_with_text(KXCORE, "Slot '%s' not found", KXSYMBOL_AS_CSTRING(symbol));
+		KXTHROW(excp);
+	}
+
 	KXRETURN(self);
 }
 
