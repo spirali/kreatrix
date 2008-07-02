@@ -23,7 +23,7 @@
 					</class>
 					<class name="GtkItem" abstract="true">
 						<class name="GtkMenuItem">
-
+							<extra-mark cfunction="gtk_menu_item_get_submenu"/>
 						</class>
 					</class>
 				</class>
