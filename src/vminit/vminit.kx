@@ -114,7 +114,7 @@ Integer do: {
 	}.
 
 	isInteger = true.
-	isNumeber = true.
+	isNumber = true.
 }.
 
 Float do: {
