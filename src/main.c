@@ -34,7 +34,6 @@
 #include "kxcharacter.h"
 #include "kxdictionary.h"
 #include "vminit/kxvminit.h"
-#include "kxdynlib.h"
 #include "kxmodule.h"
 #include "kxfloat.h"
 #include "kxset.h"
@@ -84,7 +83,6 @@ extensions_init()
 	kxbytearray_init_extension();
 	kxcharacter_init_extension();
 	kxdictionary_init_extension();
-	kxdynlib_init_extension();
 	kxfloat_init_extension();
 	kxmodule_init_extension();
 	kxset_init_extension();

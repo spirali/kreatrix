@@ -70,8 +70,6 @@ kreatrix_SOURCES = \
 	vminit/kxvminit.c \
 	kxvm.h \
 	kxvm.c \
-	kxdynlib.h \
-	kxdynlib.c \
 	kxfloat.h \
 	kxfloat.c \
 	kxmodule.h \
@@ -126,7 +124,6 @@ pkginclude_HEADERS=\
 	kxdictionary.h \
 	vminit/kxvminit.h \
 	kxvm.h \
-	kxdynlib.h \
 	kxfloat.h \
 	kxmodule.h \
 	kxmodules_path.h \

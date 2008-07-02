@@ -37,7 +37,6 @@
 #include "kxbytearray.h"
 #include "kxcharacter.h"
 #include "kxdictionary.h"
-#include "kxdynlib.h"
 #include "kxmodule.h"
 #include "kxfloat.h"
 #include "kxset.h"
@@ -165,7 +164,6 @@ kxcore_new()
 	kxcore_add_basic_prototype(core, KXPROTO_BYTEARRAY, kxbytearray_new_prototype(core));
 	kxcore_add_basic_prototype(core, KXPROTO_CHARACTER, kxcharacter_new_prototype(core));
 	kxcore_add_basic_prototype(core, KXPROTO_DICTIONARY, kxdictionary_new_prototype(core));
-	kxcore_add_basic_prototype(core, KXPROTO_DYNLIB, kxdynlib_new_prototype(core));
 	kxcore_add_basic_prototype(core, KXPROTO_MODULE, kxmodule_new_prototype(core));
 	kxcore_add_basic_prototype(core, KXPROTO_FLOAT, kxfloat_new_prototype(core));
 	kxcore_add_basic_prototype(core, KXPROTO_SET, kxset_new_prototype(core));

@@ -91,10 +91,6 @@ KxObject *kxlobby_new(KxCore *core)
 	kxobject_set_slot_no_ref(self,kxcore_get_symbol(core,"Set"), 
 		kxcore_get_basic_prototype(core,KXPROTO_SET));
 
-
-	kxobject_set_slot_no_ref(self,kxcore_get_symbol(core,"DynLib"), 
-		kxcore_get_basic_prototype(core,KXPROTO_DYNLIB));
-
 	kxobject_set_slot_no_ref(self,kxcore_get_symbol(core,"Module"), 
 		kxcore_get_basic_prototype(core,KXPROTO_MODULE));
 
