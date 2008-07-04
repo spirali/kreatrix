@@ -296,9 +296,12 @@ static KxObject *
 kxgtktreeselection_selected_iter (KxObject *self, KxMessage *message)
 {
 	GtkTreeIter *iter = malloc(sizeof(GtkTreeIter));
-	gtk_tree_selection_get_selected(self->data.ptr, NULL, iter);
-	return KXGTKTREEITER(iter);
-
+	gboolean result = gtk_tree_selection_get_selected(self->data.ptr, NULL, iter);
+	if (result == TRUE) {
+		return KXGTKTREEITER(iter);
+	} else {
+		KXTHROW_EXCEPTION("There is no selected node");
+	}
 }
 
 static KxObject *

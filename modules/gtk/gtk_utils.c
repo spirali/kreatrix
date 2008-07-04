@@ -295,6 +295,14 @@ kxgtk_kxobject_from_gvalue(KxCore *core, const GValue *value)
 				return self;
 			}
 			return kxgtk_kxobject_from_boxed(core, value);
+		
+		case G_TYPE_INVALID:
+			KXTHROW(kxexception_new_with_text(core, "Cannot convert invalid type to object"));
+
+		case G_TYPE_NONE:
+			REF_ADD(core->object_nil);
+			return core->object_nil;
+
 		case G_TYPE_PARAM:
 			printf("PARAM!\n");
 			abort();

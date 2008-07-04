@@ -188,10 +188,6 @@ box Browser = gtk Window clone do: {
 	_onSelectRow: = { :aTreeIter | |obj slotName list|
 		obj << treeview model valueAt: aTreeIter column: 0.
 		mode objectSelected: obj.
-		list << #( ("Type: ", obj type)
-		   ("Parent: ", obj parent type)) .
-
-		//setText: (list asStringDelimiter: "\n").
 	}.
 
 	isObjectSelected = {
@@ -224,11 +220,11 @@ box Browser = gtk Window clone do: {
 			].
 
 		view signal: "cursor-changed" connect: [ :w | 
-			|iter model child|
-			iter << treeview selection selectedIter.
-			_onSelectRow: iter.
+			treeview selection isSelected ifTrue: [ |iter|
+				iter << treeview selection selectedIter.
+				_onSelectRow: iter.
+			]
 		].
-
 
 		^view.
 	}.
