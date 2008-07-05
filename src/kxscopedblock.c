@@ -322,7 +322,12 @@ kxscopedblock_ensure(KxObject *self, KxMessage *message)
 	return ret;
 }
 
-
+static KxObject *
+kxscopedblock_codeblock(KxObject *self, KxMessage *message)
+{
+	KxScopedBlockData *data = self->data.ptr;
+	KXRETURN(data->codeblock);
+}
 
 static void
 kxscopedblock_add_methods(KxObject *self) 
@@ -341,6 +346,7 @@ kxscopedblock_add_methods(KxObject *self)
 		{"whileFalse:",1, kxscopedblock_while_false_with},
 		{"loop",0, kxscopedblock_loop},
 		{"ensure:",1,kxscopedblock_ensure},
+		{"codeblock",0,kxscopedblock_codeblock},
 		{NULL,0, NULL}
 	};
 	kxobject_add_methods(self, table);
