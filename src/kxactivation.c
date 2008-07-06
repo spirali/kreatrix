@@ -65,9 +65,6 @@ kxactivation_free(KxActivation *self)
 	REF_REMOVE(self->codeblock);
 	REF_REMOVE(self->slot_holder_of_codeblock);
 
-	if (self->message_name)
-		REF_REMOVE(self->message_name);
-
 	kxcore_raw_activation_return(KXCORE,self);
 
 }
@@ -75,9 +72,7 @@ kxactivation_free(KxActivation *self)
 void
 kxactivation_mark(KxActivation *self)
 {
-	if (self->message_name) {
-		kxobject_mark(self->message_name);
-	}
+
 	kxobject_mark(self->codeblock);
 	kxobject_mark(self->receiver);
 	kxobject_mark(self->slot_holder_of_codeblock);
@@ -161,7 +156,6 @@ KxActivation *kxactivation_new(KxCore *core)
 	KxActivation *self = kxcore_raw_activation_get(core);
 	ALLOCTEST(self);
 	self->message_num = 0;
-	self->message_name = NULL;
 	self->is_over = 0;
 
 	#ifdef KX_MULTI_STATE

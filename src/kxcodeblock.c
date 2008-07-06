@@ -398,11 +398,6 @@ kxcodeblock_run_activation(KxCodeBlock *self, KxObject *target, KxActivation *ac
 
 	REF_ADD(activation->codeblock);
 	
-	if (message->message_name) {
-		activation->message_name = message->message_name;
-		REF_ADD(activation->message_name);
-	}
-
 	// TODO: REF_ADD ref add must be only in method, not in block
 	activation->receiver = target;
 	REF_ADD(activation->receiver);

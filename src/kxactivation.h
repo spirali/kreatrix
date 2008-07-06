@@ -33,8 +33,6 @@ struct KxActivation {
 
 	KxObject *receiver; /* Reference to receiver */
 
-	KxSymbol *message_name; 
-
 	KxActivation *parent;
 
 	KxMessage message;
