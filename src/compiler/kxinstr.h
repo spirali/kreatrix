@@ -52,6 +52,6 @@ struct KxInstructionInfo {
 
 extern KxInstructionInfo kxinstructions_info[KXCI_INSTRUCTIONS_COUNT];
 
-
+int kxcinstruction_has_linenumber(KxInstructionType instruction);
 
 #endif

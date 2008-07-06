@@ -37,8 +37,7 @@ struct KxActivation {
 
 	KxMessage message;
 
-	// Number of actual message, information for resolving line number when throw occured
-	int message_num; 
+	char *codepointer;
 
 	int inner_stack_pos;
 	KxObject *inner_stack[KXACTIVATION_INNER_STACK_SIZE];

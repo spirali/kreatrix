@@ -45,3 +45,20 @@ KxInstructionInfo kxinstructions_info[KXCI_INSTRUCTIONS_COUNT] = {
 	{"update_outer_local", 2}   // 37 KXCI_UPDATE_OUTER_LOCAL
 };
 
+
+int kxcinstruction_has_linenumber(KxInstructionType instruction)
+{
+	switch(instruction) {
+		case KXCI_UNARY_MSG:
+		case KXCI_BINARY_MSG:
+		case KXCI_KEYWORD_MSG:
+		case KXCI_LOCAL_UNARY_MSG:
+		case KXCI_LOCAL_KEYWORD_MSG:
+		case KXCI_RESEND_UNARY_MSG:
+		case KXCI_RESEND_KEYWORD_MSG:
+			return 1;
+		default:
+			return 0;
+	}
+}
+

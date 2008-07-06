@@ -88,6 +88,27 @@ kxactivation_mark(KxActivation *self)
 	}
 }
 
+static int
+kxactivation_get_line_index(KxActivation *self) 
+{
+	KxCodeBlockData *cdata = KXCODEBLOCK_DATA(self->codeblock);
+
+	char *instr = cdata->code;
+
+	int line_index = 0;
+
+	while(instr < self->codepointer) {
+		KxInstructionType i = *instr;
+
+		if (kxcinstruction_has_linenumber(i)) {
+			line_index++;
+		}
+
+		instr += 1 + kxinstructions_info[i].params_count;
+	}
+	return line_index - 1;
+}
+
 KxReturn 
 kxactivation_process_throw(KxActivation *self)
 {
@@ -101,7 +122,7 @@ kxactivation_process_throw(KxActivation *self)
 		else
 			type_name = "<not string>";
 		
-		int lineno = cdata->message_linenumbers[self->message_num-1];
+		int lineno = cdata->message_linenumbers[kxactivation_get_line_index(self)];
 
 		kxstack_throw_trace(KXSTACK,cdata->source_filename, lineno,type_name, self->message.message_name);
 		REF_REMOVE(type);
@@ -155,7 +176,6 @@ KxActivation *kxactivation_new(KxCore *core)
 {
 	KxActivation *self = kxcore_raw_activation_get(core);
 	ALLOCTEST(self);
-	self->message_num = 0;
 	self->is_over = 0;
 
 	#ifdef KX_MULTI_STATE
@@ -251,8 +271,6 @@ kxactivation_run(KxActivation *self)
 	// Init inner stack
 	self->inner_stack_pos = 0;
 
-	self->message_num=0;
-
 	KxStack *stack = KXSTACK;
 	
 	self->message.target = NULL;
@@ -326,7 +344,8 @@ kxactivation_run(KxActivation *self)
 			{
 				if (self->message.target)
 					REF_REMOVE(self->message.target);
-				self->message_num++;
+
+				self->codepointer = codep;
 
 				kxactivation_message_prepare_from_inner_stack(self, NULL, 0, symbol_frame[(int)(*((codep)++))]);
 				
@@ -344,7 +363,8 @@ kxactivation_run(KxActivation *self)
 			{
 				if (self->message.target)
 					REF_REMOVE(self->message.target);
-				self->message_num++;
+
+				self->codepointer = codep;
 
 				kxactivation_message_prepare_from_inner_stack(self,NULL, 1,symbol_frame[(int)(*((codep)++))]);
 
@@ -362,7 +382,8 @@ kxactivation_run(KxActivation *self)
 			{
 				if (self->message.target)
 					REF_REMOVE(self->message.target);
-				self->message_num++;
+
+				self->codepointer = codep;
 
 				self->message.message_name = symbol_frame[(int)(*((codep)++))];
 				REF_ADD(self->message.message_name);
@@ -387,7 +408,7 @@ kxactivation_run(KxActivation *self)
 				if (self->message.target)
 					REF_REMOVE(self->message.target);
 
-				self->message_num++;
+				self->codepointer = codep;
 
 				self->message.message_name = symbol_frame[(int)(*((codep)++))];
 				REF_ADD(self->message.message_name);
@@ -410,7 +431,8 @@ kxactivation_run(KxActivation *self)
 			{
 				if (self->message.target)
 					REF_REMOVE(self->message.target);
-				self->message_num++;
+
+				self->codepointer = codep;
 
 				KxSymbol *symbol = symbol_frame[(int)(*((codep)++))];
 
@@ -432,7 +454,8 @@ kxactivation_run(KxActivation *self)
 				/** TODO: remove this condition */
 				if (self->message.target)
 					REF_REMOVE(self->message.target);
-				self->message_num++;
+
+				self->codepointer = codep;
 
 				KxSymbol *symbol = symbol_frame[(int)(*((codep)++))];
 
@@ -453,7 +476,8 @@ kxactivation_run(KxActivation *self)
 			{
 				if (self->message.target)
 					REF_REMOVE(self->message.target);
-				self->message_num++;
+
+				self->codepointer = codep;
 
 				KxSymbol *symbol = symbol_frame[(int)(*((codep)++))];
 				int params = (int)(*((codep)++));
