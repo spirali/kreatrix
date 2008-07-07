@@ -115,6 +115,8 @@ kxactivation_process_throw(KxActivation *self)
 
 	KxCodeBlockData *cdata = self->codeblock->data.ptr;
 	if (self->message.target) {
+		KxStack *original_stack = kxcore_create_and_switch_to_stack(KXCORE);
+
 		KxObject *type = kxobject_type_name(self->message.target);
 		char *type_name;
 		if (IS_KXSTRING(type))
@@ -123,6 +125,8 @@ kxactivation_process_throw(KxActivation *self)
 			type_name = "<not string>";
 		
 		int lineno = cdata->message_linenumbers[kxactivation_get_line_index(self)];
+
+		kxcore_free_actual_and_switch_to_stack(KXCORE, original_stack);
 
 		kxstack_throw_trace(KXSTACK,cdata->source_filename, lineno,type_name, self->message.message_name);
 		REF_REMOVE(type);

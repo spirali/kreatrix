@@ -457,17 +457,19 @@ kxobject_update_slot(KxObject *self, KxSymbol *key, KxObject *value)
 	kxobject_recursive_mark_set(self);
 	
 	KxParentSlot *pslot = &self->parent_slot;
+	
+	if (pslot->parent) {
+		 do {
 
-	while(pslot) {
-
-		if (!(kxobject_recursive_mark_test(pslot->parent))) {
-			if (kxobject_update_slot(pslot->parent, key,value)) {
-				kxobject_recursive_mark_reset(self);
-				return 1;
+			if (!(kxobject_recursive_mark_test(pslot->parent))) {
+				if (kxobject_update_slot(pslot->parent, key,value)) {
+					kxobject_recursive_mark_reset(self);
+					return 1;
+				}
 			}
-		}
-
-		pslot = pslot->next;
+	
+			pslot = pslot->next;
+		} while (pslot);
 	}
 
 	kxobject_recursive_mark_reset(self);
@@ -488,16 +490,18 @@ kxobject_update_slot_flags(KxObject *self, KxSymbol *key, int flags)
 	
 	KxParentSlot *pslot = &self->parent_slot;
 
-	while(pslot) {
+	if (pslot->parent) {
+		do {
 
-		if (!(kxobject_recursive_mark_test(pslot->parent))) {
-			if (kxobject_update_slot_flags(pslot->parent, key,flags)) {
-				kxobject_recursive_mark_reset(self);
-				return 1;
+			if (!(kxobject_recursive_mark_test(pslot->parent))) {
+				if (kxobject_update_slot_flags(pslot->parent, key,flags)) {
+					kxobject_recursive_mark_reset(self);
+					return 1;
+				}
 			}
-		}
 
-		pslot = pslot->next;
+			pslot = pslot->next;
+		} while (pslot);
 	}
 
 	kxobject_recursive_mark_reset(self);
@@ -549,19 +553,20 @@ static KxObject
 
 	kxobject_recursive_mark_set(self);
 	
-	KxParentSlot *pslot = &self->parent_slot;
+	if (self->parent_slot.parent) {
+		KxParentSlot *pslot = &self->parent_slot;
+		do {
 
-	while(pslot) {
-
-		if (!(kxobject_recursive_mark_test(pslot->parent))) {
-			KxObject *object = kxobject_slot_deep_search(pslot->parent, slot);
-			if (object) {
-				kxobject_recursive_mark_reset(self);
-				return object;
+			if (!(kxobject_recursive_mark_test(pslot->parent))) {
+				KxObject *object = kxobject_slot_deep_search(pslot->parent, slot);
+				if (object) {
+					kxobject_recursive_mark_reset(self);
+					return object;
+				}
 			}
-		}
 
-		pslot = pslot->next;
+			pslot = pslot->next;
+		} while(pslot);
 	}
 
 	kxobject_recursive_mark_reset(self);
@@ -589,18 +594,20 @@ kxobject_find_slot_in_ancestors(KxObject *self, KxSymbol *key, KxObject **slot_h
 	kxobject_recursive_mark_set(self);
 	
 	KxParentSlot *pslot = &self->parent_slot;
-	
-	while(pslot) {
 
-		if (!(kxobject_recursive_mark_test(pslot->parent))) {
-			KxObject *object = kxobject_find_slot_and_holder(pslot->parent, key, slot_holder, flags);
-			if (object) {
-				kxobject_recursive_mark_reset(self);
-				return object;
+	if (pslot->parent) {
+		do {
+
+			if (!(kxobject_recursive_mark_test(pslot->parent))) {
+				KxObject *object = kxobject_find_slot_and_holder(pslot->parent, key, slot_holder, flags);
+				if (object) {
+					kxobject_recursive_mark_reset(self);
+					return object;
+				}
 			}
-		}
 
-		pslot = pslot->next;
+			pslot = pslot->next;
+		} while(pslot);
 	}
 
 	kxobject_recursive_mark_reset(self);
@@ -619,14 +626,16 @@ kxobject_is_kind_of(KxObject *self, KxObject *test)
 	
 	KxParentSlot *pslot = &self->parent_slot;
 
-	while(pslot) {
-		if (!(kxobject_recursive_mark_test(pslot->parent))) {
-			if (kxobject_is_kind_of(pslot->parent, test)) {
-				kxobject_recursive_mark_reset(self);
-				return 1;
+	if (pslot->parent) {
+		do {
+			if (!(kxobject_recursive_mark_test(pslot->parent))) {
+				if (kxobject_is_kind_of(pslot->parent, test)) {
+					kxobject_recursive_mark_reset(self);
+					return 1;
+				}
 			}
-		}
-		pslot = pslot->next;
+			pslot = pslot->next;
+		} while(pslot);
 	}
 
 	kxobject_recursive_mark_reset(self);

@@ -41,6 +41,8 @@ struct KxStack {
 	#ifdef KX_THREADS_SUPPORT
 	KxObject *thread;
 	#endif // KX_THREADS_SUPPORT
+
+
 };
 
 KxStack * kxstack_new();

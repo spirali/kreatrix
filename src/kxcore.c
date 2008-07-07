@@ -860,3 +860,23 @@ kxcore_get_char(KxCore *self, unsigned char c)
 		return kxcharacter_new_with(self, c);
 	}
 }
+
+/* Returns old stack */
+KxStack *
+kxcore_create_and_switch_to_stack(KxCore *core)
+{
+	KxStack *stack = kxstack_new();
+	kxcore_register_stack(core, stack);
+	KxStack *old = core->stack;
+	kxcore_switch_to_stack(core, stack);
+	return old;
+}
+
+void
+kxcore_free_actual_and_switch_to_stack(KxCore *core, KxStack *newstack)
+{
+	KxStack *stack = core->stack;
+	kxcore_unregister_stack(core, stack);
+	kxstack_free(stack);
+	kxcore_switch_to_stack(core, newstack);
+}

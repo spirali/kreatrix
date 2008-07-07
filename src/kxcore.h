@@ -226,6 +226,10 @@ KxObject *kxcore_get_char(KxCore *self, unsigned char c);
 
 KxObject *kxcore_get_integer(KxCore *core, int integer);
 
+KxStack *kxcore_create_and_switch_to_stack(KxCore *core);
+void kxcore_free_actual_and_switch_to_stack(KxCore *core, KxStack *stack);
+
+
 #ifdef KX_THREADS_SUPPORT
 	void kxcore_reset_yield_counter(KxCore *core);
 #endif // KX_THREADS_SUPPORT

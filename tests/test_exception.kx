@@ -4,8 +4,17 @@ import: "test".
 exceptionTest = test TestCase clone do: {
 	
 	testDNU = {
+		|obj|
+
+		obj << Object clone removeParent: Object.
+
+		[ obj message ]
+			assertException: Exception DoesNotUnderstand.
+
 		[ 10 unknownMessage ] 
 			assertException: Exception DoesNotUnderstand.
+
+		
 	}.
 
 }.

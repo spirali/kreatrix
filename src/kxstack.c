@@ -134,10 +134,16 @@ kxstack_catch_thrown_object(KxStack *self) {
 
 	if (self->throw_trace) {
 		if (obj) {
+			KxCore *core = KXCORE_FROM(obj);
+
+			kxcore_create_and_switch_to_stack(core);
+
 			KxList *list = kxlist_new_from_list_of_cstrings(KXCORE_FROM(obj),self->throw_trace);
-			KxSymbol *symbol = kxcore_get_symbol(KXCORE_FROM(obj),"__trace");
+			KxSymbol *symbol = kxcore_get_symbol(core,"__trace");
 
 			kxobject_set_slot_no_ref2(obj, symbol, list);
+
+			kxcore_free_actual_and_switch_to_stack(core, self);
 		}
 
 		list_free_all(self->throw_trace);
