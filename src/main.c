@@ -113,7 +113,9 @@ compile_and_load(char *filename, char **source_filename) {
 
 static int 
 main_run_codeblock(KxCore *core, KxStack *stack, KxCodeBlock *codeblock, KxSymbol *message_name) {
-	KxMessage *start_msg = kxmessage_new(message_name, core->lobby);
+	KxMessage *start_msg = kxmessage_new(message_name, core->lobby, core->lobby);
+
+	kxstack_push_message(stack, start_msg);
 
 	KxObject *ret_obj = kxcodeblock_run(codeblock,core->lobby, start_msg);
 
@@ -141,8 +143,9 @@ main_run_codeblock(KxCore *core, KxStack *stack, KxCodeBlock *codeblock, KxSymbo
 	}
 	if (ret_obj)
 		REF_REMOVE(ret_obj);
-	if (start_msg)
-		kxmessage_free(start_msg);
+
+	kxstack_drop_message(stack);
+	kxmessage_free(start_msg);
 	return ret_value;
 }
 

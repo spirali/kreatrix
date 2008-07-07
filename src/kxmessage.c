@@ -220,12 +220,13 @@ kxmessage_send_no_hook_and_exception(KxMessage *self, int *slot_not_found)
 }
 
 KxMessage 
-*kxmessage_new(KxSymbol *message_name, KxObject *slot_holder) {
+*kxmessage_new(KxSymbol *message_name, KxObject *target, KxObject *slot_holder) {
 	KxMessage *self = kxcalloc(1,sizeof(KxMessage));
 	ALLOCTEST(self);
 	
 	REF_ADD(message_name);
 	self->params_count = 0;
+	self->target = target;
 	self->message_name = message_name;
 	self->slot_holder = slot_holder;
 	return self;

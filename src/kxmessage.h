@@ -29,7 +29,7 @@ KxObject * kxmessage_resend(KxMessage *self, KxObject *start_of_lookup);
 
 KxObject * kxmessage_send_no_hook_and_exception(KxMessage *self, int *slot_not_found);
 
-KxMessage *kxmessage_new(KxSymbol *message_name, KxObject *slot_holder);
+KxMessage *kxmessage_new(KxSymbol *message_name, KxObject *target, KxObject *slot_holder);
 
 void kxmessage_init(KxMessage *self, KxObject *target, int params_count, KxSymbol * message_name);
 

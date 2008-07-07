@@ -46,7 +46,7 @@ kxcompile_run_bytecode(char *bytecode,  KxObject *target,
 
 	KxCodeBlock *codeblock = kxcodeblock_new_from_bytecode(KXCORE_FROM(target), &bytecode_pos, source_filename);
 
-	KxMessage *start_msg = kxmessage_new(message_name, target);
+	KxMessage *start_msg = kxmessage_new(message_name, target, target);
 
 	KxObject * obj;
 	
