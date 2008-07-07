@@ -1,0 +1,21 @@
+import: "test".
+
+testExtra = test TestCase clone do: {
+
+	testIfTrueIfFalse = {
+		/* Test sending ifTrue: and ifFalse: to non-boolean object */
+		|obj|
+
+		obj << Object clone do: {
+			ifTrue: = { :aBlock | ^ "t",aBlock value }.
+			ifFalse: = { :aBlock | ^ "f",aBlock value }.
+		}.
+
+		((obj ifTrue: [ "a","b" ]) println == "tab") assertTrue.
+		((obj ifFalse: [ "c","d" ]) == "fcd") assertTrue.
+
+	}.
+
+}.
+
+testExtra run.

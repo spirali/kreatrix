@@ -42,7 +42,22 @@ KxInstructionInfo kxinstructions_info[KXCI_INSTRUCTIONS_COUNT] = {
 	{"push_self", 0},           // 34 KXCI_PUSH_SELF
 	{"push_activation", 0},     // 35 KXCI_PUSH_ACTIVATION
 	{"update_local", 1},        // 36 KXCI_UPDATE_LOCAL
-	{"update_outer_local", 2}   // 37 KXCI_UPDATE_OUTER_LOCAL
+	{"update_outer_local", 2},  // 37 KXCI_UPDATE_OUTER_LOCAL
+
+	{"reserved", 0},            // 38
+	{"reserved", 0},            // 39
+	{"reserved", 0},            // 40
+	{"reserved", 0},            // 41
+	{"reserved", 0},            // 42
+	{"reserved", 0},            // 43
+	{"reserved", 0},            // 44
+	{"reserved", 0},            // 45
+	{"reserved", 0},            // 46
+	{"reserved", 0},            // 47
+	{"reserved", 0},            // 48
+	{"reserved", 0},            // 49
+	{"iftrue", 2},              // 50 KXCI_IFTRUE
+	{"iffalse", 2},              // 50 KXCI_IFTRUE
 };
 
 
@@ -56,6 +71,8 @@ int kxcinstruction_has_linenumber(KxInstructionType instruction)
 		case KXCI_LOCAL_KEYWORD_MSG:
 		case KXCI_RESEND_UNARY_MSG:
 		case KXCI_RESEND_KEYWORD_MSG:
+		case KXCI_IFTRUE:
+		case KXCI_IFFALSE:
 			return 1;
 		default:
 			return 0;

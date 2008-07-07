@@ -95,6 +95,7 @@ void kxobject_set_type(KxObject *self, char *type);
 
 
 KxObject * kxobject_send_unary_message(KxObject *self, KxSymbol *message_name);
+KxObject * kxobject_send_binary_message(KxObject *self, KxSymbol *message_name, KxObject *parameter);
 
 
 KxObject *kxobject_clone(KxObject *self);

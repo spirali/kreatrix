@@ -10,6 +10,8 @@
 
 typedef struct KxcInstruction KxcInstruction;
 typedef struct KxcLocal KxcLocal;
+typedef struct KxcMessage KxcMessage;
+typedef struct KxcExtra KxcExtra;
 typedef struct KxcLiteral KxcLiteral;
 
 
@@ -18,6 +20,15 @@ struct KxcLocal {
 	int scope; 
 };
 
+struct KxcMessage {
+	int symbol;
+	int params_count;
+};
+
+struct KxcExtra {
+	int codeblock;
+	int jump;
+};
 
 struct KxcLiteral {
 	KxcLiteralType type;
@@ -38,6 +49,8 @@ struct KxcInstruction {
 		int list_size;
 		int literal;
 		KxcLocal local;
+		KxcMessage msg;
+		KxcExtra extra;
 	} value;
 };
 
@@ -99,6 +112,19 @@ void kxcblock_push_local(KxcBlock *block, KxcLocal *local);
 
 void kxcblock_remove_instruction(KxcBlock *block, int position);
 
+char *kxcblock_get_symbol_at(KxcBlock *block, int position);
+KxcBlock *kxcblock_get_subblock_at(KxcBlock *block, int position);
+KxcLiteral *kxcblock_get_literal_at(KxcBlock *block, int position);
+
+KxcInstruction *kxcinstruction_copy(KxcInstruction *instruction);
+void kxcinstruction_free(KxcInstruction *instruction);
+
+int kxcblock_add_literal(KxcBlock *block, KxcLiteral *literal);
+KxcLiteral *kxcliteral_copy(KxcLiteral *literal);
+int kxcblock_get_symbol(KxcBlock *block, char *symbolname);
+void kxcblock_append_locals(KxcBlock *block, KxcBlock *source);
+
+void kxcblock_insert_linenumbers(KxcBlock *block, KxcBlock *source, int position);
 
 
 #endif

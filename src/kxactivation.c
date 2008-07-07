@@ -182,10 +182,10 @@ KxActivation *kxactivation_new(KxCore *core)
 	ALLOCTEST(self);
 	self->is_over = 0;
 
-	#ifdef KX_MULTI_STATE
+#ifdef KX_MULTI_STATE
 	self->core = core;
-	#endif
-	
+#endif
+
 	self->ref_count = 1;
 	return self;
 }
@@ -266,6 +266,30 @@ kxactivation_return(KxActivation *self, KxReturn ret)
 			exit(-1);
 			return NULL;
 	}
+}
+
+static KxObject * 
+kxactivation_send_standby_message_with_codeblock(KxActivation *self, KxObject *receiver, int dictionary_item, int codeblock) 
+{
+	if (self->message.target)
+		REF_REMOVE(self->message.target);
+
+	KxCodeBlock **subblocks = KXCODEBLOCK_DATA(self->codeblock)->subcodeblocks;
+	KxScopedBlock *scopedblock = kxscopedblock_new(KXCORE, subblocks[codeblock], self);
+
+	KxMessage *msg = &self->message;
+	REF_ADD(receiver);
+	kxmessage_init(msg, receiver, 1, KXCORE->dictionary[dictionary_item]);
+	msg->params[0] = scopedblock;
+
+	KxObject *result = kxmessage_send(msg);
+	
+	REF_REMOVE(receiver);
+
+	if (result == NULL) {
+		return kxactivation_return(self, kxstack_get_return_state(KXSTACK));
+	} else 
+		return result;
 }
 
 
@@ -600,6 +624,45 @@ kxactivation_run(KxActivation *self)
 				continue;
 			}
 
+			/** Optimizing instructions **/
+
+			case KXCI_IFTRUE:
+			{
+				int codeblock = (int) FETCH_BYTE(codep);
+				int jump = (int) FETCH_BYTE(codep);
+				KxObject *obj = kxactivation_inner_stack_pop(self);
+				if (obj != KXCORE->object_true) { 
+					if (obj != KXCORE->object_false) {
+						obj = kxactivation_send_standby_message_with_codeblock(self, obj, KXDICT_IFTRUE, codeblock);
+						KXCHECK(obj);
+					}
+					kxactivation_inner_stack_push(self, obj);
+					codep += jump;
+					continue;
+				} else {
+					REF_REMOVE(obj);
+					continue;
+				}
+			}
+
+			case KXCI_IFFALSE:
+			{
+				int codeblock = (int) FETCH_BYTE(codep);
+				int jump = (int) FETCH_BYTE(codep);
+				KxObject *obj = kxactivation_inner_stack_pop(self);
+				if (obj != KXCORE->object_false) { 
+					if (obj != KXCORE->object_true) {
+						obj = kxactivation_send_standby_message_with_codeblock(self, obj, KXDICT_IFFALSE, codeblock);
+						KXCHECK(obj);
+					}
+					kxactivation_inner_stack_push(self, obj);
+					codep += jump;
+					continue;
+				} else {
+					REF_REMOVE(obj);
+					continue;
+				}
+			}
 
 
 			default: 

@@ -26,10 +26,19 @@ kxcinstruction_new(KxInstructionType type)
 	return instruction;
 }
 
+KxcInstruction *
+kxcinstruction_copy(KxcInstruction *instruction)
+{
+	KxcInstruction *i = malloc(sizeof(KxcInstruction));
+	ALLOCTEST(i);
+	memcpy(i, instruction, sizeof(KxcInstruction));
+	return i;
+}
+
 /**
  * Free instruction 
  */
-static void
+void
 kxcinstruction_free(KxcInstruction *instruction)
 {   
 	free(instruction);
@@ -54,6 +63,18 @@ kxcliteral_new(KxcLiteralType type)
 	return literal;
 }
 
+KxcLiteral *
+kxcliteral_copy(KxcLiteral *literal)
+{
+	KxcLiteral *literal_new = malloc(sizeof(KxcLiteral));
+	ALLOCTEST(literal_new);
+	memcpy(literal_new, literal, sizeof(KxcLiteral));
+	if (literal->type == KXC_LITERAL_STRING || literal->type == KXC_LITERAL_SYMBOL) {
+		literal_new->value.string = strdup(literal->value.string);
+	}
+	return literal_new;
+}
+
 static void
 kxcliteral_free(KxcLiteral *literal)
 {   
@@ -64,12 +85,32 @@ kxcliteral_free(KxcLiteral *literal)
 }
 
 
-static char
-params_count(char *name) 
+static int
+params_count_of_message(KxInstructionType msgtype, char *name) 
 {
+	switch(msgtype) {
+		case KXCI_UNARY_MSG:
+		case KXCI_LOCAL_UNARY_MSG:
+		case KXCI_RESEND_UNARY_MSG:
+			return 0;
+
+		case KXCI_BINARY_MSG:
+			return 1;
+
+		case KXCI_KEYWORD_MSG: 
+		case KXCI_LOCAL_KEYWORD_MSG: 
+		case KXCI_RESEND_KEYWORD_MSG: 
+			break;
+		
+		default:
+			fprintf(stderr,"Internal error: Unknown message (params_count_of_message)\n");
+			abort();
+	}
+
 	int count = 0;
 	int t;
-	for (t=0;t<strlen(name);t++) {
+	int len = strlen(name);
+	for (t=0;t<len;t++) {
 		if (name[t] == ':')
 			count++;
 	}
@@ -96,11 +137,10 @@ kxcinstruction_bytecode_write(KxcInstruction *instruction, char **bytecode, KxcB
 		case KXCI_KEYWORD_MSG: 
 		case KXCI_LOCAL_KEYWORD_MSG: 
 		case KXCI_RESEND_KEYWORD_MSG: {
-			char symbol = instruction->value.symbol;
+			char symbol = instruction->value.msg.symbol;
+			char count = instruction->value.msg.params_count;
 			BYTECODE_WRITE_CHAR(symbol);
-			char *msg_name = list_get(block->symbols,(int)symbol);
-			char params = params_count(msg_name);
-			BYTECODE_WRITE_CHAR(params);
+			BYTECODE_WRITE_CHAR(count);
 			return;
 		}
 		case KXCI_LIST:
@@ -137,17 +177,20 @@ kxcinstruction_bytecode_write(KxcInstruction *instruction, char **bytecode, KxcB
 			BYTECODE_WRITE_CHAR(instruction->value.local.index);
 			return;
 
-
+		case KXCI_IFTRUE:
+		case KXCI_IFFALSE:
+			BYTECODE_WRITE_CHAR(instruction->value.extra.codeblock);
+			BYTECODE_WRITE_CHAR(instruction->value.extra.jump);
+			return;
 
 	}
 
-	fprintf(stderr,"Internal error, invalid instruction type\n");
+	fprintf(stderr,"Internal error, invalid instruction type (kxcinstruction_bytecode_write)\n");
 	abort();
 }
 
 /// -- KxcBlock --------------------------------------------------
 
-static int kxcblock_get_symbol(KxcBlock *block, char *symbolname);
 static void kxcblock_add_params_and_locals(KxcBlock *block, List *parameters, List *locals, List *errors);
 
 
@@ -237,6 +280,23 @@ kxcblock_add_symbol(KxcBlock *block, char *symbolname)
 	return block->symbols->size-1;
 }
 
+char *
+kxcblock_get_symbol_at(KxcBlock *block, int position)
+{
+	return block->symbols->items[position];
+}
+
+KxcLiteral *
+kxcblock_get_literal_at(KxcBlock *block, int position)
+{
+	return block->literals->items[position];
+}
+
+KxcBlock *
+kxcblock_get_subblock_at(KxcBlock *block, int position)
+{
+	return block->subblocks->items[position];
+}
 
 /**
  *  Add instruction into block
@@ -251,13 +311,13 @@ kxcblock_add_instruction(KxcBlock *block, KxcInstruction *instruction)
  *	Find id of symbols by symbolname.
  *	If symbolname don't exist, symbol is createn
  */
-static int 
+int 
 kxcblock_get_symbol(KxcBlock *block, char *symbolname)
 {
 	int t;
 	for (t=0;t<block->symbols->size;t++) {
 		if (!strcmp(symbolname,block->symbols->items[t])) {
-			free(symbolname); // Symbol find in table, our symbolname can be freed
+			free(symbolname); // Symbol found in table, our symbolname can be freed
 			return t;
 		}
 	}
@@ -336,6 +396,29 @@ kxcblock_add_params_and_locals(KxcBlock *block, List *parameters, List *locals, 
 
 	if (locals)
 		list_free(locals);
+}
+
+void 
+kxcblock_append_locals(KxcBlock *block, KxcBlock *source)
+{
+	int locals_count = source->locals_count;
+	char *locals = source->locals;
+
+	if (locals == NULL)
+		return;
+
+
+	int start_id = block->locals_count;
+	int count = start_id + locals_count;
+	block->locals_count = count;
+
+	block->locals = kxrealloc(block->locals, count * sizeof(char));
+	int t;
+	for (t=0; t < locals_count; t++) {
+		char *symbolname = strdup(kxcblock_get_symbol_at(source, t));
+		int symbol = kxcblock_get_symbol(block, symbolname);
+		block->locals[t + start_id] = symbol;
+	}
 }
 
 void
@@ -424,10 +507,13 @@ kxcblock_put_message(KxcBlock *block, KxInstructionType msgtype, char *messagena
 	}
 
 	PDEBUG("sendmsg: %i %s\n",msgtype,messagename);
+
+	int params_count = params_count_of_message(msgtype, messagename);
 	int symbol = kxcblock_get_symbol(block, messagename);
 
 	KxcInstruction *i = kxcinstruction_new(msgtype);
-	i->value.symbol = symbol;
+	i->value.msg.symbol = symbol;
+	i->value.msg.params_count = params_count;
 	kxcblock_add_instruction(block,i);
 
 	list_append(block->message_linenumbers,(void*)(long)lineno);
@@ -556,7 +642,7 @@ kxcblock_literals_equals(KxcLiteral *literal1, KxcLiteral *literal2)
 	}
 }
 
-static int
+int
 kxcblock_add_literal(KxcBlock *block, KxcLiteral *literal)
 {
 	int t;
@@ -927,4 +1013,15 @@ kxcblock_remove_instruction(KxcBlock *block, int position)
 	KxcInstruction *i = block->code->items[position];
 	list_fast_remove(block->code, position);
 	kxcinstruction_free(i);
+}
+
+void
+kxcblock_insert_linenumbers(KxcBlock *block, KxcBlock *source, int position)
+{
+	int t;
+	List *source_list = source->message_linenumbers;
+	List *dest_list = block->message_linenumbers;
+	for (t = 0; t < source_list->size; t++) {
+		list_insert_at(dest_list, source_list->items[t], position + t);
+	}
 }
