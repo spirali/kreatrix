@@ -57,7 +57,10 @@ KxInstructionInfo kxinstructions_info[KXCI_INSTRUCTIONS_COUNT] = {
 	{"reserved", 0},            // 48
 	{"reserved", 0},            // 49
 	{"iftrue", 2},              // 50 KXCI_IFTRUE
-	{"iffalse", 2},              // 50 KXCI_IFTRUE
+	{"iffalse", 2},             // 51 KXCI_IFFALSE
+	{"iftrue_iffalse", 3},      // 52 KXCI_IFTRUE_IFFALSE
+	{"iffalse_iftrue", 3},      // 53 KXCI_IFFALSE_IFTRUE
+	{"jump", 1},                // 54 KXCI_JUMP
 };
 
 
@@ -73,6 +76,8 @@ int kxcinstruction_has_linenumber(KxInstructionType instruction)
 		case KXCI_RESEND_KEYWORD_MSG:
 		case KXCI_IFTRUE:
 		case KXCI_IFFALSE:
+		case KXCI_IFTRUE_IFFALSE:
+		case KXCI_IFFALSE_IFTRUE:
 			return 1;
 		default:
 			return 0;

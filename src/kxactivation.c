@@ -292,6 +292,32 @@ kxactivation_send_standby_message_with_codeblock(KxActivation *self, KxObject *r
 		return result;
 }
 
+static KxObject * 
+kxactivation_send_standby_message_with_two_codeblocks(KxActivation *self, KxObject *receiver, int dictionary_item, int codeblock1, int codeblock2) 
+{
+	if (self->message.target)
+		REF_REMOVE(self->message.target);
+
+	KxCodeBlock **subblocks = KXCODEBLOCK_DATA(self->codeblock)->subcodeblocks;
+	KxScopedBlock *scopedblock1 = kxscopedblock_new(KXCORE, subblocks[codeblock1], self);
+	KxScopedBlock *scopedblock2 = kxscopedblock_new(KXCORE, subblocks[codeblock2], self);
+
+	KxMessage *msg = &self->message;
+	REF_ADD(receiver);
+	kxmessage_init(msg, receiver, 2, KXCORE->dictionary[dictionary_item]);
+	msg->params[0] = scopedblock1;
+	msg->params[1] = scopedblock2;
+
+	KxObject *result = kxmessage_send(msg);
+	
+	REF_REMOVE(receiver);
+
+	if (result == NULL) {
+		return kxactivation_return(self, kxstack_get_return_state(KXSTACK));
+	} else 
+		return result;
+}
+
 
 KxObject * 
 kxactivation_run(KxActivation *self) 
@@ -662,6 +688,62 @@ kxactivation_run(KxActivation *self)
 					REF_REMOVE(obj);
 					continue;
 				}
+			}
+
+			case KXCI_IFTRUE_IFFALSE:
+			{
+				int codeblock = (int) FETCH_BYTE(codep);
+				int jump1 = (int) FETCH_BYTE(codep);
+				int jump2 = (int) FETCH_BYTE(codep);
+				KxObject *obj = kxactivation_inner_stack_pop(self);
+				if (obj != KXCORE->object_true) { 
+					if (obj != KXCORE->object_false) {
+						obj = kxactivation_send_standby_message_with_two_codeblocks
+							(self, obj, KXDICT_IFTRUE_IFFALSE, codeblock, codeblock + 1);
+						KXCHECK(obj);
+						kxactivation_inner_stack_push(self, obj);
+						codep += jump2;
+						continue;
+					}
+					REF_REMOVE(obj);
+					codep += jump1;
+					continue;
+				} else {
+					REF_REMOVE(obj);
+					continue;
+				}
+			}
+
+			case KXCI_IFFALSE_IFTRUE:
+			{
+				int codeblock = (int) FETCH_BYTE(codep);
+				int jump1 = (int) FETCH_BYTE(codep);
+				int jump2 = (int) FETCH_BYTE(codep);
+				KxObject *obj = kxactivation_inner_stack_pop(self);
+				if (obj != KXCORE->object_false) { 
+					if (obj != KXCORE->object_true) {
+						obj = kxactivation_send_standby_message_with_two_codeblocks
+							(self, obj, KXDICT_IFFALSE_IFTRUE, codeblock, codeblock + 1);
+						KXCHECK(obj);
+						kxactivation_inner_stack_push(self, obj);
+						codep += jump2;
+						continue;
+					}
+					REF_REMOVE(obj);
+					codep += jump1;
+					continue;
+				} else {
+					REF_REMOVE(obj);
+					continue;
+				}
+			}
+
+
+			case KXCI_JUMP:
+			{
+				int jump = (int) FETCH_BYTE(codep);
+				codep += jump;
+				continue;
 			}
 
 

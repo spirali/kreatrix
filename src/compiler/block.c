@@ -16,7 +16,7 @@
 /**
  * Create new instruction
  */
-static KxcInstruction*
+KxcInstruction*
 kxcinstruction_new(KxInstructionType type)
 {
 	KxcInstruction *instruction = malloc(sizeof(KxcInstruction));
@@ -26,7 +26,7 @@ kxcinstruction_new(KxInstructionType type)
 	return instruction;
 }
 
-KxcInstruction *
+KxcInstruction*
 kxcinstruction_copy(KxcInstruction *instruction)
 {
 	KxcInstruction *i = malloc(sizeof(KxcInstruction));
@@ -123,70 +123,25 @@ params_count_of_message(KxInstructionType msgtype, char *name)
 static void 
 kxcinstruction_bytecode_write(KxcInstruction *instruction, char **bytecode, KxcBlock *block) 
 {
+
 	BYTECODE_WRITE_CHAR(instruction->type);
 	int typesize = sizeof(char);
 
 	switch(instruction->type) {
-		case KXCI_UNARY_MSG:
-		case KXCI_BINARY_MSG:
-		case KXCI_LOCAL_UNARY_MSG:
-		case KXCI_RESEND_UNARY_MSG:
-			BYTECODE_WRITE_CHAR(instruction->value.symbol);
-			return;
-
-		case KXCI_KEYWORD_MSG: 
-		case KXCI_LOCAL_KEYWORD_MSG: 
-		case KXCI_RESEND_KEYWORD_MSG: {
-			char symbol = instruction->value.msg.symbol;
-			char count = instruction->value.msg.params_count;
-			BYTECODE_WRITE_CHAR(symbol);
-			BYTECODE_WRITE_CHAR(count);
-			return;
-		}
-		case KXCI_LIST:
-			BYTECODE_WRITE_CHAR(instruction->value.list_size);
-			return;
-
-		case KXCI_POP:
-		case KXCI_RETURN_STACK_TOP:
-		case KXCI_LONGRETURN:
-		case KXCI_RETURN_SELF:
-			return; // No aditional data
-	
-		case KXCI_PUSH_METHOD:			
-		case KXCI_PUSH_BLOCK:
-			BYTECODE_WRITE_CHAR(instruction->value.codeblock);
-			return;
-
-		case KXCI_PUSH_SELF:
-		case KXCI_PUSH_ACTIVATION:
-			return;
-
-		case KXCI_PUSH_LITERAL:
-			BYTECODE_WRITE_CHAR(instruction->value.literal);
-			return;
-
-		case KXCI_PUSH_LOCAL:
-		case KXCI_UPDATE_LOCAL:
-			BYTECODE_WRITE_CHAR(instruction->value.local.index);
-			return;
-
 		case KXCI_PUSH_OUTER_LOCAL:
 		case KXCI_UPDATE_OUTER_LOCAL:
 			BYTECODE_WRITE_CHAR(instruction->value.local.scope - 1);
 			BYTECODE_WRITE_CHAR(instruction->value.local.index);
 			return;
-
-		case KXCI_IFTRUE:
-		case KXCI_IFFALSE:
-			BYTECODE_WRITE_CHAR(instruction->value.extra.codeblock);
-			BYTECODE_WRITE_CHAR(instruction->value.extra.jump);
-			return;
-
+		default: {
+			int t;
+			int *data = (int *) &instruction->value;
+			int count = kxinstructions_info[instruction->type].params_count;
+			for (t=0; t < count; t++) {
+				BYTECODE_WRITE_CHAR(data[t]);
+			}
+		}
 	}
-
-	fprintf(stderr,"Internal error, invalid instruction type (kxcinstruction_bytecode_write)\n");
-	abort();
 }
 
 /// -- KxcBlock --------------------------------------------------
@@ -305,6 +260,15 @@ static void
 kxcblock_add_instruction(KxcBlock *block, KxcInstruction *instruction) 
 {
 	list_append(block->code,instruction);
+}
+
+/**
+ * Insert instrucion into block
+ */
+void
+kxcblock_insert_instruction(KxcBlock *block, KxcInstruction *instruction, int position)
+{
+	list_insert_at(block->code, instruction, position);
 }
 
 /**

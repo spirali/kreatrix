@@ -66,7 +66,7 @@ extern int kx_verbose;
 static char *core_dictionary[KXDICTIONARY_SIZE] = 
 { "self","type","message","==","print","value","value:","value:value:","value:value:value:",
   "valueWithList:","init","doesNotUnderstand:parameters:","asString", "hash", "key", "printString",
-  "ifTrue:", "ifFalse:"
+  "ifTrue:", "ifFalse:", "ifTrue:ifFalse:", "ifFalse:ifTrue:", 
  };
 
 static void 

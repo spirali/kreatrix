@@ -8,7 +8,7 @@ typedef struct KxInstructionWrapper KxInstructionWrapper;
 
 struct KxInstructionWrapper {
 	KxInstructionType type;
-	char params[2];
+	char params[3];
 };
 
 

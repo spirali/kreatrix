@@ -6,17 +6,35 @@
 #include "block_optimise.h"
 
 typedef struct KxInstructionReplacingRule KxInstructionReplacingRule;
+typedef void(ReplaceFcn)(
+	KxcBlock *block,
+	KxcInstruction *instruction,
+	int position, 
+	KxcBlock **closures, 
+	KxcInstruction **prev_instructions,
+	KxInstructionReplacingRule *rule);
 
 struct KxInstructionReplacingRule {
 	int originalInstruction;
 	char *messageName;
 	int replacingInstruction;
-	int countOfParameters;
+	int countOfClosures;
+	int countOfParameters[2];
+	ReplaceFcn *replace_function;
 };
 
+static void kxcblock_replace_instructions_condition
+	(KxcBlock *, KxcInstruction *, int, KxcBlock **, KxcInstruction **, KxInstructionReplacingRule *);
+static void kxcblock_replace_instructions_condition_else
+	(KxcBlock *, KxcInstruction *, int, KxcBlock **, KxcInstruction **, KxInstructionReplacingRule *);
+
+
+
 static KxInstructionReplacingRule replacing_rules[] = {
-	{ KXCI_KEYWORD_MSG, "ifTrue:", KXCI_IFTRUE, 0 },
-	{ KXCI_KEYWORD_MSG, "ifFalse:", KXCI_IFFALSE, 0 },
+	{ KXCI_KEYWORD_MSG, "ifTrue:",  KXCI_IFTRUE,  1, {0}, kxcblock_replace_instructions_condition },
+	{ KXCI_KEYWORD_MSG, "ifFalse:", KXCI_IFFALSE, 1, {0}, kxcblock_replace_instructions_condition  },
+	{ KXCI_KEYWORD_MSG, "ifTrue:ifFalse:", KXCI_IFTRUE_IFFALSE, 2, {0,0}, kxcblock_replace_instructions_condition_else  },
+	{ KXCI_KEYWORD_MSG, "ifFalse:ifTrue:", KXCI_IFFALSE_IFTRUE, 2, {0,0}, kxcblock_replace_instructions_condition_else  },
 	{ 0, NULL, 0 }
 };
 
@@ -127,6 +145,56 @@ kxcblock_insert_instructions(KxcBlock *block, int position, KxcBlock *source)
 	return bytes;
 }
 
+static void
+kxcblock_replace_instructions_condition(	
+	KxcBlock *block,
+	KxcInstruction *instruction,
+	int position, 
+	KxcBlock **closures, 
+	KxcInstruction **prev_instructions,
+	KxInstructionReplacingRule *rule)
+
+{
+	instruction->value.condition.codeblock = prev_instructions[0]->value.codeblock;
+	kxcblock_remove_instruction(block, position - 1);
+	int bytes = kxcblock_insert_instructions(block, position, closures[0]);
+	instruction->type = rule->replacingInstruction;
+	instruction->value.condition.jump = bytes;
+}
+
+static void
+kxcblock_replace_instructions_condition_else(	
+	KxcBlock *block,
+	KxcInstruction *instruction,
+	int position, 
+	KxcBlock **closures, 
+	KxcInstruction **prev_instructions,
+	KxInstructionReplacingRule *rule)
+
+{
+	instruction->value.condition.codeblock = prev_instructions[0]->value.codeblock;
+
+	/* Remove PUSH_BLOCKS */
+	kxcblock_remove_instruction(block, position - 1);
+	kxcblock_remove_instruction(block, position - 2);
+
+	position--;
+
+	int bytes1 = kxcblock_insert_instructions(block, position, closures[1]);
+
+	KxcInstruction *jump_instr = kxcinstruction_new(KXCI_JUMP);
+	jump_instr->value.jump = bytes1;
+
+	kxcblock_insert_instruction(block, jump_instr, position);
+
+	int bytes2 = kxcblock_insert_instructions(block, position, closures[0]);
+	bytes2 += kxinstructions_info[KXCI_JUMP].params_count + 1;
+
+	instruction->type = rule->replacingInstruction;
+	instruction->value.condition.jump = bytes2;
+	instruction->value.condition.jump2 = bytes1 + bytes2;
+}
+
 static void 
 kxcblock_optimise_replace_instructions(KxcBlock *block)
 {
@@ -138,46 +206,56 @@ kxcblock_optimise_replace_instructions(KxcBlock *block)
 	for (t=0;t<block->code->size;t++) {
 		KxcInstruction *i = block->code->items[t];
 
-		if (prev_is_static_closure) {
-			if (i->type == KXCI_PUSH_BLOCK) {
-				continue;
-			}
-			prev_is_static_closure = 0;
+		int closures_count = 0;
+		while (i->type == KXCI_PUSH_BLOCK) {
+			closures_count++;
+			i = block->code->items[++t];
+		}
+		if (closures_count == 0) {
+			continue;
+		}
+	
+		KxcInstruction *previ[closures_count];
+		KxcBlock *closures[closures_count];
 
-			KxcInstruction *prev = block->code->items[t - 1];
-			KxcBlock *closure = kxcblock_get_subblock_at(block, prev->value.codeblock);
-			int closure_params = closure->params_count;
+		int s;
+		for (s = 0; s < closures_count; s++) {
+			previ[s] = block->code->items[t - closures_count + s];
+			closures[s] = kxcblock_get_subblock_at(block, previ[s]->value.codeblock);
+			if (closures[s]->subblocks->size > 0)
+				break;
+		}
 			
-			//TODO: Expand codeblocks with subblocks
-			if (closure->subblocks->size > 0) 
-				continue;
+		//TODO: Expand codeblocks with subblocks
+		if (s != closures_count) {
+			continue;
+		}
 
-			KxInstructionReplacingRule *rule = replacing_rules;
-			char *message_name = kxcblock_get_symbol_at(block, i->value.msg.symbol);
-			while(rule->messageName) {
-				if (i->type == rule->originalInstruction 
-						&& closure->params_count == rule->countOfParameters
-						&& !strcmp(message_name, rule->messageName)) 
-				{
-					i->value.extra.codeblock = prev->value.codeblock;
-					kxcblock_remove_instruction(block, t - 1);
-					int bytes = kxcblock_insert_instructions(block, t, closure);
-					i->type = rule->replacingInstruction;
-					i->value.extra.jump = bytes;
-					kxcblock_optimise_replace_instructions(block);
-					return;
+
+		KxInstructionReplacingRule *rule = replacing_rules;
+		char *message_name = kxcblock_get_symbol_at(block, i->value.msg.symbol);
+
+	//	printf("%i %i %s\n", closures_count, i->type, message_name);
+		while(rule->messageName) {
+			if (i->type == rule->originalInstruction 
+					&& closures_count >= rule->countOfClosures
+					&& !strcmp(message_name, rule->messageName)) 
+			{
+				for (s = 0; s < rule->countOfClosures;s++) {
+					closures[s]->params_count == rule->countOfParameters[s];
 				}
-				rule++;
-			}
-		} else {
-			if (i->type == KXCI_PUSH_BLOCK) {
-				prev_is_static_closure = 1;
-				continue;
-			}
 
+				if (s != rule->countOfClosures)
+					continue;
+
+				rule->replace_function(block, i, t, closures, previ, rule);
+
+				kxcblock_optimise_replace_instructions(block);
+				return;
+			}
+			rule++;
 		}
 	}
-
 }
 
 static void 

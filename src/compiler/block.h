@@ -11,7 +11,7 @@
 typedef struct KxcInstruction KxcInstruction;
 typedef struct KxcLocal KxcLocal;
 typedef struct KxcMessage KxcMessage;
-typedef struct KxcExtra KxcExtra;
+typedef struct KxcCondition KxcCondition;
 typedef struct KxcLiteral KxcLiteral;
 
 
@@ -25,9 +25,10 @@ struct KxcMessage {
 	int params_count;
 };
 
-struct KxcExtra {
+struct KxcCondition {
 	int codeblock;
 	int jump;
+	int jump2;
 };
 
 struct KxcLiteral {
@@ -48,9 +49,10 @@ struct KxcInstruction {
 		int codeblock;
 		int list_size;
 		int literal;
+		int jump;
 		KxcLocal local;
 		KxcMessage msg;
-		KxcExtra extra;
+		KxcCondition condition;
 	} value;
 };
 
@@ -112,15 +114,17 @@ void kxcblock_push_local(KxcBlock *block, KxcLocal *local);
 
 void kxcblock_remove_instruction(KxcBlock *block, int position);
 
-char *kxcblock_get_symbol_at(KxcBlock *block, int position);
-KxcBlock *kxcblock_get_subblock_at(KxcBlock *block, int position);
-KxcLiteral *kxcblock_get_literal_at(KxcBlock *block, int position);
+char* kxcblock_get_symbol_at(KxcBlock *block, int position);
+KxcBlock* kxcblock_get_subblock_at(KxcBlock *block, int position);
+KxcLiteral* kxcblock_get_literal_at(KxcBlock *block, int position);
 
-KxcInstruction *kxcinstruction_copy(KxcInstruction *instruction);
+KxcInstruction* kxcinstruction_new(KxInstructionType type);
+KxcInstruction* kxcinstruction_copy(KxcInstruction *instruction);
 void kxcinstruction_free(KxcInstruction *instruction);
+void kxcblock_insert_instruction(KxcBlock *block, KxcInstruction *instruction, int position);
 
 int kxcblock_add_literal(KxcBlock *block, KxcLiteral *literal);
-KxcLiteral *kxcliteral_copy(KxcLiteral *literal);
+KxcLiteral* kxcliteral_copy(KxcLiteral *literal);
 int kxcblock_get_symbol(KxcBlock *block, char *symbolname);
 void kxcblock_append_locals(KxcBlock *block, KxcBlock *source);
 
