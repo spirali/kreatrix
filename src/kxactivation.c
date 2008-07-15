@@ -670,6 +670,7 @@ kxactivation_run(KxActivation *self)
 				KxObject *obj = kxactivation_inner_stack_pop(self);
 				if (obj != KXCORE->object_true) { 
 					if (obj != KXCORE->object_false) {
+						self->codepointer = codep - 2;
 						obj = kxactivation_send_standby_message_with_codeblock(self, obj, KXDICT_IFTRUE, codeblock);
 						KXCHECK(obj);
 					}
@@ -689,6 +690,7 @@ kxactivation_run(KxActivation *self)
 				KxObject *obj = kxactivation_inner_stack_pop(self);
 				if (obj != KXCORE->object_false) { 
 					if (obj != KXCORE->object_true) {
+						self->codepointer = codep - 2;
 						obj = kxactivation_send_standby_message_with_codeblock(self, obj, KXDICT_IFFALSE, codeblock);
 						KXCHECK(obj);
 					}
@@ -709,6 +711,7 @@ kxactivation_run(KxActivation *self)
 				KxObject *obj = kxactivation_inner_stack_pop(self);
 				if (obj != KXCORE->object_true) { 
 					if (obj != KXCORE->object_false) {
+						self->codepointer = codep - 3;
 						obj = kxactivation_send_standby_message_with_two_codeblocks
 							(self, obj, KXDICT_IFTRUE_IFFALSE, codeblock, codeblock + 1);
 						KXCHECK(obj);
@@ -733,6 +736,7 @@ kxactivation_run(KxActivation *self)
 				KxObject *obj = kxactivation_inner_stack_pop(self);
 				if (obj != KXCORE->object_false) { 
 					if (obj != KXCORE->object_true) {
+						self->codepointer = codep - 3;
 						obj = kxactivation_send_standby_message_with_two_codeblocks
 							(self, obj, KXDICT_IFFALSE_IFTRUE, codeblock, codeblock + 1);
 						KXCHECK(obj);
@@ -765,7 +769,7 @@ kxactivation_run(KxActivation *self)
 
 				KxObject *obj = kxactivation_inner_stack_pop(self);
 
-				if (obj->extension->iterator_create) {
+				if (obj->extension && obj->extension->iterator_create) {
 					KxObject *iterator = obj->extension->iterator_create(obj);
 					KxObject *each = obj->extension->iterator_next(obj, iterator->data.ptr);
 					REF_REMOVE(obj);
@@ -783,9 +787,10 @@ kxactivation_run(KxActivation *self)
 					REF_ADD(each);
 					continue;
 				} else {
-					codep += jump;
+					self->codepointer = codep - 3;
 					obj = kxactivation_send_standby_message_with_codeblock(self, obj, KXDICT_FOREACH, codeblock);
 					KXCHECK(obj);
+					codep += jump;
 					kxactivation_inner_stack_push(self, obj);
 					continue;
 				}
