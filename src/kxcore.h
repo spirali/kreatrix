@@ -25,6 +25,7 @@ KXPROTO_SCOPEDBLOCK, KXPROTO_EXCEPTION, KXPROTO_LIST,
 KXPROTO_FILE, KXPROTO_BYTEARRAY, KXPROTO_CHARACTER,
 KXPROTO_DICTIONARY, KXPROTO_FLOAT,
 KXPROTO_MODULE,KXPROTO_SET,KXPROTO_ARRAY2D, KXPROTO_ACTIVATION,
+KXPROTO_ITERATOR,
 KXPROTOS_COUNT } KxBasicPrototypes;
 
 typedef enum {
@@ -35,6 +36,7 @@ KXDICT_VALUE3, KXDICT_VALUE_WITH_LIST, KXDICT_INIT,
 KXDICT_DNU, KXDICT_AS_STRING, KXDICT_HASH, 
 KXDICT_KEY, KXDICT_PRINTSTRING,
 KXDICT_IFTRUE, KXDICT_IFFALSE, KXDICT_IFTRUE_IFFALSE, KXDICT_IFFALSE_IFTRUE,
+KXDICT_FOREACH,
 
 KXDICTIONARY_SIZE
 } KxCoreDictionary;
@@ -187,6 +189,7 @@ KxObject *kxcore_clone_prototype(KxCore *self, KxObjectExtension *prototype_exte
 void kxcore_gc_check(KxCore *core);
 void kxcore_collect_now(KxCore *core);
 KxObject * kxcore_clone_basic_prototype(KxCore *self, KxBasicPrototypes proto);
+KxObject * kxcore_raw_clone_basic_prototype(KxCore *core, KxBasicPrototypes proto);
 
 
 void kxcore_switch_to_stack(KxCore *core, KxStack *stack);

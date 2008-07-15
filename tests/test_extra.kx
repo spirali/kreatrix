@@ -11,7 +11,7 @@ testExtra = test TestCase clone do: {
 			ifFalse: = { :aBlock | ^ "f",aBlock value }.
 		}.
 
-		((obj ifTrue: [ "a","b" ]) println == "tab") assertTrue.
+		((obj ifTrue: [ "a","b" ]) == "tab") assertTrue.
 		((obj ifFalse: [ "c","d" ]) == "fcd") assertTrue.
 
 	}.

@@ -26,6 +26,7 @@
 #include "kxexception.h"
 #include "kxcharacter.h"
 #include "kxactivation_object.h"
+#include "kxiterator.h"
 
 #define FETCH_BYTE(codep) *(codep++)
 
@@ -161,6 +162,16 @@ kxactivation_inner_stack_pop(KxActivation *self)
 	
 	return self->inner_stack[ --self->inner_stack_pos ];
 }
+
+/*static void
+kxactivation_inner_stack_dump(KxActivation *self) 
+{
+	printf("Inner stack dump:\n");
+	int t;
+	for (t = 0; t < self->inner_stack_pos; t++) {
+		kxobject_dump(self->inner_stack[t]);
+	}
+}*/
 
 static void
 kxactivation_inner_stack_free(KxActivation *self) 
@@ -746,9 +757,74 @@ kxactivation_run(KxActivation *self)
 				continue;
 			}
 
+			case KXCI_FOREACH:
+			{
+				int jump = (int) FETCH_BYTE(codep);
+				int local = (int) FETCH_BYTE(codep);
+				int codeblock = (int) FETCH_BYTE(codep);
+
+				KxObject *obj = kxactivation_inner_stack_pop(self);
+
+				if (obj->extension->iterator_create) {
+					KxObject *iterator = obj->extension->iterator_create(obj);
+					KxObject *each = obj->extension->iterator_next(obj, iterator->data.ptr);
+					REF_REMOVE(obj);
+					if (each == NULL) {
+						codep += jump;
+						REF_REMOVE(iterator);
+						REF_ADD(KXCORE->object_nil);
+						kxactivation_inner_stack_push(self, KXCORE->object_nil);
+						continue;
+					}
+					kxactivation_inner_stack_push(self, iterator);
+					
+					REF_REMOVE(self->locals[local]);
+					self->locals[local] = each;
+					REF_ADD(each);
+					continue;
+				} else {
+					codep += jump;
+					obj = kxactivation_send_standby_message_with_codeblock(self, obj, KXDICT_FOREACH, codeblock);
+					KXCHECK(obj);
+					kxactivation_inner_stack_push(self, obj);
+					continue;
+				}
+			}
+
+			case KXCI_NEXTITER:
+			{
+				int jump = (int) FETCH_BYTE(codep);
+				int local = (int) FETCH_BYTE(codep);
+
+				KxObject *iterator = self->inner_stack[self->inner_stack_pos - 2];
+
+				KxIteratorData *data = KXITERATOR_DATA(iterator);
+				KxObject *obj = data->object;
+
+
+				KxObject *each = obj->extension->iterator_next(obj, data);
+				if (each) {
+					REF_REMOVE(self->locals[local]);
+					self->locals[local] = each;
+					REF_ADD(each);
+					codep += jump;
+	
+					obj = kxactivation_inner_stack_pop(self);
+					REF_REMOVE(obj);
+
+					continue;
+				} else {
+					continue;
+				}
+			}
+
 
 			default: 
-				fprintf(stderr,"Invalid instruction\n");
+	/*		{
+				KxInstructionInfo *ii = &kxinstructions_info[(int)instruction];
+				fprintf(stderr,"Invalid instruction %s\n", ii->name);
+			}*/
+				fprintf(stderr,"Invalid instruction");
 				abort();
 		}
 		

@@ -1,5 +1,6 @@
 #include "kxinstr.h"
 
+
 KxInstructionInfo kxinstructions_info[KXCI_INSTRUCTIONS_COUNT] = {
 	{"send_unary", 1},          // 00 KXCI_UNARY_MSG 
 	{"send_binary", 1},         // 01 KXCI_BINARY_MSG 
@@ -61,6 +62,8 @@ KxInstructionInfo kxinstructions_info[KXCI_INSTRUCTIONS_COUNT] = {
 	{"iftrue_iffalse", 3},      // 52 KXCI_IFTRUE_IFFALSE
 	{"iffalse_iftrue", 3},      // 53 KXCI_IFFALSE_IFTRUE
 	{"jump", 1},                // 54 KXCI_JUMP
+	{"foreach", 3},             // 55 KXCI_FOREACH
+	{"nextiter", 2},            // 56 KXCI_NEXTITER
 };
 
 
@@ -78,6 +81,7 @@ int kxcinstruction_has_linenumber(KxInstructionType instruction)
 		case KXCI_IFFALSE:
 		case KXCI_IFTRUE_IFFALSE:
 		case KXCI_IFFALSE_IFTRUE:
+		case KXCI_FOREACH:
 			return 1;
 		default:
 			return 0;

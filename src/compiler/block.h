@@ -12,6 +12,7 @@ typedef struct KxcInstruction KxcInstruction;
 typedef struct KxcLocal KxcLocal;
 typedef struct KxcMessage KxcMessage;
 typedef struct KxcCondition KxcCondition;
+typedef struct KxcForeach KxcForeach;
 typedef struct KxcLiteral KxcLiteral;
 
 
@@ -29,6 +30,12 @@ struct KxcCondition {
 	int codeblock;
 	int jump;
 	int jump2;
+};
+
+struct KxcForeach  {
+	int jump;
+	int local;
+	int codeblock;
 };
 
 struct KxcLiteral {
@@ -53,6 +60,7 @@ struct KxcInstruction {
 		KxcLocal local;
 		KxcMessage msg;
 		KxcCondition condition;
+		KxcForeach foreach;
 	} value;
 };
 

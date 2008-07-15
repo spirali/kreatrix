@@ -2,6 +2,8 @@
 #ifndef __KXINSTR_H
 #define __KXINSTR_H
 
+#define KXC_INSTRUCTION_MAX_PARAMS 3
+
 typedef enum { 	
 	
 	KXCI_UNARY_MSG,  // 0
@@ -37,6 +39,8 @@ typedef enum {
 	KXCI_IFTRUE_IFFALSE,
 	KXCI_IFFALSE_IFTRUE,
 	KXCI_JUMP,
+	KXCI_FOREACH,
+	KXCI_NEXTITER,
 
 	KXCI_INSTRUCTIONS_COUNT
 } KxInstructionType;

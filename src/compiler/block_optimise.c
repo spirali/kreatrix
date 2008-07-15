@@ -27,14 +27,18 @@ static void kxcblock_replace_instructions_condition
 	(KxcBlock *, KxcInstruction *, int, KxcBlock **, KxcInstruction **, KxInstructionReplacingRule *);
 static void kxcblock_replace_instructions_condition_else
 	(KxcBlock *, KxcInstruction *, int, KxcBlock **, KxcInstruction **, KxInstructionReplacingRule *);
-
-
+static void kxcblock_replace_instructions_foreach
+	(KxcBlock *, KxcInstruction *, int, KxcBlock **, KxcInstruction **, KxInstructionReplacingRule *);
+static void kxcblock_replace_instructions_foreach_local
+	(KxcBlock *, KxcInstruction *, int, KxcBlock **, KxcInstruction **, KxInstructionReplacingRule *);
 
 static KxInstructionReplacingRule replacing_rules[] = {
 	{ KXCI_KEYWORD_MSG, "ifTrue:",  KXCI_IFTRUE,  1, {0}, kxcblock_replace_instructions_condition },
 	{ KXCI_KEYWORD_MSG, "ifFalse:", KXCI_IFFALSE, 1, {0}, kxcblock_replace_instructions_condition  },
 	{ KXCI_KEYWORD_MSG, "ifTrue:ifFalse:", KXCI_IFTRUE_IFFALSE, 2, {0,0}, kxcblock_replace_instructions_condition_else  },
 	{ KXCI_KEYWORD_MSG, "ifFalse:ifTrue:", KXCI_IFFALSE_IFTRUE, 2, {0,0}, kxcblock_replace_instructions_condition_else  },
+	{ KXCI_KEYWORD_MSG, "foreach:", KXCI_FOREACH, 1, {1}, kxcblock_replace_instructions_foreach  },
+	{ KXCI_LOCAL_KEYWORD_MSG, "foreach:", KXCI_FOREACH, 1, {1}, kxcblock_replace_instructions_foreach_local  },
 	{ 0, NULL, 0 }
 };
 
@@ -195,6 +199,51 @@ kxcblock_replace_instructions_condition_else(
 	instruction->value.condition.jump2 = bytes1 + bytes2;
 }
 
+static void
+kxcblock_replace_instructions_foreach(	
+	KxcBlock *block,
+	KxcInstruction *instruction,
+	int position, 
+	KxcBlock **closures, 
+	KxcInstruction **prev_instructions,
+	KxInstructionReplacingRule *rule)
+
+{
+	instruction->value.foreach.codeblock = prev_instructions[0]->value.codeblock;
+	kxcblock_remove_instruction(block, position - 1);
+
+	KxcInstruction *nextiter_instr = kxcinstruction_new(KXCI_NEXTITER);
+
+	instruction->value.foreach.local = block->locals_count;
+	nextiter_instr->value.foreach.local = block->locals_count;
+
+	kxcblock_insert_instruction(block, nextiter_instr, position);
+
+	int bytes = kxcblock_insert_instructions(block, position, closures[0]);
+
+	
+	int jumpsize = bytes + kxinstructions_info[KXCI_NEXTITER].params_count + 1;
+	nextiter_instr->value.foreach.jump = - jumpsize;
+
+	instruction->type = rule->replacingInstruction;
+	instruction->value.foreach.jump = jumpsize;
+}
+
+static void
+kxcblock_replace_instructions_foreach_local(	
+	KxcBlock *block,
+	KxcInstruction *instruction,
+	int position, 
+	KxcBlock **closures, 
+	KxcInstruction **prev_instructions,
+	KxInstructionReplacingRule *rule)
+
+{
+	KxcInstruction *push_self = kxcinstruction_new(KXCI_PUSH_SELF);
+	kxcblock_insert_instruction(block, push_self, position - 1);
+	kxcblock_replace_instructions_foreach(block, instruction, position + 1, closures, prev_instructions, rule);
+}
+
 static void 
 kxcblock_optimise_replace_instructions(KxcBlock *block)
 {
@@ -235,7 +284,7 @@ kxcblock_optimise_replace_instructions(KxcBlock *block)
 		KxInstructionReplacingRule *rule = replacing_rules;
 		char *message_name = kxcblock_get_symbol_at(block, i->value.msg.symbol);
 
-	//	printf("%i %i %s\n", closures_count, i->type, message_name);
+	// 	printf("%i %i %s\n", closures_count, i->type, message_name);
 		while(rule->messageName) {
 			if (i->type == rule->originalInstruction 
 					&& closures_count >= rule->countOfClosures
