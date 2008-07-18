@@ -173,6 +173,7 @@ kxcblock_new(int type, KxcBlock * parent, List *parameters, List *localslots, Li
 	block->code = list_new();
 	block->subblocks = list_new();
 	block->message_linenumbers = list_new();
+	block->foreign_blocks = list_new();
 
 	return block;
 }
@@ -205,6 +206,9 @@ kxcblock_free(KxcBlock *block)
 
 	list_foreach(block->literals, (ListForeachFcn*) &kxcliteral_free);
 	list_free(block->literals);
+
+	list_foreach(block->foreign_blocks, (ListForeachFcn*) &kxcforeignblock_free);
+	list_free(block->foreign_blocks);
 	
 	list_free(block->message_linenumbers);
 
@@ -250,6 +254,10 @@ kxcblock_get_literal_at(KxcBlock *block, int position)
 KxcBlock *
 kxcblock_get_subblock_at(KxcBlock *block, int position)
 {
+	if (position >= block->subblocks->size) {
+		position -= block->subblocks->size;
+		return kxcblock_get_foreign_block(block, block->foreign_blocks->items[position]);
+	}
 	return block->subblocks->items[position];
 }
 
@@ -834,6 +842,19 @@ kxcblock_bytecode_lineno_size(KxcBlock *block)
 	return size;
 }
 
+static int
+kxcblock_bytecode_foreign_block_size(KxcBlock *block)
+{
+	int size = 1;
+	int t;
+
+	for (t = 0; t < block->foreign_blocks->size; t++) {
+		KxcForeignBlock *fblock = block->foreign_blocks->items[t];
+		size += 1 + fblock->child_path->size;
+	}
+	return size;
+}
+
 /**
  * Get bytecode's size of whole block
  */
@@ -849,6 +870,7 @@ kxcblock_bytecode_size(KxcBlock *block)
 
 	size += kxcblock_bytecode_code_size(block);
 	size += kxcblock_bytecode_lineno_size(block);
+	size += kxcblock_bytecode_foreign_block_size(block);
 
 	size++; // number of subblocks
 	int t;
@@ -950,6 +972,25 @@ kxcblock_bytecode_lineno_write(KxcBlock *block, char **bytecode)
 	}
 }
 
+static void
+kxcblock_bytecode_foreign_block_write(KxcBlock *block, char ** bytecode)
+{
+	int size = 1;
+	int t;
+	
+	BYTECODE_WRITE_CHAR(block->foreign_blocks->size);
+	
+	for (t = 0; t < block->foreign_blocks->size; t++) {
+		KxcForeignBlock *fblock = block->foreign_blocks->items[t];
+		int s;
+		for (s = 0; s < fblock->child_path->size; s++) {
+			BYTECODE_WRITE_CHAR( (int) fblock->child_path->items[s]);
+		}
+		BYTECODE_WRITE_CHAR(fblock->position + 100);
+	}
+}
+
+
 /**
  * Write bytecode of codeblock and all subblocks recursively, 
  */ 
@@ -964,11 +1005,14 @@ kxcblock_bytecode_write(KxcBlock *block, char **bytecode)
 	kxcblock_bytecode_lineno_write(block, bytecode);
 	kxcblock_bytecode_code_write(block,bytecode);
 	
+
 	BYTECODE_WRITE_CHAR(block->subblocks->size);
 	int t;
 	for (t=0;t<block->subblocks->size;t++) {
 		kxcblock_bytecode_write(block->subblocks->items[t],bytecode);
 	}
+
+	kxcblock_bytecode_foreign_block_write(block, bytecode);
 }
 
 void 
@@ -988,4 +1032,48 @@ kxcblock_insert_linenumbers(KxcBlock *block, KxcBlock *source, int position)
 	for (t = 0; t < source_list->size; t++) {
 		list_insert_at(dest_list, source_list->items[t], position + t);
 	}
+}
+
+KxcForeignBlock *
+kxcforeignblock_create(int position)
+{
+	KxcForeignBlock *fblock = kxmalloc(sizeof(KxcForeignBlock));
+	ALLOCTEST(fblock);
+	fblock->child_path = list_new();
+	fblock->position = position;
+	return fblock;
+}
+
+KxcForeignBlock *
+kxcforeignblock_copy(KxcForeignBlock *fblock)
+{
+	KxcForeignBlock *fblock_copy = kxmalloc(sizeof(KxcForeignBlock));
+	ALLOCTEST(fblock_copy);
+	fblock_copy->child_path = list_copy(fblock->child_path);
+	fblock_copy->position = fblock->position;
+	return fblock_copy;
+}
+
+
+void
+kxcforeignblock_free(KxcForeignBlock *fblock)
+{
+	list_free(fblock->child_path);
+	free(fblock);
+}
+
+void
+kxcforeignblock_add_into_path(KxcForeignBlock *fblock, int subblock)
+{
+	list_append(fblock->child_path, (void*) subblock);
+}
+
+KxcBlock *
+kxcblock_get_foreign_block(KxcBlock *block, KxcForeignBlock *fblock)
+{
+	int t;
+	for (t=0; t < fblock->child_path->size; t++) {
+		block = block->subblocks->items[ (int) fblock->child_path->items[t] ];
+	}
+	return block->subblocks->items[ fblock->position ];
 }

@@ -14,7 +14,8 @@ typedef struct KxcMessage KxcMessage;
 typedef struct KxcCondition KxcCondition;
 typedef struct KxcForeach KxcForeach;
 typedef struct KxcLiteral KxcLiteral;
-
+typedef struct KxcBlock KxcBlock;
+typedef struct KxcForeignBlock KxcForeignBlock;
 
 struct KxcLocal { 
 	int index;
@@ -64,7 +65,12 @@ struct KxcInstruction {
 	} value;
 };
 
-typedef struct KxcBlock KxcBlock;
+/* Foreign block is KxcBlock that is not defined directly in block but in block's child */
+struct KxcForeignBlock {
+	List *child_path;
+	int position;
+};
+
 
 struct KxcBlock {
 	
@@ -85,6 +91,8 @@ struct KxcBlock {
 	struct List *subblocks;
 
 	struct List *message_linenumbers;
+
+	struct List *foreign_blocks; 
 
 };
 
@@ -138,5 +146,10 @@ void kxcblock_append_locals(KxcBlock *block, KxcBlock *source);
 
 void kxcblock_insert_linenumbers(KxcBlock *block, KxcBlock *source, int position);
 
+KxcForeignBlock * kxcforeignblock_create(int position);
+void kxcforeignblock_free(KxcForeignBlock *fblock);
+void kxcforeignblock_add_into_path(KxcForeignBlock *fblock, int subblock);
+KxcForeignBlock *kxcforeignblock_copy(KxcForeignBlock *fblock);
+KxcBlock *kxcblock_get_foreign_block(KxcBlock *block, KxcForeignBlock *fblock);
 
 #endif

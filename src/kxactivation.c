@@ -297,10 +297,7 @@ kxactivation_send_standby_message_with_codeblock(KxActivation *self, KxObject *r
 	
 	REF_REMOVE(receiver);
 
-	if (result == NULL) {
-		return kxactivation_return(self, kxstack_get_return_state(KXSTACK));
-	} else 
-		return result;
+	return result;
 }
 
 static KxObject * 
@@ -323,10 +320,7 @@ kxactivation_send_standby_message_with_two_codeblocks(KxActivation *self, KxObje
 	
 	REF_REMOVE(receiver);
 
-	if (result == NULL) {
-		return kxactivation_return(self, kxstack_get_return_state(KXSTACK));
-	} else 
-		return result;
+	return result;
 }
 
 
@@ -672,7 +666,10 @@ kxactivation_run(KxActivation *self)
 					if (obj != KXCORE->object_false) {
 						self->codepointer = codep - 2;
 						obj = kxactivation_send_standby_message_with_codeblock(self, obj, KXDICT_IFTRUE, codeblock);
-						KXCHECK(obj);
+						if (obj == NULL) {
+							return kxactivation_return(self, kxstack_get_return_state(KXSTACK));
+						}
+
 					}
 					kxactivation_inner_stack_push(self, obj);
 					codep += jump;
@@ -692,7 +689,10 @@ kxactivation_run(KxActivation *self)
 					if (obj != KXCORE->object_true) {
 						self->codepointer = codep - 2;
 						obj = kxactivation_send_standby_message_with_codeblock(self, obj, KXDICT_IFFALSE, codeblock);
-						KXCHECK(obj);
+						if (obj == NULL) {
+							return kxactivation_return(self, kxstack_get_return_state(KXSTACK));
+						}
+
 					}
 					kxactivation_inner_stack_push(self, obj);
 					codep += jump;
@@ -714,7 +714,11 @@ kxactivation_run(KxActivation *self)
 						self->codepointer = codep - 3;
 						obj = kxactivation_send_standby_message_with_two_codeblocks
 							(self, obj, KXDICT_IFTRUE_IFFALSE, codeblock, codeblock + 1);
-						KXCHECK(obj);
+
+						if (obj == NULL) {
+							return kxactivation_return(self, kxstack_get_return_state(KXSTACK));
+						}
+
 						kxactivation_inner_stack_push(self, obj);
 						codep += jump2;
 						continue;
@@ -739,7 +743,11 @@ kxactivation_run(KxActivation *self)
 						self->codepointer = codep - 3;
 						obj = kxactivation_send_standby_message_with_two_codeblocks
 							(self, obj, KXDICT_IFFALSE_IFTRUE, codeblock, codeblock + 1);
-						KXCHECK(obj);
+
+						if (obj == NULL) {
+							return kxactivation_return(self, kxstack_get_return_state(KXSTACK));
+						}
+
 						kxactivation_inner_stack_push(self, obj);
 						codep += jump2;
 						continue;
@@ -789,9 +797,11 @@ kxactivation_run(KxActivation *self)
 				} else {
 					self->codepointer = codep - 3;
 					obj = kxactivation_send_standby_message_with_codeblock(self, obj, KXDICT_FOREACH, codeblock);
-					KXCHECK(obj);
-					codep += jump;
+					if (obj == NULL) {
+						return kxactivation_return(self, kxstack_get_return_state(KXSTACK));
+					}
 					kxactivation_inner_stack_push(self, obj);
+					codep += jump;
 					continue;
 				}
 			}

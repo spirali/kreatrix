@@ -76,15 +76,37 @@ kxcblock_get_line_index_from_position(KxcBlock *block, int position)
 	return index;
 }
 
+static void
+kxcblock_insert_foreign_subblocks(KxcBlock *block, KxcBlock *source, int position)
+{
+	int t;
+	for (t=0; t < source->subblocks->size; t ++) {
+		KxcForeignBlock *fblock = kxcforeignblock_create(t);
+		kxcforeignblock_add_into_path(fblock, position);
+		list_append(block->foreign_blocks, fblock);
+	}
+
+	for (t=0; t < source->foreign_blocks->size; t++) {
+		KxcForeignBlock *fblock = kxcforeignblock_copy(source->foreign_blocks->items[t]);
+		kxcforeignblock_add_into_path(fblock, position);
+		list_append(block->foreign_blocks, fblock);
+	}
+}
+
 static int
-kxcblock_insert_instructions(KxcBlock *block, int position, KxcBlock *source)
+kxcblock_insert_instructions(KxcBlock *block, int position, KxcBlock *source, int source_position)
 {
 	int t;
 	int bytes = 0;
 
 	int start_id_of_locals = block->locals_count;
+
+	int start_of_subblocks = block->subblocks->size;
+
 	kxcblock_append_locals(block, source);
 	kxcblock_insert_linenumbers(block, source, kxcblock_get_line_index_from_position(block, position));
+	
+	kxcblock_insert_foreign_subblocks(block, source, source_position);
 
 	for (t=0;t<source->code->size;t++) {
 		KxcInstruction *i = kxcinstruction_copy(source->code->items[t]);
@@ -134,6 +156,21 @@ kxcblock_insert_instructions(KxcBlock *block, int position, KxcBlock *source)
 				if (block->type == KXCBLOCK_TYPE_METHOD)
 					i->type = KXCI_RETURN_STACK_TOP;
 				break;
+
+			case KXCI_PUSH_BLOCK:
+					i->value.codeblock += start_of_subblocks;
+				break;
+
+			case KXCI_IFTRUE:
+			case KXCI_IFFALSE_IFTRUE:
+			case KXCI_IFFALSE:
+			case KXCI_IFTRUE_IFFALSE:
+					i->value.condition.codeblock += start_of_subblocks;
+				break;
+
+			case KXCI_FOREACH:
+					i->value.foreach.codeblock += start_of_subblocks;
+				break;
 		}
 		
 		if (!skip) {
@@ -159,9 +196,11 @@ kxcblock_replace_instructions_condition(
 	KxInstructionReplacingRule *rule)
 
 {
-	instruction->value.condition.codeblock = prev_instructions[0]->value.codeblock;
+	int codeblock = prev_instructions[0]->value.codeblock;
+
+	instruction->value.condition.codeblock = codeblock;
 	kxcblock_remove_instruction(block, position - 1);
-	int bytes = kxcblock_insert_instructions(block, position, closures[0]);
+	int bytes = kxcblock_insert_instructions(block, position, closures[0], codeblock);
 	instruction->type = rule->replacingInstruction;
 	instruction->value.condition.jump = bytes;
 }
@@ -176,7 +215,9 @@ kxcblock_replace_instructions_condition_else(
 	KxInstructionReplacingRule *rule)
 
 {
-	instruction->value.condition.codeblock = prev_instructions[0]->value.codeblock;
+	int codeblock = prev_instructions[0]->value.codeblock;
+
+	instruction->value.condition.codeblock = codeblock;
 
 	/* Remove PUSH_BLOCKS */
 	kxcblock_remove_instruction(block, position - 1);
@@ -184,14 +225,14 @@ kxcblock_replace_instructions_condition_else(
 
 	position--;
 
-	int bytes1 = kxcblock_insert_instructions(block, position, closures[1]);
+	int bytes1 = kxcblock_insert_instructions(block, position, closures[1], codeblock + 1);
 
 	KxcInstruction *jump_instr = kxcinstruction_new(KXCI_JUMP);
 	jump_instr->value.jump = bytes1;
 
 	kxcblock_insert_instruction(block, jump_instr, position);
 
-	int bytes2 = kxcblock_insert_instructions(block, position, closures[0]);
+	int bytes2 = kxcblock_insert_instructions(block, position, closures[0], codeblock);
 	bytes2 += kxinstructions_info[KXCI_JUMP].params_count + 1;
 
 	instruction->type = rule->replacingInstruction;
@@ -209,7 +250,8 @@ kxcblock_replace_instructions_foreach(
 	KxInstructionReplacingRule *rule)
 
 {
-	instruction->value.foreach.codeblock = prev_instructions[0]->value.codeblock;
+	int codeblock = prev_instructions[0]->value.codeblock;
+	instruction->value.foreach.codeblock = codeblock;
 	kxcblock_remove_instruction(block, position - 1);
 
 	KxcInstruction *nextiter_instr = kxcinstruction_new(KXCI_NEXTITER);
@@ -219,7 +261,7 @@ kxcblock_replace_instructions_foreach(
 
 	kxcblock_insert_instruction(block, nextiter_instr, position);
 
-	int bytes = kxcblock_insert_instructions(block, position, closures[0]);
+	int bytes = kxcblock_insert_instructions(block, position, closures[0], codeblock);
 
 	
 	int jumpsize = bytes + kxinstructions_info[KXCI_NEXTITER].params_count + 1;
@@ -242,6 +284,28 @@ kxcblock_replace_instructions_foreach_local(
 	KxcInstruction *push_self = kxcinstruction_new(KXCI_PUSH_SELF);
 	kxcblock_insert_instruction(block, push_self, position - 1);
 	kxcblock_replace_instructions_foreach(block, instruction, position + 1, closures, prev_instructions, rule);
+}
+
+static int
+kxcblock_optimise_check_subblocks(KxcBlock *block)
+{
+	int t;
+	for (t = 0; t < block->subblocks->size; t ++ ) {
+		KxcBlock *subblock = block->subblocks->items[t];
+		if (!kxcblock_optimise_check_subblocks(subblock)) 
+			return 0;
+		
+	}
+
+	int s;
+	for (s = 0; s < block->code->size; s++) {
+		KxcInstruction *i = block->code->items[s];
+		if (i->type == KXCI_PUSH_OUTER_LOCAL || i->type == KXCI_UPDATE_OUTER_LOCAL) {
+			return 0;
+		}
+	}
+
+	return 1;
 }
 
 static void 
@@ -271,11 +335,21 @@ kxcblock_optimise_replace_instructions(KxcBlock *block)
 		for (s = 0; s < closures_count; s++) {
 			previ[s] = block->code->items[t - closures_count + s];
 			closures[s] = kxcblock_get_subblock_at(block, previ[s]->value.codeblock);
-			if (closures[s]->subblocks->size > 0)
-				break;
+
+			if (closures[s]->subblocks->size > 0) {
+				int i;
+				int size = closures[s]->subblocks->size;
+				for (i = 0; i < size; i++) {
+					if (!kxcblock_optimise_check_subblocks(kxcblock_get_subblock_at(closures[s], i))) {
+						break;
+					}
+				}
+				if (i != size) {
+					break;
+				}
+			}
 		}
 			
-		//TODO: Expand codeblocks with subblocks
 		if (s != closures_count) {
 			continue;
 		}

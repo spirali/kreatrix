@@ -102,7 +102,7 @@ kxstack_pop_activation(KxStack *self)
 {
 	if (!self->activations_count) {
 		fprintf(stderr,"Fatal error: kxstack_pop_activation: Stack is empty\n");
-		exit(-1);
+		abort();
 	}
    self->activations_count--;
 }
