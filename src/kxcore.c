@@ -89,6 +89,7 @@ kxcore_std_exceptions(KxCore *core)
 {
 	kxcore_register_simple_exception(core, "vm", "DoesNotUnderstand", "DoesNotUnderstandException");
 	kxcore_register_simple_exception(core, "vm", "IOException", "IOException");
+	kxcore_register_simple_exception(core, "vm", "TypeError", "TypeError");
 }
 
 static void

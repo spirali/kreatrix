@@ -22,7 +22,8 @@ KxObject * kxexception_new_with_message(KxCore *core, KxString *message);
 
 KxObject * kxexception_new_with_text(KxCore *core, char *form, ...);
 
-KxException *kxexception_type_error(char *type_name, KxObject *obj);
+KxException *kxexception_type_error(KxObjectExtension *extension, KxObject *obj, int param_id);
+
 KxException *kxexception_from_errno(KxCore *core, char *text);
 
 

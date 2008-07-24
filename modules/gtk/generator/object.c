@@ -1,3 +1,10 @@
+/*************************
+ *
+ *  %Name%
+ *  Generated file by kxgtk generator
+ */
+
+
 #include <stdlib.h>
 #include <string.h>
 

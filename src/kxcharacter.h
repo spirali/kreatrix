@@ -20,7 +20,7 @@ typedef struct KxObject KxCharacter;
 
 #define KXPARAM_TO_CHAR(c, param_id) \
 	unsigned char c; { KxObject *tmp = message->params[param_id]; if (IS_KXCHARACTER(tmp)) \
-	{ c = KXINTEGER_VALUE(tmp); } else { kxobject_type_error(tmp, &kxcharacter_extension); return NULL; }} 
+	{ c = KXINTEGER_VALUE(tmp); } else { kxobject_type_error(tmp, &kxcharacter_extension, param_id); return NULL; }} 
 
 
 void kxcharacter_init_extension();

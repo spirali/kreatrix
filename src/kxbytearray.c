@@ -199,11 +199,3 @@ static void kxbytearray_add_methods_table(KxByteArray *self)
 	};
 	kxobject_add_methods(self, table);
 }
-
-void 
-kxbytearray_type_error(KxCore *core)
-{
-	KxException *excp = kxexception_new_with_text(
-		core,"ByteArray expected as parameter");
-	kxstack_throw_object(core->stack, excp);
-}

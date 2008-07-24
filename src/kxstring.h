@@ -21,7 +21,7 @@ typedef struct KxObject KxString;
 
 #define KXPARAM_TO_CSTRING(str, param_id) \
 	char * str; { KxObject *tmp = message->params[param_id]; if (IS_KXSTRING(tmp)) \
-	{ str = KXSTRING_VALUE(tmp); } else { kxstring_type_error(KXCORE); return NULL; }} 
+	{ str = KXSTRING_VALUE(tmp); } else { kxobject_type_error(tmp, &kxstring_extension, param_id); return NULL; }} 
 
 
 #define KXSTRING(str) kxstring_new_with(KXCORE,str)
@@ -40,8 +40,6 @@ KxString *kxstring_new_with(KxCore *core, char *value);
 
 // Use string in object, no coping of value
 KxString *kxstring_from_cstring(KxCore *core, char *value);
-
-void kxstring_type_error(KxCore *core);
 
 extern KxObjectExtension kxstring_extension;
 

@@ -23,7 +23,7 @@ typedef struct KxObject KxList;
 
 #define KXPARAM_TO_LIST(list, param_id) \
 	List * list; { KxObject *tmp = message->params[param_id]; if (IS_KXLIST(tmp)) \
-	{ list = KXLIST_VALUE(tmp); } else { return kxobject_type_error(tmp, &kxlist_extension); }} 
+	{ list = KXLIST_VALUE(tmp); } else { return kxobject_type_error(tmp, &kxlist_extension, param_id); }} 
 
 
 void kxlist_init_extension();

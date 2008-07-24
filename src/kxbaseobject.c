@@ -46,7 +46,7 @@ kxbaseobject_set_slot(KxObject *self, KxMessage *message)
 {
 	KxObject *symbol = message->params[0];
 
-	KXCHECK_SYMBOL(symbol);
+	KXCHECK_SYMBOL(symbol, 0);
 	kxobject_set_slot(self,symbol,message->params[1]);
 
 	KXRETURN(self);
@@ -65,7 +65,7 @@ kxbaseobject_update_slot(KxObject *self, KxMessage *message)
 {
 	KxObject *symbol = message->params[0];
 
-	KXCHECK_SYMBOL(symbol);
+	KXCHECK_SYMBOL(symbol, 0);
 
 	if (kxobject_update_slot(message->target,symbol,message->params[1])) {
 		KXRETURN(message->params[1]);
@@ -278,7 +278,7 @@ static KxObject *
 kxbaseobject_perform(KxObject *self, KxMessage *message) 
 {
 	KxObject *param = message->params[0];
-	KXCHECK_SYMBOL(param);
+	KXCHECK_SYMBOL(param, 0);
 	KxMessage msg;
 	kxmessage_init(&msg, self, 0, param);
 	return kxmessage_send(&msg);
@@ -293,7 +293,7 @@ static KxObject *
 kxbaseobject_perform_with(KxObject *self, KxMessage *message) 
 {
 	KxObject *param = message->params[0];
-	KXCHECK_SYMBOL(param);
+	KXCHECK_SYMBOL(param, 0);
 	KxMessage msg;
 	kxmessage_init(&msg, self, 1, param);
 	msg.params[0] = message->params[1];
@@ -311,15 +311,10 @@ static KxObject *
 kxbaseobject_perform_with_list(KxObject *self, KxMessage *message) 
 {
 	KxObject *param = message->params[0];
-	KxObject *param1 = message->params[1];
 
-	KXCHECK_SYMBOL(param);
+	KXCHECK_SYMBOL(param, 0);
 
-	if (!IS_KXLIST(param1)) {
-		kxexception_type_error("List",param1);
-	}
-	
-	List *list = param1->data.ptr;
+	KXPARAM_TO_LIST(list, 1);
 	
 	KxMessage msg;
 	kxmessage_init(&msg, self, list->size, param);
@@ -342,7 +337,7 @@ static KxObject *
 kxbaseobject_get_slot(KxObject *self, KxMessage *message) 
 {
 	KxObject *param = message->params[0];
-	KXCHECK_SYMBOL(param);
+	KXCHECK_SYMBOL(param, 0);
 	KxObject *object = kxobject_find_slot(message->target, param);
 	if (object) {
 		KXRETURN(object);
@@ -361,7 +356,7 @@ static KxObject *
 kxbaseobject_responds_to(KxObject *self, KxMessage *message) 
 {
 	KxObject *param = message->params[0];
-	KXCHECK_SYMBOL(param);
+	KXCHECK_SYMBOL(param, 0);
 
 	KxObject *object = kxobject_find_slot(message->target, param);
 	KXRETURN_BOOLEAN(object != NULL);
@@ -375,7 +370,7 @@ static KxObject *
 kxbaseobject_has_slot(KxObject *self, KxMessage *message) 
 {
 	KxObject *param = message->params[0];
-	KXCHECK_SYMBOL(param);
+	KXCHECK_SYMBOL(param, 0);
 
 	KxObject *object = kxobject_get_slot(self, param);
 	KXRETURN_BOOLEAN(object != NULL);
@@ -460,10 +455,10 @@ static KxObject *
 kxbaseobject_slot_updater_set(KxObject *self, KxMessage *message)
 {
 	KxObject *symbol = message->params[0];
-	KXCHECK_SYMBOL(symbol);
+	KXCHECK_SYMBOL(symbol, 0);
 
 	KxObject *update_pair = message->params[1];
-	KXCHECK_SYMBOL(update_pair);
+	KXCHECK_SYMBOL(update_pair, 1);
 
 	kxobject_set_slot(self,symbol,message->params[2]);
 
@@ -504,16 +499,15 @@ static KxObject *
 kxbaseobject_freeze_slot(KxObject *self, KxMessage *message)
 {
 	KxObject *symbol = message->params[0];
-	KXCHECK_SYMBOL(symbol);
+	KXCHECK_SYMBOL(symbol, 0);
 
 	if (kxobject_update_slot_flags(message->target, symbol, KXOBJECT_SLOTFLAG_FREEZE) == 0) {
 		KxException *excp = kxexception_new_with_text(KXCORE, "Slot '%s' not found", KXSYMBOL_AS_CSTRING(symbol));
 		KXTHROW(excp);
-	}
-	
-	KXRETURN(self);
 }
 
+	KXRETURN(self);
+}
 /*KXdoc unfreezeSlot: aSlotName
   [Slots] Cancel effect of "freezed" slot. 
   Returns slot to normal behavior after freezing. See "freezeSlot:".
@@ -522,7 +516,7 @@ static KxObject *
 kxbaseobject_unfreeze_slot(KxObject *self, KxMessage *message)
 {
 	KxObject *symbol = message->params[0];
-	KXCHECK_SYMBOL(symbol);
+	KXCHECK_SYMBOL(symbol, 0);
 
 	if (kxobject_update_slot_flags(message->target, symbol, 0) == 0) {
 		KxException *excp = kxexception_new_with_text(KXCORE, "Slot '%s' not found", KXSYMBOL_AS_CSTRING(symbol));

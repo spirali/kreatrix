@@ -118,7 +118,7 @@ kxactivationobject_get_local(KxActivationObject *self, KxMessage *message)
 	}
 
 	KxSymbol *name = message->params[0];
-	KXCHECK_SYMBOL(name);
+	KXCHECK_SYMBOL(name, 0);
 	KxObject *obj = kxactivation_get_local(activation, name);
 	if (obj)
 		return obj;
@@ -138,7 +138,7 @@ kxactivationobject_put_local(KxActivationObject *self, KxMessage *message)
 	}
 
 	KxSymbol *name = message->params[0];
-	KXCHECK_SYMBOL(name);
+	KXCHECK_SYMBOL(name, 0);
 	if (kxactivation_put_local(activation, name, message->params[1])) {
 		KXRETURN(self);
 	}

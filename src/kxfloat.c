@@ -294,12 +294,3 @@ kxfloat_add_method_table(KxFloat *self)
 	kxobject_add_methods(self, table);
 }
 
-
-void 
-kxfloat_type_error(KxCore *core)
-{
-	KxException *excp = kxexception_new_with_message(core,
-		kxstring_new_with(core,"Float expected as parameter"));
-	kxstack_throw_object(core->stack, excp);
-}
-

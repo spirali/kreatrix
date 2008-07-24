@@ -50,15 +50,16 @@ KxObject * kxexception_new_with_text(KxCore *core, char *form, ...)
 
 
 KxException *
-kxexception_type_error(char *type_name, KxObject *obj)
+kxexception_type_error(KxObjectExtension *extension, KxObject *obj, int param_id)
 {
 	KxObject *type_obj2 = kxobject_type_name(obj);
 	char *type_str2 = KXSTRING_VALUE(type_obj2);
-	KxException *excp = kxexception_new_with_text(KXCORE_FROM(obj), "%s expected as parameter, not %s", type_name, type_str2);
+	KxException *excp = 
+		kxexception_new_with_text(KXCORE_FROM(obj), 
+			"%s expected as %i. parameter, not %s", extension->type_name, param_id + 1, type_str2);
 	REF_REMOVE(type_obj2);
 	return excp;
 }
-
 
 KxException *
 kxexception_from_errno(KxCore *core, char *text) 

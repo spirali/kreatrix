@@ -13,7 +13,7 @@
 #define IS_KXSYMBOL(self) ((self)->extension==&kxsymbol_extension)
 #define KXSYMBOL_AS_CSTRING(symbol) (char*) (symbol)->data.ptr
 
-#define KXCHECK_SYMBOL(object) if (!IS_KXSYMBOL(object)) { return kxobject_type_error( (object), &kxsymbol_extension); }
+#define KXCHECK_SYMBOL(object, param_id) if (!IS_KXSYMBOL(object)) { return kxobject_type_error( (object), &kxsymbol_extension, param_id); }
 
 typedef struct KxObject KxSymbol;
 

@@ -119,7 +119,7 @@ int kxobject_get_hash(KxObject *self, unsigned long *hash);
 
 int kxobject_update_slot_flags(KxObject *self, KxSymbol *key, int flags);
 
-KxObject *kxobject_type_error(KxObject *self, KxObjectExtension *extension);
+KxObject *kxobject_type_error(KxObject *self, KxObjectExtension *extension, int param_id);
 
 KxObject *kxobject_need_boolean(KxObject *self);
 

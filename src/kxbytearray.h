@@ -22,7 +22,7 @@ typedef struct KxObject KxByteArray;
 
 #define KXPARAM_TO_BYTEARRAY(ba, param_id) \
 	ByteArray * ba; { KxObject *tmp = message->params[param_id]; if (IS_KXBYTEARRAY(tmp)) \
-	{ ba = KXBYTEARRAY_DATA(tmp); } else { kxbytearray_type_error(KXCORE); return NULL; }} 
+	{ ba = KXBYTEARRAY_DATA(tmp); } else { kxobject_type_error(tmp, &kxbytearray_extension, param_id); return NULL; }} 
 
 
 void kxbytearray_init_extension();
@@ -30,12 +30,6 @@ void kxbytearray_init_extension();
 KxByteArray *kxbytearray_new_prototype(KxCore *core);
 KxByteArray *kxbytearray_new_with(KxCore *core, ByteArray *bytearray);
 
-
-void kxbytearray_type_error(KxCore *core);
-
 extern KxObjectExtension kxbytearray_extension;
-
-
-
 
 #endif // __KXBYTECODE_H

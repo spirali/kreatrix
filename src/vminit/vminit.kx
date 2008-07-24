@@ -502,6 +502,7 @@ Exception do: {
 
 	DoesNotUnderstand = VM inGroup: "vm" exception: "DoesNotUnderstand".
 	IOException = VM inGroup: "vm" exception: "IOException".
+	TypeError = VM inGroup: "vm" exception: "TypeError".
 
 	/** Sets message of exception */
 	message: = { :aString | 

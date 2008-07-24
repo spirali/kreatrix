@@ -545,12 +545,3 @@ kxinteger_add_method_table(KxInteger *self)
 	kxobject_add_methods(self, table);
 }
 
-
-void 
-kxinteger_type_error(KxCore *core)
-{
-	// Throw exception
-	KxException *excp = kxexception_new_with_message(core,
-		kxstring_new_with(core,"Integer expected as parameter"));
-	kxstack_throw_object(core->stack, excp);
-}

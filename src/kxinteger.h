@@ -20,11 +20,12 @@ typedef struct KxObject KxInteger;
 
 #define KXPARAM_TO_LONG(integer, param_id) \
 	long integer; { KxObject *tmp = message->params[param_id]; if (IS_KXINTEGER(tmp)) \
-	{ integer = KXINTEGER_VALUE(tmp); } else { kxinteger_type_error(KXCORE); return NULL; }} 
+	{ integer = KXINTEGER_VALUE(tmp); } else { kxobject_type_error(tmp,&kxinteger_extension, param_id); return NULL; }} 
+
 
 #define KXPARAM_TO_INT(integer, param_id) \
 	int integer; { KxObject *tmp = message->params[param_id]; if (IS_KXINTEGER(tmp)) \
-	{ integer = KXINTEGER_VALUE(tmp); } else { kxobject_type_error(tmp,&kxinteger_extension); return NULL; }} 
+	{ integer = KXINTEGER_VALUE(tmp); } else { kxobject_type_error(tmp,&kxinteger_extension, param_id); return NULL; }} 
 
 
 #define KXINTEGER(integer) kxcore_get_integer(KXCORE,integer)
@@ -40,7 +41,5 @@ KxObject *kxinteger_new_prototype(KxCore *core);
 KxInteger *kxinteger_clone_with(KxInteger *self, KxInt value);
 
 KxInteger *kxinteger_new_with(KxCore *core, KxInt value);
-
-void kxinteger_type_error(KxCore *core);
 
 #endif

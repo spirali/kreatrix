@@ -934,11 +934,3 @@ kxstring_add_method_table(KxString *self)
 	kxobject_add_methods(self, table);
 }
 
-
-void 
-kxstring_type_error(KxCore *core)
-{
-	KxException *excp = kxexception_new_with_message(
-		core,kxstring_new_with(core,"String expected as parameter"));
-	kxstack_throw_object(core->stack, excp);
-}

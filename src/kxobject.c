@@ -911,7 +911,7 @@ kxobject_get_hash(KxObject *self, unsigned long *hash)
 		return 1;
 	}
 	KxException *excp = kxexception_new_with_text(KXCORE,
-		"message 'hash' returned '%s', but integer expected",
+		"message 'hash' returned '%s', but integer is expected",
 		kxobject_type_name(ret));
 
 	REF_REMOVE(ret);
@@ -923,16 +923,23 @@ kxobject_get_hash(KxObject *self, unsigned long *hash)
 // TODO: Use TypeException instead Exception
 KxObject *
 kxobject_type_error(
-	KxObject *self, KxObjectExtension *extension)
+	KxObject *self, KxObjectExtension *extension, int param_id)
 {
 	KxString *type_name = kxobject_type_name(self);
 
-	KxException *excp = kxexception_new_with_text(
-		KXCORE,"'%s' expected as parameter, not '%s'", extension->type_name, 
+	char msg[250];
+
+	snprintf(msg, 250,
+		"'%s' is expected as %i. parameter, not '%s'", 
+		extension->type_name, 
+		param_id + 1,
 		KXSTRING_VALUE(type_name));
+
+	KxException *exception = kxcore_clone_registered_exception_text
+		(KXCORE,"vm","TypeError",msg);
 	
 	REF_REMOVE(type_name);
-	KXTHROW(excp);
+	KXTHROW(exception);
 }
 
 KxObject *
@@ -941,7 +948,7 @@ kxobject_need_boolean(KxObject *self)
 	KxString *type_name = kxobject_type_name(self);
 
 	KxException *excp = kxexception_new_with_text(
-		KXCORE,"Object true or false expected as parameter, not '%s'", 
+		KXCORE,"Object true or false is expected as parameter, not '%s'", 
 		KXSTRING_VALUE(type_name));
 	
 	REF_REMOVE(type_name);

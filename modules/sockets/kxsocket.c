@@ -280,8 +280,7 @@ kxsocket_connect_to(KxSocket *self, KxMessage *message)
 {
 	KxObject *param = message->params[0];
 	if (!IS_KXIPADDRESS(param)) {
-	//	KXTHROW_EXCEPTION("Parameter must be IPAddress");
-		return kxobject_type_error(param, &kxipaddress_extension);
+		return kxobject_type_error(param, &kxipaddress_extension, 0);
 	}
 
 	if (self->data.intval == -1) {
