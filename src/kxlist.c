@@ -171,6 +171,9 @@ kxlist_at(KxList *self, KxMessage *message)
 	KXRETURN(obj);
 }
 
+/*KXdoc at:put: index anObject
+  Put object into list at index-th position.
+*/
 static KxObject *
 kxlist_at_put(KxList *self, KxMessage *message)
 {
@@ -194,6 +197,9 @@ kxlist_at_put(KxList *self, KxMessage *message)
 	KXRETURN(self);
 }
 
+/*KXdoc foreach: aBlock 
+  Evaluate block with one parameter for each item of list
+*/
 static KxObject *
 kxlist_foreach(KxList *self, KxMessage *message)
 {
@@ -221,6 +227,10 @@ kxlist_foreach(KxList *self, KxMessage *message)
 	return kxobject_evaluate_block(block,&msg);
 }
 
+/*KXdoc reverseForeach: aBlock 
+  Evaluate block with one parameter for each item of list.
+  Items are taken from last to first position.
+*/
 static KxObject *
 kxlist_reverse_foreach(KxList *self, KxMessage *message)
 {
@@ -248,6 +258,9 @@ kxlist_reverse_foreach(KxList *self, KxMessage *message)
 	return kxobject_evaluate_block(block,&msg);
 }
 
+/*KXdoc size
+ Returns count of items in list.
+*/
 static KxObject *
 kxlist_size(KxList *self, KxMessage *message)
 {
@@ -255,6 +268,12 @@ kxlist_size(KxList *self, KxMessage *message)
 	return KXINTEGER(list->size);
 }
 
+/*KXdoc size: anInteger
+ Sets size of list.
+ If new size is smaller then actual size, then list is trucated.
+ If new size is bigger then actual size, then new positions in list
+ is filled with "nil".
+*/
 static KxObject *
 kxlist_set_size(KxList *self, KxMessage *message) 
 {
@@ -284,6 +303,9 @@ kxlist_set_size(KxList *self, KxMessage *message)
 	KXRETURN(self);
 }
 
+/*KXdoc removeAt: anInteger
+ Remove item from list at position.
+*/
 static KxObject *
 kxlist_remove_at(KxList *self, KxMessage *message)
 {
@@ -304,24 +326,21 @@ kxlist_remove_at(KxList *self, KxMessage *message)
 	KXRETURN(self);
 }
 
+/*KXdoc join: aList
+ Added items from aList to end of self.
+ This method has same effect as addAll: but is optimised for list as parameter.
+*/
 static KxObject *
 kxlist_join(KxList *self, KxMessage *message)
 {
-	KxObject *param = message->params[0];
-	if (!IS_KXLIST(param)) {
-		KxException *excp = kxexception_new_with_text(KXCORE,"List expected");
-		KXTHROW(excp);
-	}
-
+	KXPARAM_TO_LIST(list2, 0);
 
 	List *list = self->data.ptr;
-	List *list2 = param->data.ptr;
 
 	list_foreach(list2, kxobject_ref_add);
 
 	list_join(list, list2);
 
-	
 	KXRETURN(self);
 }
 
@@ -350,6 +369,10 @@ kxlist_new_with(KxCore *core, List *list)
 	return clone;
 }
 
+/*KXdoc pop 
+ Remove last item from list.
+ If list is empty, exception is throwed.
+*/
 static KxObject *
 kxlist_pop(KxList *self, KxMessage *message) 
 {
@@ -363,6 +386,10 @@ kxlist_pop(KxList *self, KxMessage *message)
 	return obj;
 }
 
+/*KXdoc last 
+ Returns last item of list.
+ If list is empty, exception is throwed.
+*/
 static KxObject *
 kxlist_last(KxList *self, KxMessage *message) 
 {
@@ -374,6 +401,10 @@ kxlist_last(KxList *self, KxMessage *message)
 	KXRETURN((KxObject*)list->items[list->size-1]);
 }
 
+/*KXdoc first 
+ Returns first item of list.
+ If list is empty, exception is throwed.
+*/
 static KxObject *
 kxlist_first(KxList *self, KxMessage *message) 
 {
@@ -447,8 +478,16 @@ kxlist_sort_helper(KxObject **items, int begin, int end, KxObject *compare_block
 	return 1;
 }
 
-
-
+/*KXdoc sort: aBlock
+ Sort list.
+ aBlock is block with two parameters
+ <p>
+ Example:
+ <pre>
+	sort: [ :a :b | a < b ].
+ </pre>
+ </p>
+*/
 static KxObject *
 kxlist_sort(KxList *self, KxMessage *message) 
 {
@@ -463,6 +502,9 @@ kxlist_sort(KxList *self, KxMessage *message)
 	KXRETURN(self);
 }
 
+/*KXdoc insert: anObject
+ Insert object at the beginning of list.
+*/
 static KxObject *
 kxlist_insert(KxList *self, KxMessage *message) 
 {
@@ -473,6 +515,9 @@ kxlist_insert(KxList *self, KxMessage *message)
 }
 
 // index = 0..size-1
+/*KXdoc insert: anObject at: index
+ Insert object at index-th position.
+*/
 static KxObject *
 kxlist_insert_at(KxList *self, KxMessage *message) 
 {
@@ -487,7 +532,10 @@ kxlist_insert_at(KxList *self, KxMessage *message)
 	KXRETURN(self);
 }
 
-
+/*KXdoc rest
+ Returns copy of self without first item.
+ If list is empty, then returns empty list.
+*/
 static KxObject *
 kxlist_rest(KxList *self, KxMessage *message) 
 {
