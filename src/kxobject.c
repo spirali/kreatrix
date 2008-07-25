@@ -946,13 +946,17 @@ KxObject *
 kxobject_need_boolean(KxObject *self)
 {
 	KxString *type_name = kxobject_type_name(self);
-
-	KxException *excp = kxexception_new_with_text(
-		KXCORE,"Object true or false is expected as parameter, not '%s'", 
+	
+	char msg[250];
+	snprintf(msg, 250, 
+		"Object true or false is expected as parameter, not '%s'", 
 		KXSTRING_VALUE(type_name));
 	
+	KxException *exception = kxcore_clone_registered_exception_text
+		(KXCORE,"vm","TypeError",msg);
+	
 	REF_REMOVE(type_name);
-	KXTHROW(excp);
+	KXTHROW(exception);
 }
 
 int
