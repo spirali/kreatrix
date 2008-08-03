@@ -876,6 +876,8 @@ kxactivation_run(KxActivation *self)
 
 					continue;
 				} else {
+					REF_REMOVE(iterator);
+					kxactivation_inner_stack_drop2(self);
 					continue;
 				}
 			}
