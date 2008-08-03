@@ -156,12 +156,23 @@ kxactivation_inner_stack_pop(KxActivation *self)
 {
 	if (self->inner_stack_pos == 0) {
 		KxCodeBlockData *cdata = self->codeblock->data.ptr;
-		fprintf(stderr,"Inner stack pop: Stack is empty (%s)\n", cdata->source_filename);
+		fprintf(stderr,"Inner stack pop: Stack is empty (%s:%i)\n", 
+			cdata->source_filename, 
+			cdata->message_linenumbers[kxactivation_get_line_index(self)]);
 		abort();
 	}
 	
 	return self->inner_stack[ --self->inner_stack_pos ];
 }
+
+/** Drop second item on stack */
+static inline void
+kxactivation_inner_stack_drop2(KxActivation *self) 
+{
+	--self->inner_stack_pos;
+	self->inner_stack[ self->inner_stack_pos - 1 ] = self->inner_stack [ self->inner_stack_pos ];
+}
+
 
 /*static void
 kxactivation_inner_stack_dump(KxActivation *self) 
@@ -295,6 +306,42 @@ kxactivation_send_standby_message_with_codeblock(KxActivation *self, KxObject *r
 
 	KxObject *result = kxmessage_send(msg);
 	
+	REF_REMOVE(receiver);
+
+	return result;
+}
+
+static KxObject * 
+kxactivation_send_standby_message_with_params_and_codeblock
+	(KxActivation *self, KxObject *receiver, int dictionary_item, KxObject **params, int codeblock) 
+{
+	if (self->message.target)
+		REF_REMOVE(self->message.target);
+
+
+	KxMessage *msg = &self->message;
+	REF_ADD(receiver);
+	int params_count = 0;
+
+	KxObject **p = params;
+	do {
+		msg->params[params_count++] = *p;
+		++p;
+	} while(*p);
+
+	KxCodeBlock **subblocks = KXCODEBLOCK_DATA(self->codeblock)->subcodeblocks;
+	KxScopedBlock *scopedblock = kxscopedblock_new(KXCORE, subblocks[codeblock], self);
+	msg->params[params_count] = scopedblock;
+
+	kxmessage_init(msg, receiver, params_count + 1, KXCORE->dictionary[dictionary_item]);
+
+	KxObject *result = kxmessage_send(msg);
+	
+	/*do {
+		REF_REMOVE(*params);
+		++params;
+	} while(*params);*/
+
 	REF_REMOVE(receiver);
 
 	return result;
@@ -833,13 +880,232 @@ kxactivation_run(KxActivation *self)
 				}
 			}
 
+			case KXCI_REPEAT:
+			{
+				int jump = (int) FETCH_BYTE(codep);
+				int codeblock = (int) FETCH_BYTE(codep);
+				KxObject *obj = kxactivation_inner_stack_pop(self);
+				if (IS_KXINTEGER(obj)) {
+					long val = KXINTEGER_VALUE(obj);
+					REF_REMOVE(obj);
+
+					if (val == 0) {
+						codep += jump;
+						REF_ADD(KXCORE->object_nil);
+						kxactivation_inner_stack_push(self, KXCORE->object_nil);
+						continue;
+					}
+
+					kxactivation_inner_stack_push(self, KXINTEGER(val - 1));
+					continue;
+				} else {
+					self->codepointer = codep - 2;
+					obj = kxactivation_send_standby_message_with_codeblock(self, obj, KXDICT_REPEAT, codeblock);
+					if (obj == NULL) {
+						return kxactivation_return(self, kxstack_get_return_state(KXSTACK));
+					}
+					kxactivation_inner_stack_push(self, obj);
+					codep += jump;
+					continue;
+				}
+			}
+
+			case KXCI_REPEAT_END: 
+			{
+				int jump = (int) FETCH_BYTE(codep);
+				
+				KxObject *num = self->inner_stack[self->inner_stack_pos - 2];
+				long val = KXINTEGER_VALUE(num);
+				if (val == 0) {
+					REF_REMOVE(num);
+					kxactivation_inner_stack_drop2(self);
+					continue;
+				} else {
+					KxObject *obj = kxactivation_inner_stack_pop(self);
+					REF_REMOVE(obj);
+					obj = kxactivation_inner_stack_pop(self);
+					REF_REMOVE(obj);
+					kxactivation_inner_stack_push(self, KXINTEGER(val - 1));
+					codep += jump;
+					continue;
+				}
+			}
+
+			case KXCI_TODO:
+			{
+				int jump = (int) FETCH_BYTE(codep);
+				int codeblock = (int) FETCH_BYTE(codep);
+				int local = (int) FETCH_BYTE(codep);
+				KxObject *to = kxactivation_inner_stack_pop(self);
+				KxObject *from = kxactivation_inner_stack_pop(self);
+
+				if (IS_KXINTEGER(from) && IS_KXINTEGER(to)) {
+					long from_val = KXINTEGER_VALUE(from);
+					long to_val = KXINTEGER_VALUE(to);
+					if (from_val >= to_val) {
+						codep += jump;
+						REF_REMOVE(from);
+						REF_REMOVE(to);
+						REF_ADD(KXCORE->object_nil);
+						kxactivation_inner_stack_push(self, KXCORE->object_nil);
+						continue;
+					}
+					kxactivation_inner_stack_push(self, to);
+					kxactivation_inner_stack_push(self, from);
+					
+					REF_REMOVE(self->locals[local]);
+					self->locals[local] = from;
+					REF_ADD(from);
+					continue;
+				} else {
+					self->codepointer = codep - 3;
+					KxObject *params[2];
+					params[0] = to;
+					params[1] = NULL;
+					KxObject *obj;
+					obj = kxactivation_send_standby_message_with_params_and_codeblock
+						(self, from, KXDICT_TODO, params, codeblock);
+
+					if (obj == NULL) {
+						return kxactivation_return(self, kxstack_get_return_state(KXSTACK));
+					}
+
+					kxactivation_inner_stack_push(self, obj);
+					codep += jump;
+					continue;
+				}
+			}
+
+			case KXCI_TODO_END: 
+			{
+				int jump = (int) FETCH_BYTE(codep);
+				int local = (int) FETCH_BYTE(codep);
+				
+				KxObject *num = self->inner_stack[self->inner_stack_pos - 2];
+				KxObject *to = self->inner_stack[self->inner_stack_pos - 3];
+				long val = KXINTEGER_VALUE(num) + 1;
+				long to_val = KXINTEGER_VALUE(to);
+				if (val >= to_val) {
+					REF_REMOVE(num);
+					REF_REMOVE(to);
+					kxactivation_inner_stack_drop2(self);
+					kxactivation_inner_stack_drop2(self);
+					continue;
+				} else {
+					codep += jump;
+
+					KxObject *obj = kxactivation_inner_stack_pop(self);
+					REF_REMOVE(obj);
+					obj = kxactivation_inner_stack_pop(self);
+					REF_REMOVE(obj);
+
+					obj = KXINTEGER(val);
+					kxactivation_inner_stack_push(self, obj);
+					
+					REF_REMOVE(self->locals[local]);
+					self->locals[local] = obj;
+					REF_ADD(obj);
+					continue;
+				}
+
+			}
+
+			case KXCI_TOBYDO:
+			{
+				int jump = (int) FETCH_BYTE(codep);
+				int codeblock = (int) FETCH_BYTE(codep);
+				int local = (int) FETCH_BYTE(codep);
+				KxObject *delta = kxactivation_inner_stack_pop(self);
+				KxObject *to = kxactivation_inner_stack_pop(self);
+				KxObject *from = kxactivation_inner_stack_pop(self);
+
+				if (IS_KXINTEGER(from) && IS_KXINTEGER(to) && IS_KXINTEGER(delta)) {
+					long from_val = KXINTEGER_VALUE(from);
+					long to_val = KXINTEGER_VALUE(to);
+					long delta_val = KXINTEGER_VALUE(delta);
+					if ((delta_val > 0 && from_val >= to_val) || (delta_val < 0 && from_val <= to_val)) {
+						codep += jump;
+						REF_REMOVE(from);
+						REF_REMOVE(to);
+						REF_REMOVE(delta);
+						REF_ADD(KXCORE->object_nil);
+						kxactivation_inner_stack_push(self, KXCORE->object_nil);
+						continue;
+					}
+					kxactivation_inner_stack_push(self, to);
+					kxactivation_inner_stack_push(self, delta);
+					kxactivation_inner_stack_push(self, from);
+
+					REF_REMOVE(self->locals[local]);
+					self->locals[local] = from;
+					REF_ADD(from);
+					continue;
+				} else {
+					self->codepointer = codep - 3;
+					KxObject *params[3];
+					params[0] = to;
+					params[1] = delta;
+					params[2] = NULL;
+					KxObject *obj;
+					obj = kxactivation_send_standby_message_with_params_and_codeblock
+						(self, from, KXDICT_TOBYDO, params, codeblock);
+
+					if (obj == NULL) {
+						return kxactivation_return(self, kxstack_get_return_state(KXSTACK));
+					}
+
+					kxactivation_inner_stack_push(self, obj);
+					codep += jump;
+					continue;
+				}
+			}
+
+			case KXCI_TOBYDO_END: 
+			{
+				int jump = (int) FETCH_BYTE(codep);
+				int local = (int) FETCH_BYTE(codep);
+				
+				KxObject *num = self->inner_stack[self->inner_stack_pos - 2];
+				KxObject *delta = self->inner_stack[self->inner_stack_pos - 3];
+				KxObject *to = self->inner_stack[self->inner_stack_pos - 4];
+				long delta_val = KXINTEGER_VALUE(delta);
+				long val = KXINTEGER_VALUE(num) + delta_val;
+				long to_val = KXINTEGER_VALUE(to);
+				if ((delta_val > 0 && val >= to_val) || (delta_val < 0 && val <= to_val)) {
+					REF_REMOVE(num);
+					REF_REMOVE(to);
+					REF_REMOVE(delta);
+					kxactivation_inner_stack_drop2(self);
+					kxactivation_inner_stack_drop2(self);
+					kxactivation_inner_stack_drop2(self);
+					continue;
+				} else {
+					codep += jump;
+
+					KxObject *obj = kxactivation_inner_stack_pop(self);
+					REF_REMOVE(obj);
+					obj = kxactivation_inner_stack_pop(self);
+					REF_REMOVE(obj);
+
+					obj = KXINTEGER(val);
+					kxactivation_inner_stack_push(self, obj);
+					
+					REF_REMOVE(self->locals[local]);
+					self->locals[local] = obj;
+					REF_ADD(obj);
+
+					continue;
+				}
+
+			}
+
 
 			default: 
 	/*		{
 				KxInstructionInfo *ii = &kxinstructions_info[(int)instruction];
 				fprintf(stderr,"Invalid instruction %s\n", ii->name);
 			}*/
-				fprintf(stderr,"Invalid instruction");
+				fprintf(stderr,"Invalid instruction\n");
 				abort();
 		}
 		

@@ -64,6 +64,12 @@ KxInstructionInfo kxinstructions_info[KXCI_INSTRUCTIONS_COUNT] = {
 	{"jump", 1},                // 54 KXCI_JUMP
 	{"foreach", 3},             // 55 KXCI_FOREACH
 	{"nextiter", 2},            // 56 KXCI_NEXTITER
+	{"todo", 3},                // 57 KXCI_TODO
+	{"todo_end", 2},            // 58 KXCI_TODO_END
+	{"tobydo", 3},              // 59 KXCI_TOBYDO
+	{"tobydo_end", 2},          // 60 KXCI_TOBYDO_END
+	{"repeat", 2},              // 61 KXCI_REPEAT
+	{"repeat_end", 1},          // 62 KXCI_REPEAT_END
 };
 
 
@@ -82,6 +88,9 @@ int kxcinstruction_has_linenumber(KxInstructionType instruction)
 		case KXCI_IFTRUE_IFFALSE:
 		case KXCI_IFFALSE_IFTRUE:
 		case KXCI_FOREACH:
+		case KXCI_TODO:
+		case KXCI_TOBYDO:
+		case KXCI_REPEAT:
 			return 1;
 		default:
 			return 0;

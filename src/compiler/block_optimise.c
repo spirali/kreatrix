@@ -31,6 +31,9 @@ static void kxcblock_replace_instructions_foreach
 	(KxcBlock *, KxcInstruction *, int, KxcBlock **, KxcInstruction **, KxInstructionReplacingRule *);
 static void kxcblock_replace_instructions_foreach_local
 	(KxcBlock *, KxcInstruction *, int, KxcBlock **, KxcInstruction **, KxInstructionReplacingRule *);
+static void kxcblock_replace_instructions_cycle
+	(KxcBlock *, KxcInstruction *, int, KxcBlock **, KxcInstruction **, KxInstructionReplacingRule *);
+
 
 static KxInstructionReplacingRule replacing_rules[] = {
 	{ KXCI_KEYWORD_MSG, "ifTrue:",  KXCI_IFTRUE,  1, {0}, kxcblock_replace_instructions_condition },
@@ -39,6 +42,9 @@ static KxInstructionReplacingRule replacing_rules[] = {
 	{ KXCI_KEYWORD_MSG, "ifFalse:ifTrue:", KXCI_IFFALSE_IFTRUE, 2, {0,0}, kxcblock_replace_instructions_condition_else  },
 	{ KXCI_KEYWORD_MSG, "foreach:", KXCI_FOREACH, 1, {1}, kxcblock_replace_instructions_foreach  },
 	{ KXCI_LOCAL_KEYWORD_MSG, "foreach:", KXCI_FOREACH, 1, {1}, kxcblock_replace_instructions_foreach_local  },
+	{ KXCI_KEYWORD_MSG, "to:do:", KXCI_TODO, 1, {1}, kxcblock_replace_instructions_cycle  },
+    { KXCI_KEYWORD_MSG, "repeat:", KXCI_REPEAT, 1, {0}, kxcblock_replace_instructions_cycle  },
+	{ KXCI_KEYWORD_MSG, "to:by:do:", KXCI_TOBYDO, 1, {1}, kxcblock_replace_instructions_cycle  },
 	{ 0, NULL, 0 }
 };
 
@@ -271,6 +277,45 @@ kxcblock_replace_instructions_foreach(
 	instruction->value.foreach.jump = jumpsize;
 }
 
+/**
+ *  This function serves as replace function for KXCI_REPEAT, KXCI_TODO and KXCI_TODOBY
+ */
+static void
+kxcblock_replace_instructions_cycle(	
+	KxcBlock *block,
+	KxcInstruction *instruction,
+	int position, 
+	KxcBlock **closures, 
+	KxcInstruction **prev_instructions,
+	KxInstructionReplacingRule *rule)
+
+{
+	int codeblock = prev_instructions[0]->value.codeblock;
+	instruction->value.cycle.codeblock = codeblock;
+	kxcblock_remove_instruction(block, position - 1);
+
+	/* KXCI_XYZ_END instruction follow after KXCI_XYZ */
+	int end_instrucion_id = rule->replacingInstruction + 1;
+	KxcInstruction *end_instr = kxcinstruction_new(end_instrucion_id);
+
+	/* This will be ignored if instruction is KXCI_REPEAT (KXCI_REPEAT_END) beceause 
+	 * value.cycle.local (value.cycle_end.local)
+	 * is last parameter and this istruction has only two parameters */
+	instruction->value.cycle.local = block->locals_count;
+	end_instr->value.cycle_end.local = block->locals_count;
+
+	kxcblock_insert_instruction(block, end_instr, position);
+
+	int bytes = kxcblock_insert_instructions(block, position, closures[0], codeblock);
+
+	int jumpsize = bytes + kxinstructions_info[end_instrucion_id].params_count + 1;
+	end_instr->value.cycle_end.jump = - jumpsize;
+
+	instruction->type = rule->replacingInstruction;
+	instruction->value.cycle.jump = jumpsize;
+}
+
+
 static void
 kxcblock_replace_instructions_foreach_local(	
 	KxcBlock *block,
@@ -365,11 +410,14 @@ kxcblock_optimise_replace_instructions(KxcBlock *block)
 					&& !strcmp(message_name, rule->messageName)) 
 			{
 				for (s = 0; s < rule->countOfClosures;s++) {
-					closures[s]->params_count == rule->countOfParameters[s];
+					if (closures[s]->params_count != rule->countOfParameters[s]) {
+						break;
+					}
 				}
 
-				if (s != rule->countOfClosures)
-					continue;
+				if (s != rule->countOfClosures) {
+					break;
+				}
 
 				rule->replace_function(block, i, t, closures, previ, rule);
 

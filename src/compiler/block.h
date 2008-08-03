@@ -13,6 +13,8 @@ typedef struct KxcLocal KxcLocal;
 typedef struct KxcMessage KxcMessage;
 typedef struct KxcCondition KxcCondition;
 typedef struct KxcForeach KxcForeach;
+typedef struct KxcCycle KxcCycle;
+typedef struct KxcCycleEnd KxcCycleEnd;
 typedef struct KxcLiteral KxcLiteral;
 typedef struct KxcBlock KxcBlock;
 typedef struct KxcForeignBlock KxcForeignBlock;
@@ -39,6 +41,18 @@ struct KxcForeach  {
 	int codeblock;
 };
 
+struct KxcCycle {
+	int jump;
+	int codeblock;
+	int local;
+};
+
+struct KxcCycleEnd {
+	int jump;
+	int local;
+};
+
+
 struct KxcLiteral {
 	KxcLiteralType type;
 	union {
@@ -62,6 +76,8 @@ struct KxcInstruction {
 		KxcMessage msg;
 		KxcCondition condition;
 		KxcForeach foreach;
+		KxcCycle cycle;
+		KxcCycleEnd cycle_end;
 	} value;
 };
 
