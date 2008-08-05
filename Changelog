@@ -1,3 +1,9 @@
+Kreatrix's changelog
+
+0.11.1
+	+ fixed bug in objects without parentslot
+	+ fixed few small bugs
+
 0.11.0
 	+ Many optimazitions
 	+ New bytecode and faster interpretation
