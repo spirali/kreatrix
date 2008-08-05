@@ -17,8 +17,6 @@
 #include "kxexception.h"
 #include "gdkevent.h"
 
-//#include "%name%.h"
-
 %include%
 
 KxObjectExtension kx%name%_extension;
