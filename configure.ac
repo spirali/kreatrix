@@ -66,7 +66,7 @@ AC_MSG_NOTICE([DEBUG OPTIONS: vm-log enabled])
 ],[])
 
 # MultiCore VM
-AC_ARG_ENABLE(threads,
+AC_ARG_ENABLE(multistate,
 [  --enable-multistate   Enable support for more VMs in one application ],
 [ 
 kx_multistate="${enableval}"

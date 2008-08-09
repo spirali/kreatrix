@@ -745,9 +745,9 @@ kxstring_convert_for_substition(char type, KxObject *obj)
 				REF_ADD(obj);
 				return obj;
 			}
-			return convert_to_kxstring(obj, KXCORE->dictionary[KXDICT_AS_STRING]);
+			return convert_to_kxstring(obj, KXCORE_FROM(obj)->dictionary[KXDICT_AS_STRING]);
 		case 'p':
-			return convert_to_kxstring(obj, KXCORE->dictionary[KXDICT_PRINTSTRING]);
+			return convert_to_kxstring(obj, KXCORE_FROM(obj)->dictionary[KXDICT_PRINTSTRING]);
 		default: {
 			KxException *excp = kxexception_new_with_text(KXCORE_FROM(obj), "Invalid substitution character '%c' in string", type);
 			KXTHROW(excp);

@@ -29,14 +29,8 @@
 #include "kxmessage.h"
 #include "kxtypes.h"
 
-#define RETURN #error macro was remove
-#define RETURN_BOOLEAN #error macro was remove
-#define THROW #error macro was remove
-#define THROW_EXCEPTION #error macro was remove
-
-/** NEW **/
 #define KXCHECK(kxobject) if ((kxobject) == NULL) return NULL
-#define KXTHROW(kxobject) { kxstack_throw_object(KXCORE->stack, (kxobject)); return NULL; }
+#define KXTHROW(kxobject) { KxObject *__obj = (kxobject); kxstack_throw_object(KXCORE_FROM(__obj)->stack, (__obj)); return NULL; }
 #define KXRETURN(kxobject) { REF_ADD(kxobject); return kxobject; }
 #define KXRETURN_BOOLEAN(condition) { if (condition) KXRETURN(KXCORE->object_true) else KXRETURN(KXCORE->object_false); }
 
