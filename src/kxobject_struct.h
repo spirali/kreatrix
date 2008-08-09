@@ -39,12 +39,23 @@
 typedef struct KxObject KxObject;
 typedef struct KxParentSlot KxParentSlot;
 typedef struct KxSlot KxSlot;
+typedef struct KxObjectProfile KxObjectProfile;
 
 struct KxCore;
 
 struct KxParentSlot {
 	KxObject *parent;
 	KxParentSlot *next;
+};
+
+typedef enum {
+	KXOBJECT_INSTANCE = 0,
+	KXOBJECT_PROTOTYPE,
+} KxObjectPType;
+
+struct KxObjectProfile {
+	List *slots_symbols;
+	List *child_prototypes;
 };
 
 struct KxObject {
@@ -62,6 +73,9 @@ struct KxObject {
 		int intval;
 		unsigned char charval;
 	} data;
+
+	KxObjectPType ptype;
+	KxObjectProfile *profile;
 
 	int flags;
 

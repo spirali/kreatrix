@@ -92,7 +92,9 @@ kreatrix_SOURCES = \
 	kxactivation_object.c \
 	kxactivation_object.h \
 	kxdecompiler.h \
-	kxdecompiler.c
+	kxdecompiler.c \
+	kxobject_profile.h \
+	kxobject_profile.c
 
 
 pkginclude_HEADERS=\
@@ -136,7 +138,8 @@ pkginclude_HEADERS=\
 	kxglobals.h \
 	kxarray2d.h \
 	kxactivation_object.h \
-	kxdecompiler.h
+	kxdecompiler.h \
+	kxobject_profile.h
 
 EXTRA_DIST=vminit/update.sh
 

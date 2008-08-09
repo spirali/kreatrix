@@ -61,6 +61,7 @@
 #include "kxset.h"
 #include "kxarray2d.h"
 #include "kxactivation_object.h"
+#include "kxobject_profile.h"
 
 #ifndef KX_MULTI_STATE
 
@@ -167,6 +168,8 @@ kxcore_new()
 	core->base_object->gc_next = core->base_object;
 	/** base object inited */
 	
+	core->base_object->ptype = KXOBJECT_PROTOTYPE;
+	core->base_object->profile = kxobject_profile_new();
 
 	/* Prototypes */
 	KxSymbol *protosymbol = kxsymbol_new_prototype(core);

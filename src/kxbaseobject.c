@@ -37,6 +37,7 @@
 #include "kxcodeblock.h"
 #include "kxlist.h"
 #include "kxinteger.h"
+#include "kxobject_profile.h"
 
 KxObject * kxobject_new(KxCore *core);
 
@@ -482,6 +483,8 @@ kxbaseobject_slot_updater_set(KxObject *self, KxMessage *message)
 
 	REF_REMOVE(cfunction);
 
+	kxobject_profile_add_symbol(self->profile, symbol);
+
 	KXRETURN(message->params[2]);
 }
 
@@ -545,7 +548,11 @@ kxbaseobject_dump(KxObject *self, KxMessage *message)
 	KXRETURN(self);
 }
 
-
+static KxObject *
+kxbaseobject_is_instance(KxObject *self, KxMessage *message)
+{
+	KXRETURN_BOOLEAN(self->ptype == KXOBJECT_INSTANCE);
+}
 
 void 
 kxbaseobject_add_method_table(KxObject *self)
@@ -583,6 +590,7 @@ kxbaseobject_add_method_table(KxObject *self)
 		{"freezeSlot:",1, kxbaseobject_freeze_slot },
 		{"unfreezeSlot:",1, kxbaseobject_unfreeze_slot },
 		{"dump",0, kxbaseobject_dump },
+		{"isInstance",0, kxbaseobject_is_instance },
 		{NULL,0, NULL}
 	};
 	kxobject_add_methods(self, table);

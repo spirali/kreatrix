@@ -33,6 +33,7 @@
 #include "kxexception.h"
 #include "kxinteger.h"
 #include "kxglobals.h"
+#include "kxobject_profile.h"
 
 static KxParentSlot * 
 kxparentslot_new(KxObject *parent) 
@@ -77,6 +78,8 @@ kxobject_new_from(KxObject *self)
 
 	++(KXCORE->objects_count);
 	object->extension = self->extension;
+
+	object->profile = self->profile;
 
 	KxObject *tmp = self->gc_next;
 	self->gc_next = object;
@@ -134,6 +137,10 @@ kxobject_free(KxObject *self)
 		REF_REMOVE(pslot->parent);
 		kxfree(pslot);
 		pslot = next;
+	}
+
+	if (self->ptype == KXOBJECT_PROTOTYPE) {
+		kxobject_profile_free(self->profile);
 	}
 
 	kxobject_slots_free(self);
@@ -314,12 +321,20 @@ kxobject_set_parent(KxObject *self, KxObject *parent)
 	}
 	self->parent_slot.parent = parent;
 	REF_ADD(parent);
+
+	if (parent->ptype == KXOBJECT_INSTANCE) {
+		kxobject_set_as_prototype(parent);
+	}
 }
 
 
 void
 kxobject_add_parent(KxObject *self, KxObject *parent) 
 {
+	if (parent->ptype == KXOBJECT_INSTANCE) {
+		kxobject_set_as_prototype(parent);
+	}
+
 	if (self->parent_slot.parent == NULL) {
 		REF_ADD(parent);
 		self->parent_slot.parent = parent;
@@ -373,6 +388,10 @@ kxobject_remove_parent(KxObject *self, KxObject *parent)
 
 void kxobject_insert_parent(KxObject *self, KxObject *parent)
 {
+	if (parent->ptype == KXOBJECT_INSTANCE) {
+		kxobject_set_as_prototype(parent);
+	}
+
 	if (self->parent_slot.parent) {
 		KxObject *obj = self->parent_slot.parent;
 		KxParentSlot *pslot = kxparentslot_new(obj);
@@ -982,4 +1001,11 @@ kxobject_check_type(KxObject *self, KxObjectExtension *extension)
 		ext = ext->parent;
 	};
 	return 0;
+}
+
+void
+kxobject_set_as_prototype(KxObject *self)
+{
+	self->ptype = KXOBJECT_PROTOTYPE;
+	self->profile = kxobject_profile_new_for_child(self->profile, self);
 }
