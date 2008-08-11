@@ -63,7 +63,88 @@ KxInstructionInfo kxinstructions_info[KXCI_INSTRUCTIONS_COUNT] = {
 	{"push_self", 0},           // 34 KXCI_PUSH_SELF
 	{"push_activation", 0},     // 35 KXCI_PUSH_ACTIVATION
 	{"update_local", 1},        // 36 KXCI_UPDATE_LOCAL
-	{"update_outer_local", 2}   // 37 KXCI_UPDATE_OUTER_LOCAL
+	{"update_outer_local", 2},  // 37 KXCI_UPDATE_OUTER_LOCAL
+
+	{"reserved", 0}, // 38
+	{"reserved", 0}, // 39
+
+	// 40 - 49
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+
+	// 50 - 59
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+
+	// 60 - 69
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+
+	// 70 - 79
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+
+	// 80 - 89
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+
+	// 90 - 99
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+
+	{"send_unary_c", 1},
+	{"send_binary_c", 1},
+	{"send_keyword_c", 2},
+	{"send_local_unary_c", 1},
+	{"send_local_keyword_c", 2},
 };
 
 
@@ -77,6 +158,11 @@ int kxcinstruction_has_linenumber(KxInstructionType instruction)
 		case KXCI_LOCAL_KEYWORD_MSG:
 		case KXCI_RESEND_UNARY_MSG:
 		case KXCI_RESEND_KEYWORD_MSG:
+		case KXCI_UNARY_MSG_C:
+		case KXCI_BINARY_MSG_C:
+		case KXCI_KEYWORD_MSG_C:
+		case KXCI_LOCAL_UNARY_MSG_C:
+		case KXCI_LOCAL_KEYWORD_MSG_C:
 			return 1;
 		default:
 			return 0;

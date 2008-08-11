@@ -167,8 +167,13 @@ kxobject_raw_clone(KxObject *self)
 	
 	KxObject *child = kxobject_new_from(self);
 	
+	//kxobject_add_parent(child, self);
+	if (self->ptype == KXOBJECT_INSTANCE) {
+		kxobject_set_as_prototype(self);
+	}
 
-	kxobject_add_parent(child, self);
+	REF_ADD(self);
+	child->parent_slot.parent = self;
 
 	return child;
 }
@@ -204,6 +209,10 @@ kxobject_dump(KxObject *self)
 void 
 kxobject_remove_all_parents(KxObject *self)
 {
+	if (self->ptype == KXOBJECT_INSTANCE) {
+		kxobject_set_as_noninstance(self);
+	}
+
 	if (self->parent_slot.parent) {
 		REF_REMOVE(self->parent_slot.parent);
 		self->parent_slot.parent = NULL;
@@ -356,6 +365,10 @@ kxobject_add_parent(KxObject *self, KxObject *parent)
 void
 kxobject_remove_parent(KxObject *self, KxObject *parent) 
 {
+	if (self->ptype == KXOBJECT_INSTANCE) {
+		kxobject_set_as_noninstance(self);
+	}
+
 	if (self->parent_slot.parent == parent) {
 		REF_REMOVE(parent);
 		if (self->parent_slot.next == NULL) {
@@ -1008,4 +1021,11 @@ kxobject_set_as_prototype(KxObject *self)
 {
 	self->ptype = KXOBJECT_PROTOTYPE;
 	self->profile = kxobject_profile_new_for_child(self->profile, self);
+}
+
+void
+kxobject_set_as_noninstance(KxObject *self)
+{
+	self->ptype = KXOBJECT_NONINSTANCE;
+	self->profile = NULL;
 }

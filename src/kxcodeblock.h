@@ -33,8 +33,8 @@
 #define KXCODEBLOCK_DATA(kxcodeblock) ((KxCodeBlockData*) ((kxcodeblock)->data.ptr))
 
 typedef struct KxObject KxCodeBlock;
-
 typedef struct KxCodeBlockData KxCodeBlockData;
+typedef struct KxCodeBlockInlineCache KxCodeBlockInlineCache;
 
 typedef enum { KXCODEBLOCK_METHOD, KXCODEBLOCK_BLOCK } KxCodeBlockType;
 
@@ -54,10 +54,11 @@ struct KxCodeBlockData {
 	char *code;
 
 	int params_count;
-
 	int locals_count;
 	KxSymbol **locals_symbols;
 
+	KxCodeBlockInlineCache *inline_cache;
+	int inline_cache_size;
 	
 	//KxCodeBlock *parent_codeblock; // NULL for method
 
@@ -71,6 +72,13 @@ struct KxCodeBlockData {
 
 };
 
+struct KxCodeBlockInlineCache {
+	KxObject *prototype;
+	KxObject *cached_object;
+	KxObject *message_name;
+	KxObject *slot_holder;
+};
+
 void kxcodeblock_init_extension();
 
 KxObject *kxcodeblock_new_prototype(KxCore *core);
@@ -81,6 +89,8 @@ KxObject * kxcodeblock_activate(KxCodeBlock *self, KxObject *target, KxMessage *
 
 KxObject * kxcodeblock_run(KxCodeBlock *self, KxObject *target, KxMessage *message);
 KxObject * kxcodeblock_run_scoped(KxCodeBlock *self, struct KxActivation *parent_activation, KxMessage *message);
+int kxcodeblock_message_name_id(KxCodeBlock *self, KxSymbol *message_name);
+void kxcodeblock_insert_inline_cache_instructions(KxCodeBlock *self);
 
 
 //KxObject * kxcodeblock_run_with_direct_target(KxCodeBlock *self, KxObject *target, KxMessage *message);

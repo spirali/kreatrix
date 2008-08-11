@@ -92,6 +92,31 @@ kxcodeblock_clean(KxCodeBlock *self) {
 		kxfree(data->literals);
 		data->literals = NULL;
 	}
+
+	if (data->symbol_frame) {
+		for (t=0;t<data->symbol_frame_size;t++) {
+			REF_REMOVE(data->symbol_frame[t]);
+		}
+		kxfree(data->symbol_frame);
+		data->symbol_frame = NULL;
+	}
+
+	if (data->inline_cache)
+	{
+		int t;
+		for (t=0; t<data->inline_cache_size; t++) {
+			KxCodeBlockInlineCache *ic = &data->inline_cache[t];
+			if (ic->prototype) {
+				REF_REMOVE(ic->prototype);
+				REF_REMOVE(ic->cached_object);
+				REF_REMOVE(ic->slot_holder);
+			}
+			if (ic->message_name)
+				REF_REMOVE(ic->message_name);
+		}
+		kxfree(data->inline_cache);
+		data->inline_cache = NULL;
+	}
 }
 
 static void
@@ -135,6 +160,22 @@ kxcodeblock_free(KxCodeBlock *self) {
 	
 	if (data->prealocated_locals) 
 		kxfree(data->prealocated_locals);
+
+	if (data->inline_cache)
+	{
+		int t;
+		for (t=0; t<data->inline_cache_size; t++) {
+			KxCodeBlockInlineCache *ic = &data->inline_cache[t];
+			if (ic->prototype) {
+				REF_REMOVE(ic->prototype);
+				REF_REMOVE(ic->cached_object);
+				REF_REMOVE(ic->slot_holder);
+			}
+			if (ic->message_name)
+				REF_REMOVE(ic->message_name);
+		}
+		kxfree(data->inline_cache);
+	}
 	kxfree(data);
 }
 
@@ -502,6 +543,20 @@ kxcodeblock_run(KxCodeBlock *self, KxObject *target, KxMessage *message)
 	return kxcodeblock_run_activation(self, target, activation, message);
 }
 
+int
+kxcodeblock_message_name_id(KxCodeBlock *self, KxSymbol *message_name)
+{
+	KxCodeBlockData *data = KXCODEBLOCK_DATA(self);
+	int t;
+	for (t=0;t<data->symbol_frame_size;t++) {
+		if (data->symbol_frame[t] == message_name) {
+			return t;
+		}
+	}
+	fprintf(stderr,"Internal error: kxcodeblock_message_name_id: message not found");
+	abort();
+}
+
 static void
 kxcodeblock_mark(KxObject *self) 
 {
@@ -521,6 +576,85 @@ kxcodeblock_mark(KxObject *self)
 	for (t=0;t<data->subcodeblocks_size;t++) {
 		kxobject_mark(data->subcodeblocks[t]);
 	}
+
+	if (data->inline_cache)
+	{
+		int t;
+		for (t=0; t<data->inline_cache_size; t++) {
+			KxCodeBlockInlineCache *ic = &data->inline_cache[t];
+			if (ic->prototype) {
+				kxobject_mark(ic->prototype);
+				kxobject_mark(ic->cached_object);
+				kxobject_mark(ic->slot_holder);
+			}
+			if (ic->message_name)
+				kxobject_mark(ic->message_name);
+		}
+	}
+
+}
+
+void
+kxcodeblock_insert_inline_cache_instructions(KxCodeBlock *self)
+{
+	KxCodeBlockData *data = KXCODEBLOCK_DATA(self);
+	if (data->inline_cache) {
+		return;
+	}
+
+	List *ilist = kxdecompiler_instructions_list(self);
+
+	KxSymbol *symbols[ilist->size];
+	
+	int changed = 0;
+	int t;
+
+	for (t = 0; t < ilist->size; ++t)
+	{
+		KxInstructionWrapper *iw = ilist->items[t];
+		switch (iw->type) {
+			case KXCI_UNARY_MSG:
+			case KXCI_BINARY_MSG:
+			case KXCI_KEYWORD_MSG:
+			case KXCI_LOCAL_UNARY_MSG:
+			case KXCI_LOCAL_KEYWORD_MSG:
+			{
+				symbols[changed] = data->symbol_frame[(int)iw->params[0]];
+				iw->type = KXCI_UNARY_MSG_C + (iw->type - KXCI_UNARY_MSG);
+				iw->params[0] = changed;
+				changed++;
+				break;
+			}
+			default:
+				break;
+		}
+	}
+
+	if (changed == 0) {
+		for (t=0; t < ilist->size; t++) {
+			kxinstructionwrapper_free(ilist->items[t]);
+		}
+		list_free(ilist);
+		return;
+	}
+
+	KxCodeBlockInlineCache *icache = kxcalloc(changed, sizeof(KxCodeBlockInlineCache));
+	ALLOCTEST(icache);
+	
+	for (t=0; t<changed; t++) {
+		REF_ADD(symbols[t]);
+		icache[t].message_name = symbols[t];
+	}
+
+	data->inline_cache = icache;
+	data->inline_cache_size = changed;
+
+	kxdecompiler_instruction_wrapper_to_bytecode(ilist, data->code);
+
+	for (t=0; t < ilist->size; t++) {
+		kxinstructionwrapper_free(ilist->items[t]);
+	}
+	list_free(ilist);
 }
 
 static KxObject *
@@ -591,6 +725,13 @@ kxcodeblock_message_names(KxCodeBlock *self, KxMessage *message)
 	return KXLIST(list);
 }
 
+static KxObject *
+kxcodeblock_insert_inline_cache(KxCodeBlock *self, KxMessage *message)
+{
+	kxcodeblock_insert_inline_cache_instructions(self);
+	KXRETURN(self);
+}
+
 static void 
 kxcodeblock_add_method_table(KxCodeBlock *self)
 {
@@ -599,6 +740,7 @@ kxcodeblock_add_method_table(KxCodeBlock *self)
 		{"literals",0, kxcodeblock_literals },
 		{"locals",0, kxcodeblock_locals },
 		{"messageNames",0, kxcodeblock_message_names },
+		{"insertInlineCache",0, kxcodeblock_insert_inline_cache },
 		{NULL,0, NULL}
 	};
 	kxobject_add_methods(self, table);
