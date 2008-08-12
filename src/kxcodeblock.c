@@ -35,6 +35,7 @@
 #include "kxfloat.h"
 #include "compiler/kxinstr.h"
 #include "kxdecompiler.h"
+#include "kxglobals.h"
 
 #define GET_BYTECODE_CHAR *((*bytecode)++)
 
@@ -78,6 +79,9 @@ kxcodeblock_new(KxCore *core) {
 	codeblock->data.ptr = kxcalloc(1,sizeof(KxCodeBlockData));
 	ALLOCTEST(codeblock->data.ptr);
 
+	#ifdef KX_HOTSPOT
+		KXCODEBLOCK_DATA(codeblock)->run_counter = KXCODEBLOCK_RUN_COUNTER_START_VALUE;
+	#endif
 	return codeblock;
 }
 
@@ -412,6 +416,16 @@ kxcodeblock_run_activation(KxCodeBlock *self, KxObject *target, KxActivation *ac
 	activation->codeblock = self;
 
 	REF_ADD(activation->codeblock);
+
+	#ifdef KX_HOTSPOT
+		data->run_counter++;
+		if (data->run_counter == 0) {
+			if (kx_verbose) {
+				printf("Hot spot detected: ");
+				kxobject_dump(self);
+			}
+		}
+	#endif
 	
 	// TODO: REF_ADD ref add must be only in method, not in block
 	activation->receiver = target;

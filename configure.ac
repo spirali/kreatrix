@@ -95,6 +95,22 @@ AM_CONDITIONAL([KX_THREADS_SUPPORT], true)
 fi
 
 
+# Hotspot support
+AC_ARG_ENABLE(hotspot,
+[  --disable-hotspot   Disable hotspot support ],
+[ 
+kx_hotspot="${enableval}"
+],[kx_hotspot=yes])
+
+if test "$kx_hotspot" = no; then
+AM_CONDITIONAL([KX_HOTSPOT], false)
+AC_MSG_NOTICE([Hotspot support disabled])
+else
+AC_DEFINE_UNQUOTED([KX_HOTSPOT],[1],[Support for hotspot])
+AM_CONDITIONAL([KX_HOTSPOT], true)
+fi
+
+
 # ---- XML module ---------------------------
 AC_ARG_ENABLE(xml,
 [  --disable-xml   Disable building xml module ],

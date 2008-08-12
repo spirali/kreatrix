@@ -38,7 +38,15 @@ typedef struct KxCodeBlockData KxCodeBlockData;
 
 typedef enum { KXCODEBLOCK_METHOD, KXCODEBLOCK_BLOCK } KxCodeBlockType;
 
+#ifdef KX_HOTSPOT
+	#define KXCODEBLOCK_RUN_COUNTER_START_VALUE -100
+#endif 
+
 struct KxCodeBlockData {
+	
+	#ifdef KX_HOTSPOT
+	int run_counter;
+	#endif
 
 	KxCodeBlockType type;
 
