@@ -30,5 +30,7 @@ void kxobject_profile_add_child_prototype(KxObjectProfile *self, KxObject *proto
 void kxobject_profile_add_symbol(KxObjectProfile *self, KxSymbol *symbol);
 int kxobject_profile_check_symbol(KxObjectProfile *self, KxSymbol *symbol);
 KxObjectProfile *kxobject_profile_new_for_child(KxObjectProfile *self, KxObject *child);
+void kxobject_profile_remove_child_prototype(KxObjectProfile *self, KxObject *child);
+void kxobject_check_profile_and_repair(KxObject *self, KxSymbol *symbol);
 
 #endif // __KXOBJECT_PROFILE_H

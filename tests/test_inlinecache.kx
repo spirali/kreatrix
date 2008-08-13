@@ -1,0 +1,66 @@
+
+import: "test".
+
+testInlineCache = test TestCase clone do: {
+
+	testInstance = {
+		|obj|
+		obj << Object clone.
+		obj method: = { :p |
+			^p x.
+		}.
+
+		(obj slot: #method:) insertInlineCache.
+		
+		((obj method: 10@2) == 10) assertTrue.
+		((obj method: 12@3) == 12) assertTrue.
+		((obj method: 0@0) == 0) assertTrue.
+	}.
+
+	testPrototype = {
+		|A B C|
+
+		A << Object clone do: {
+			method: = { :a | ^a * 2 }.
+			method1: = { :a | ^a + 1 }.
+			method2: = { :a | ^a - 1 }.
+			method3: = 0.
+		}.
+
+		B << A clone.
+
+		C << Object clone.
+		C methodObj:x: = { :obj :a | ^obj method: a }.
+		(C slot: #methodObj:x:) insertInlineCache.
+
+		((C methodObj: B clone x: 10) == 20) assertTrue.
+		((C methodObj: B clone x: 11) == 22) assertTrue.
+		((C methodObj: B clone x: 12) == 24) assertTrue.
+		((C methodObj: B clone x: 13) == 26) assertTrue.
+
+		A method: = { :a |  ^method1: a }.
+
+		((C methodObj: B clone x: 10) == 11) assertTrue.
+		((C methodObj: B clone x: 11) == 12) assertTrue.
+		((C methodObj: B clone x: 12) == 13) assertTrue.
+		((C methodObj: B clone x: 13) == 14) assertTrue.
+
+		B method: = { :a | ^ method2: a }.
+
+		((C methodObj: B clone x: 10) == 09) assertTrue.
+		((C methodObj: B clone x: 11) == 10) assertTrue.
+		((C methodObj: B clone x: 12) == 11) assertTrue.
+		((C methodObj: B clone x: 13) == 12) assertTrue.
+
+		B method: = { :a | ^ method3: a }.
+
+		((C methodObj: B clone x: 10) == 0) assertTrue.
+		((C methodObj: B clone x: 11) == 0) assertTrue.
+		((C methodObj: B clone x: 12) == 0) assertTrue.
+		((C methodObj: B clone x: 13) == 0) assertTrue.
+	}.
+
+}.
+
+testInlineCache run.
+

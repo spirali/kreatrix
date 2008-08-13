@@ -483,6 +483,9 @@ kxbaseobject_slot_updater_set(KxObject *self, KxMessage *message)
 
 	REF_REMOVE(cfunction);
 
+	if (self->ptype != KXOBJECT_PROTOTYPE) {
+		kxobject_set_as_prototype(self);
+	}
 	kxobject_profile_add_symbol(self->profile, symbol);
 
 	KXRETURN(message->params[2]);

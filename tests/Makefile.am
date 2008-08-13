@@ -15,7 +15,8 @@ TESTS=	test_integer.kx \
 	test_array2d.kx \
 	test_codeblock.kx \
 	test_vm.kx \
-	test_exception.kx
+	test_exception.kx \
+	test_inlinecache.kx
 
 MOSTLYCLEANFILES=test_file.data
 
@@ -36,5 +37,6 @@ EXTRA_DIST= \
 	test_array2d.kx \
 	test_codeblock.kx \
 	test_vm.kx \
-	test_exception.kx
+	test_exception.kx \
+	test_inlinecache.kx
 

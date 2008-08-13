@@ -127,6 +127,13 @@ kxobject_free(KxObject *self)
 		self->extension->free(self);
 	}	
 
+	if (self->ptype == KXOBJECT_PROTOTYPE || self->ptype == KXOBJECT_PROTOTYPE_CACHED) {
+		kxobject_profile_free(self->profile);
+		if (self->parent_slot.parent) {
+			kxobject_profile_remove_child_prototype(self->parent_slot.parent->profile, self);
+		}
+	}
+
 	if (self->parent_slot.parent) {
 		REF_REMOVE(self->parent_slot.parent);
 	};
@@ -139,9 +146,6 @@ kxobject_free(KxObject *self)
 		pslot = next;
 	}
 
-	if (self->ptype == KXOBJECT_PROTOTYPE) {
-		kxobject_profile_free(self->profile);
-	}
 
 	kxobject_slots_free(self);
 
@@ -164,16 +168,19 @@ kxobject_clean(KxObject *self) {
 KxObject *
 kxobject_raw_clone(KxObject *self)
 {
+	if (self->ptype != KXOBJECT_PROTOTYPE) {
+		kxobject_set_as_prototype(self);
+	}
 	
 	KxObject *child = kxobject_new_from(self);
 	
 	//kxobject_add_parent(child, self);
-	if (self->ptype == KXOBJECT_INSTANCE) {
-		kxobject_set_as_prototype(self);
-	}
+
 
 	REF_ADD(self);
 	child->parent_slot.parent = self;
+
+
 
 	return child;
 }
@@ -331,7 +338,7 @@ kxobject_set_parent(KxObject *self, KxObject *parent)
 	self->parent_slot.parent = parent;
 	REF_ADD(parent);
 
-	if (parent->ptype == KXOBJECT_INSTANCE) {
+	if (parent->ptype != KXOBJECT_PROTOTYPE) {
 		kxobject_set_as_prototype(parent);
 	}
 }
@@ -340,7 +347,7 @@ kxobject_set_parent(KxObject *self, KxObject *parent)
 void
 kxobject_add_parent(KxObject *self, KxObject *parent) 
 {
-	if (parent->ptype == KXOBJECT_INSTANCE) {
+	if (parent->ptype != KXOBJECT_PROTOTYPE) {
 		kxobject_set_as_prototype(parent);
 	}
 
@@ -401,7 +408,7 @@ kxobject_remove_parent(KxObject *self, KxObject *parent)
 
 void kxobject_insert_parent(KxObject *self, KxObject *parent)
 {
-	if (parent->ptype == KXOBJECT_INSTANCE) {
+	if (parent->ptype != KXOBJECT_PROTOTYPE) {
 		kxobject_set_as_prototype(parent);
 	}
 
@@ -426,11 +433,13 @@ kxobject_set_slot(KxObject *self, KxSymbol *key, KxObject *value)
 	if (slot) {
 		REF_REMOVE(slot->value);
 		slot->value = value;
+		kxobject_check_profile_and_repair(self, key);
 		return;
 	}
 	REF_ADD(key); // if slot not exist, reference to key must be added
 	kxobject_slot_add(self,key,value,0);
-
+	
+	kxobject_check_profile_and_repair(self, key);
 }
 
 void 
@@ -443,13 +452,13 @@ kxobject_set_slot_with_flags(KxObject *self, KxSymbol *key, KxObject *value, int
 		REF_REMOVE(slot->value);
 		slot->value = value;
 		slot->flags = flags;
+		kxobject_check_profile_and_repair(self, key);
 		return;
 	}
 	REF_ADD(key); // if slot not exist, reference to key must be added
-
-
 	kxobject_slot_add(self,key,value,flags);
 
+	kxobject_check_profile_and_repair(self, key);
 }
 
 
@@ -464,10 +473,12 @@ kxobject_set_slot_no_ref(KxObject *self, KxSymbol *key, KxObject *value)
 		REF_REMOVE(key);
 		REF_REMOVE(slot->value);
 		slot->value = value;
+		kxobject_check_profile_and_repair(self, key);
 		return;
 	}
 	kxobject_slot_add(self,key,value,0);
 
+	kxobject_check_profile_and_repair(self, key);
 }
 
 
@@ -480,10 +491,12 @@ kxobject_set_slot_no_ref2(KxObject *self, KxSymbol *key, KxObject *value)
 		REF_REMOVE(key);
 		REF_REMOVE(slot->value);
 		slot->value = value;
+		kxobject_check_profile_and_repair(self, key);
 		return;
 	}
 	kxobject_slot_add(self,key,value,0);
 
+	kxobject_check_profile_and_repair(self, key);
 }
 
 
@@ -496,6 +509,7 @@ kxobject_update_slot(KxObject *self, KxSymbol *key, KxObject *value)
 		REF_REMOVE(slot->value);
 		REF_ADD(value);
 		slot->value = value;
+		kxobject_check_profile_and_repair(self, key);
 		return 1;
 	}
 
@@ -528,6 +542,7 @@ kxobject_update_slot_flags(KxObject *self, KxSymbol *key, int flags)
 
 	if (slot) {
 		slot->flags = flags;
+		kxobject_check_profile_and_repair(self, key);
 		return 1;
 	}
 
@@ -1019,8 +1034,14 @@ kxobject_check_type(KxObject *self, KxObjectExtension *extension)
 void
 kxobject_set_as_prototype(KxObject *self)
 {
-	self->ptype = KXOBJECT_PROTOTYPE;
 	self->profile = kxobject_profile_new_for_child(self->profile, self);
+	self->ptype = KXOBJECT_PROTOTYPE;
+}
+
+void
+kxobject_set_as_singleton(KxObject *self)
+{
+	self->ptype = KXOBJECT_SINGLETON;
 }
 
 void

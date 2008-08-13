@@ -140,6 +140,7 @@ int kxobject_check_type(KxObject *self, KxObjectExtension *extension);
 KxObject *kxobject_send_message_init(KxObject *self);
 
 void kxobject_set_as_prototype(KxObject *self);
+void kxobject_set_as_singleton(KxObject *self);
 void kxobject_set_as_noninstance(KxObject *self);
 
 

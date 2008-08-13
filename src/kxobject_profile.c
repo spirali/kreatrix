@@ -24,6 +24,8 @@
 
 #include "kxobject_profile.h"
 #include "utils/list.h"
+#include "kxcodeblock.h"
+#include "kxglobals.h"
 
 KxObjectProfile * 
 kxobject_profile_new()
@@ -52,6 +54,12 @@ kxobject_profile_add_child_prototype(KxObjectProfile *self, KxObject *prototype)
 }
 
 void
+kxobject_profile_remove_child_prototype(KxObjectProfile *self, KxObject *child)
+{
+	list_remove_first(self->child_prototypes, child);
+}
+
+void
 kxobject_profile_add_symbol(KxObjectProfile *self, KxSymbol *symbol)
 {
 	list_append(self->slots_symbols, symbol);
@@ -69,6 +77,31 @@ kxobject_profile_check_symbol(KxObjectProfile *self, KxSymbol *symbol)
 	}
 	return 0;
 }
+
+void
+kxobject_check_profile_and_repair(KxObject *self, KxSymbol *symbol)
+{
+	int t;
+	int size = self->profile->slots_symbols->size;
+	KxSymbol **symbols = (KxSymbol **) self->profile->slots_symbols->items;
+	for (t=0; t < size; t++) {
+		if (symbol == symbols[t]) 
+			return;
+	}
+
+	if (self->ptype == KXOBJECT_INSTANCE) {
+		kxobject_set_as_singleton(self);
+	} else {
+		if (self->ptype == KXOBJECT_PROTOTYPE) {
+			kx_inline_cache_repair_prototype_and_name(self, symbol);
+			/*if (kx_verbose) {
+				printf("Inline cache repair '%s'/", KXSYMBOL_AS_CSTRING(symbol));
+				kxobject_dump(self);
+			}*/
+		}	
+	}
+}
+
 
 KxObjectProfile *
 kxobject_profile_new_for_child(KxObjectProfile *self, KxObject *child)

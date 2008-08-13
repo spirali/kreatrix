@@ -82,6 +82,47 @@ kxcodeblock_new(KxCore *core) {
 }
 
 static void
+kxcodeblock_clean_inline_cache(KxCodeBlock *self)
+{
+		KxCodeBlockData *data = KXCODEBLOCK_DATA(self);
+		int t;
+		for (t=0; t<data->inline_cache_size; t++) {
+			KxCodeBlockInlineCache *ic = &data->inline_cache[t];
+			if (ic->prototype) {
+				REF_REMOVE(ic->prototype);
+				REF_REMOVE(ic->cached_object);
+				REF_REMOVE(ic->slot_holder);
+			}
+			if (ic->message_name)
+				REF_REMOVE(ic->message_name);
+		}
+		kxfree(data->inline_cache);
+
+		if (KXCORE->first_codeblock_with_inline_cache == self) {
+			KXCORE->first_codeblock_with_inline_cache = data->next_codeblock_with_inline_cache;
+			if (data->next_codeblock_with_inline_cache == NULL) {
+				KXCORE->last_codeblock_with_inline_cache = NULL;
+			}
+		} else {
+			KxObject *obj = KXCORE->first_codeblock_with_inline_cache;
+			KxCodeBlockData *objdata = KXCODEBLOCK_DATA(obj);
+
+			while(objdata->next_codeblock_with_inline_cache != self) {
+				obj = objdata->next_codeblock_with_inline_cache;
+				objdata = KXCODEBLOCK_DATA(obj);
+			}
+
+			objdata->next_codeblock_with_inline_cache = data->next_codeblock_with_inline_cache;
+
+			if (data->next_codeblock_with_inline_cache == NULL) {
+				KXCORE->last_codeblock_with_inline_cache = obj;
+			}
+		}
+
+
+}
+
+static void
 kxcodeblock_clean(KxCodeBlock *self) {
 	KxCodeBlockData *data = KXCODEBLOCK_DATA(self);
 	int t;
@@ -103,18 +144,7 @@ kxcodeblock_clean(KxCodeBlock *self) {
 
 	if (data->inline_cache)
 	{
-		int t;
-		for (t=0; t<data->inline_cache_size; t++) {
-			KxCodeBlockInlineCache *ic = &data->inline_cache[t];
-			if (ic->prototype) {
-				REF_REMOVE(ic->prototype);
-				REF_REMOVE(ic->cached_object);
-				REF_REMOVE(ic->slot_holder);
-			}
-			if (ic->message_name)
-				REF_REMOVE(ic->message_name);
-		}
-		kxfree(data->inline_cache);
+		kxcodeblock_clean_inline_cache(self);
 		data->inline_cache = NULL;
 	}
 }
@@ -163,18 +193,7 @@ kxcodeblock_free(KxCodeBlock *self) {
 
 	if (data->inline_cache)
 	{
-		int t;
-		for (t=0; t<data->inline_cache_size; t++) {
-			KxCodeBlockInlineCache *ic = &data->inline_cache[t];
-			if (ic->prototype) {
-				REF_REMOVE(ic->prototype);
-				REF_REMOVE(ic->cached_object);
-				REF_REMOVE(ic->slot_holder);
-			}
-			if (ic->message_name)
-				REF_REMOVE(ic->message_name);
-		}
-		kxfree(data->inline_cache);
+		kxcodeblock_clean_inline_cache(self);
 	}
 	kxfree(data);
 }
@@ -435,6 +454,7 @@ kxcodeblock_read_subblock(KxCore *core, char **bytecode, KxCodeBlock *parent_cod
 	
 	kxcodeblock_read_subblocks(codeblock, bytecode, source_filename);
 
+	//kxcodeblock_insert_inline_cache_instructions(codeblock);
 	return codeblock;
 }
 
@@ -638,7 +658,7 @@ kxcodeblock_insert_inline_cache_instructions(KxCodeBlock *self)
 		return;
 	}
 
-	KxCodeBlockInlineCache *icache = kxcalloc(changed, sizeof(KxCodeBlockInlineCache));
+	KxCodeBlockInlineCache *icache = kxcalloc(changed, sizeof(KxCodeBlockInlineCache) + sizeof(KxCodeBlockInlineCache*));
 	ALLOCTEST(icache);
 	
 	for (t=0; t<changed; t++) {
@@ -655,6 +675,84 @@ kxcodeblock_insert_inline_cache_instructions(KxCodeBlock *self)
 		kxinstructionwrapper_free(ilist->items[t]);
 	}
 	list_free(ilist);
+
+	if (KXCORE->last_codeblock_with_inline_cache) {
+		KxCodeBlockData *next = KXCODEBLOCK_DATA(KXCORE->last_codeblock_with_inline_cache);
+		next->next_codeblock_with_inline_cache = self;
+		KXCORE->last_codeblock_with_inline_cache = self;
+	} else {
+		KXCORE->last_codeblock_with_inline_cache = self;
+		KXCORE->first_codeblock_with_inline_cache = self;
+	}
+}
+
+void 
+kx_inline_cache_repair_prototype(KxObject *prototype)
+{
+	KxCore *core = KXCORE_FROM(prototype);
+	
+	KxObject *obj = core->first_codeblock_with_inline_cache;
+
+	while(obj) {
+		KxCodeBlockData *data = KXCODEBLOCK_DATA(obj);
+		KxCodeBlockInlineCache *ic = data->inline_cache;
+		int size = data->inline_cache_size;
+		
+		int t;
+		for (t=0; t < size; t++) {
+			if (ic[t].prototype == prototype) {
+				REF_REMOVE(ic[t].prototype);
+				ic[t].prototype = NULL;
+				REF_REMOVE(ic[t].cached_object);
+				ic[t].cached_object = NULL;
+			}
+		}
+
+		obj = data->next_codeblock_with_inline_cache;
+	}
+
+	int t;
+	List *list = prototype->profile->child_prototypes;
+	for (t=0; t < list->size; t++) {
+		kx_inline_cache_repair_prototype(list->items[t]);
+	}
+}
+
+void 
+kx_inline_cache_repair_prototype_and_name(KxObject *prototype, KxSymbol *message_name)
+{
+	KxCore *core = KXCORE_FROM(prototype);
+	
+	KxObject *obj = core->first_codeblock_with_inline_cache;
+
+	while(obj) {
+		KxCodeBlockData *data = KXCODEBLOCK_DATA(obj);
+		KxCodeBlockInlineCache *ic = data->inline_cache;
+		int size = data->inline_cache_size;
+		
+		int t;
+		for (t=0; t < size; t++) {
+			if (ic[t].prototype == prototype && ic[t].message_name == message_name) {
+				REF_REMOVE(ic[t].prototype);
+				ic[t].prototype = NULL;
+				REF_REMOVE(ic[t].cached_object);
+				ic[t].cached_object = NULL;
+				REF_REMOVE(ic[t].slot_holder);
+				ic[t].slot_holder = NULL;
+
+			}
+		}
+
+		obj = data->next_codeblock_with_inline_cache;
+	}
+
+
+	int t;
+	List *list = prototype->profile->child_prototypes;
+
+	for (t=0; t < list->size; t++) {
+		kx_inline_cache_repair_prototype_and_name(list->items[t], message_name);
+	}
 }
 
 static KxObject *

@@ -117,6 +117,8 @@ Object do: {
 	isFloat = false.
 	isSymbol = false.
 	isNumber = false.
+
+	dump: = { :aString | aString print. dump }.
 }.
 
 Integer do: {
