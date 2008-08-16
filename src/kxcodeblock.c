@@ -689,6 +689,11 @@ kxcodeblock_insert_inline_cache_instructions(KxCodeBlock *self)
 void 
 kx_inline_cache_repair_prototype(KxObject *prototype)
 {
+	if (kxobject_recursive_mark_test(prototype))
+		return;
+
+	kxobject_recursive_mark_set(prototype);
+
 	KxCore *core = KXCORE_FROM(prototype);
 	
 	KxObject *obj = core->first_codeblock_with_inline_cache;
@@ -716,11 +721,19 @@ kx_inline_cache_repair_prototype(KxObject *prototype)
 	for (t=0; t < list->size; t++) {
 		kx_inline_cache_repair_prototype(list->items[t]);
 	}
+
+	kxobject_recursive_mark_reset(prototype);
 }
 
 void 
 kx_inline_cache_repair_prototype_and_name(KxObject *prototype, KxSymbol *message_name)
 {
+	if (kxobject_recursive_mark_test(prototype))
+		return;
+
+	kxobject_recursive_mark_set(prototype);
+
+
 	KxCore *core = KXCORE_FROM(prototype);
 	
 	KxObject *obj = core->first_codeblock_with_inline_cache;
@@ -753,6 +766,8 @@ kx_inline_cache_repair_prototype_and_name(KxObject *prototype, KxSymbol *message
 	for (t=0; t < list->size; t++) {
 		kx_inline_cache_repair_prototype_and_name(list->items[t], message_name);
 	}
+
+	kxobject_recursive_mark_reset(prototype);
 }
 
 static KxObject *

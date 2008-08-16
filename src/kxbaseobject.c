@@ -28,6 +28,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "kxbaseobject.h"
 #include "kxobject.h"
@@ -557,6 +558,34 @@ kxbaseobject_is_instance(KxObject *self, KxMessage *message)
 	KXRETURN_BOOLEAN(self->ptype == KXOBJECT_INSTANCE);
 }
 
+static KxObject *
+kxbaseobject_internal_data(KxObject *self, KxMessage *message)
+{
+	KxObject *symbol = message->params[0];
+	KXCHECK_SYMBOL(symbol, 0);
+	char *str = KXSYMBOL_AS_CSTRING(symbol);
+	
+	if (!strcmp(str,"__instanceSlots")) {
+		List *list = kxobject_profile_instance_slots_to_list(self->profile);
+		list_foreach(list, kxobject_ref_add);
+		return KXLIST(list);
+	}
+
+	if (!strcmp(str, "__ptype")) {
+		return KXINTEGER(self->ptype);
+	}
+
+	if (!strcmp(str, "__childPrototypes")) {
+		List *list = kxobject_profile_child_prototypes_to_list(self->profile);
+		list_foreach(list, kxobject_ref_add);
+		return KXLIST(list);
+	}
+
+
+	KXRETURN(KXCORE->object_nil);
+}
+
+
 void 
 kxbaseobject_add_method_table(KxObject *self)
 {
@@ -594,6 +623,7 @@ kxbaseobject_add_method_table(KxObject *self)
 		{"unfreezeSlot:",1, kxbaseobject_unfreeze_slot },
 		{"dump",0, kxbaseobject_dump },
 		{"isInstance",0, kxbaseobject_is_instance },
+		{"__internalData:",1, kxbaseobject_internal_data },
 		{NULL,0, NULL}
 	};
 	kxobject_add_methods(self, table);

@@ -293,7 +293,9 @@ kxactivation_try_to_fill_inline_cache(KxCodeBlockInlineCache *ic, KxObject *targ
 
 			int flags;
 			KxObject *slot_holder;
-			KxObject *object = kxobject_find_slot_and_holder(target,ic->message_name, 
+
+			// Find slots only in first parent, other parents are not cachned
+			KxObject *object = kxobject_find_slot_and_holder(target->parent_slot.parent,ic->message_name, 
 				&slot_holder, &flags);
 
 			if (object && !(flags & KXOBJECT_SLOTFLAG_FREEZE)) {

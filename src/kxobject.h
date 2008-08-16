@@ -96,10 +96,9 @@ char *kxobject_raw_type_name(KxObject *self);
 KxObject *kxobject_type_name(KxObject *self);
 
 void kxobject_set_parent(KxObject *self, KxObject *parent);
+void kxobject_remove_all_parents(KxObject *self);
 
 void kxobject_dump(KxObject *self);
-
-void kxobject_remove_all_parents(KxObject *self);
 
 void kxobject_mark(KxObject *self) ;
 
@@ -141,7 +140,7 @@ KxObject *kxobject_send_message_init(KxObject *self);
 
 void kxobject_set_as_prototype(KxObject *self);
 void kxobject_set_as_singleton(KxObject *self);
-void kxobject_set_as_noninstance(KxObject *self);
+void kxobject_set_as_noparent(KxObject *self);
 
 
 

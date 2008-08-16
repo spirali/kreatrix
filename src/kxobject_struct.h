@@ -51,9 +51,7 @@ struct KxParentSlot {
 typedef enum {
 	KXOBJECT_INSTANCE = 0,
 	KXOBJECT_PROTOTYPE,
-	KXOBJECT_PROTOTYPE_CACHED,
 	KXOBJECT_SINGLETON,
-	KXOBJECT_NONINSTANCE
 } KxObjectPType;
 
 struct KxObjectProfile {

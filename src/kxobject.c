@@ -79,8 +79,6 @@ kxobject_new_from(KxObject *self)
 	++(KXCORE->objects_count);
 	object->extension = self->extension;
 
-	object->profile = self->profile;
-
 	KxObject *tmp = self->gc_next;
 	self->gc_next = object;
 	object->gc_prev = self;
@@ -127,7 +125,7 @@ kxobject_free(KxObject *self)
 		self->extension->free(self);
 	}	
 
-	if (self->ptype == KXOBJECT_PROTOTYPE || self->ptype == KXOBJECT_PROTOTYPE_CACHED) {
+	if (self->ptype == KXOBJECT_PROTOTYPE) {
 		kxobject_profile_free(self->profile);
 		if (self->parent_slot.parent) {
 			kxobject_profile_remove_child_prototype(self->parent_slot.parent->profile, self);
@@ -158,6 +156,23 @@ kxobject_free(KxObject *self)
 }
 
 void 
+kxobject_remove_all_parents(KxObject *self)
+{
+	if (self->parent_slot.parent) {
+		REF_REMOVE(self->parent_slot.parent);
+		self->parent_slot.parent = NULL;
+	};
+	KxParentSlot *pslot = self->parent_slot.next;
+	self->parent_slot.next = NULL;
+	while(pslot) {
+		KxParentSlot *next = pslot->next;
+		REF_REMOVE(pslot->parent);
+		kxfree(pslot);
+		pslot = next;
+	}
+}
+
+void 
 kxobject_clean(KxObject *self) {
 	if (self->extension && self->extension->clean)
 		self->extension->clean(self);
@@ -179,7 +194,7 @@ kxobject_raw_clone(KxObject *self)
 
 	REF_ADD(self);
 	child->parent_slot.parent = self;
-
+	child->profile = self->profile;
 
 
 	return child;
@@ -213,26 +228,7 @@ kxobject_dump(KxObject *self)
 		printf("(%p_%s:%i) {%p} %s\n", self, kxobject_raw_type_name(self), self->ref_count,self->data.ptr, proto_tail);
 }
 
-void 
-kxobject_remove_all_parents(KxObject *self)
-{
-	if (self->ptype == KXOBJECT_INSTANCE) {
-		kxobject_set_as_noninstance(self);
-	}
 
-	if (self->parent_slot.parent) {
-		REF_REMOVE(self->parent_slot.parent);
-		self->parent_slot.parent = NULL;
-	};
-	KxParentSlot *pslot = self->parent_slot.next;
-	self->parent_slot.next = NULL;
-	while(pslot) {
-		KxParentSlot *next = pslot->next;
-		REF_REMOVE(pslot->parent);
-		kxfree(pslot);
-		pslot = next;
-	}
-}
 
 KxObject *
 kxobject_send_message_init(KxObject *self) 
@@ -325,22 +321,52 @@ kxobject_raw_copy(KxObject *self)
 	KxObject *copy = kxobject_new_from(self);
 	kxobject_copy_parents(self, copy);
 	kxobject_slots_copy(self, copy);
-	return copy;
+
+	copy->ptype = self->ptype;
+
+ 	if (self->ptype == KXOBJECT_PROTOTYPE) {
+			copy->profile = kxobject_profile_copy(self->profile);
+			if (copy->parent_slot.parent) {
+				kxobject_profile_add_child_prototype(copy->parent_slot.parent->profile, copy);
+			}
+			return copy;
+	} else {
+			copy->profile = self->profile;
+			return copy;
+	}
 }
 
 
 void
 kxobject_set_parent(KxObject *self, KxObject *parent)
 {
-	if (self->parent_slot.parent) {
-		kxobject_remove_all_parents(self);
-	}
-	self->parent_slot.parent = parent;
-	REF_ADD(parent);
-
 	if (parent->ptype != KXOBJECT_PROTOTYPE) {
 		kxobject_set_as_prototype(parent);
 	}
+
+	if (self->parent_slot.parent) {
+		if (self->ptype == KXOBJECT_PROTOTYPE) {
+			kxobject_profile_remove_child_prototype(self->parent_slot.parent->profile, self);
+		}
+		REF_REMOVE(self->parent_slot.parent);
+	};
+
+
+	KxParentSlot *pslot = self->parent_slot.next;
+	self->parent_slot.next = NULL;
+	while(pslot) {
+		KxParentSlot *next = pslot->next;
+		REF_REMOVE(pslot->parent);
+		kxfree(pslot);
+		pslot = next;
+	}
+
+
+	self->parent_slot.parent = parent;
+	REF_ADD(parent);
+
+	kxobject_profile_add_child_prototype(parent->profile, self);
+	kxobject_repair_profile_after_parent_change(self);
 }
 
 
@@ -356,6 +382,7 @@ kxobject_add_parent(KxObject *self, KxObject *parent)
 		self->parent_slot.parent = parent;
 		return;
 	}
+
 	KxParentSlot *pslot = &self->parent_slot;
 	
 	KxParentSlot *prev = NULL;
@@ -372,20 +399,24 @@ kxobject_add_parent(KxObject *self, KxObject *parent)
 void
 kxobject_remove_parent(KxObject *self, KxObject *parent) 
 {
-	if (self->ptype == KXOBJECT_INSTANCE) {
-		kxobject_set_as_noninstance(self);
-	}
-
 	if (self->parent_slot.parent == parent) {
+		if (self->ptype == KXOBJECT_PROTOTYPE) {
+			kxobject_profile_remove_child_prototype(parent->profile, self);
+		}
+
 		REF_REMOVE(parent);
 		if (self->parent_slot.next == NULL) {
 			self->parent_slot.parent = NULL;
+			kxobject_set_as_noparent(self);
 			return;
 		}
 		KxParentSlot *p = self->parent_slot.next;
 		self->parent_slot.parent = p->parent;
 		self->parent_slot.next = p->next;
 		kxfree(p);
+
+		kxobject_profile_add_child_prototype(self->parent_slot.parent->profile, self);
+		kxobject_repair_profile_after_parent_change(self);
 		return;
 	}
 
@@ -413,6 +444,9 @@ void kxobject_insert_parent(KxObject *self, KxObject *parent)
 	}
 
 	if (self->parent_slot.parent) {
+		if (self->ptype == KXOBJECT_PROTOTYPE) {
+			kxobject_profile_remove_child_prototype(self->parent_slot.parent->profile, self);
+		}
 		KxObject *obj = self->parent_slot.parent;
 		KxParentSlot *pslot = kxparentslot_new(obj);
 		REF_REMOVE(obj);
@@ -422,6 +456,8 @@ void kxobject_insert_parent(KxObject *self, KxObject *parent)
 	REF_ADD(parent);
 	self->parent_slot.parent = parent;
 
+	kxobject_profile_add_child_prototype(parent->profile, self);
+	kxobject_repair_profile_after_parent_change(self);
 }
 
 void 
@@ -1045,8 +1081,9 @@ kxobject_set_as_singleton(KxObject *self)
 }
 
 void
-kxobject_set_as_noninstance(KxObject *self)
+kxobject_set_as_noparent(KxObject *self)
 {
-	self->ptype = KXOBJECT_NONINSTANCE;
-	self->profile = NULL;
+	if (self->ptype != KXOBJECT_PROTOTYPE) {
+		kxobject_set_as_prototype(self);
+	}
 }

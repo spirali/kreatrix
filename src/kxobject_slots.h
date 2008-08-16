@@ -44,5 +44,6 @@ void kxobject_slots_mark(KxObject *self);
 
 void kxobject_slots_dump(KxObject *self);
 
+int kxobject_slots_count(KxObject *self);
 
 #endif // __KXOBJECT_SLOTS_H

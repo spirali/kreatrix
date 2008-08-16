@@ -26,6 +26,7 @@
 #include "utils/list.h"
 #include "kxcodeblock.h"
 #include "kxglobals.h"
+#include "kxobject_slots.h"
 
 KxObjectProfile * 
 kxobject_profile_new()
@@ -35,9 +36,33 @@ kxobject_profile_new()
 	
 	self->slots_symbols = list_new();
 	self->child_prototypes = list_new();
-
 	return self;
 }
+
+KxObjectProfile *
+kxobject_profile_new_for_child(KxObjectProfile *self, KxObject *child)
+{
+	KxObjectProfile *new = kxmalloc(sizeof(KxObjectProfile));
+	ALLOCTEST(new);
+	
+	new->slots_symbols = list_copy(self->slots_symbols);
+	new->child_prototypes = list_new();
+	list_append(self->child_prototypes, child);
+
+	return new;
+}
+
+KxObjectProfile *
+kxobject_profile_copy(KxObjectProfile *self)
+{
+	KxObjectProfile *new = kxmalloc(sizeof(KxObjectProfile));
+	ALLOCTEST(new);
+	
+	new->slots_symbols = list_copy(self->slots_symbols);
+	new->child_prototypes = list_new();
+	return new;
+}
+
 
 void
 kxobject_profile_free(KxObjectProfile *self)
@@ -62,7 +87,30 @@ kxobject_profile_remove_child_prototype(KxObjectProfile *self, KxObject *child)
 void
 kxobject_profile_add_symbol(KxObjectProfile *self, KxSymbol *symbol)
 {
+
+	if (kxobject_profile_check_symbol(self, symbol)) {
+		return;
+	}
+
 	list_append(self->slots_symbols, symbol);
+
+	int t;
+	for (t=0; t < self->child_prototypes->size; t++) {
+		KxObject *prototype = self->child_prototypes->items[t];
+		kxobject_profile_add_symbol(prototype->profile, symbol);
+	}
+}
+
+List *
+kxobject_profile_instance_slots_to_list(KxObjectProfile *self)
+{
+	return list_copy(self->slots_symbols);
+}
+
+List *
+kxobject_profile_child_prototypes_to_list(KxObjectProfile *self)
+{
+	return list_copy(self->child_prototypes);
 }
 
 int
@@ -102,17 +150,64 @@ kxobject_check_profile_and_repair(KxObject *self, KxSymbol *symbol)
 	}
 }
 
-
-KxObjectProfile *
-kxobject_profile_new_for_child(KxObjectProfile *self, KxObject *child)
+static void
+kxobject_repair_prototype_profile_after_parent_change(KxObject *self)
 {
-	KxObjectProfile *new = kxmalloc(sizeof(KxObjectProfile));
-	ALLOCTEST(new);
-	
-	new->slots_symbols = list_copy(self->slots_symbols);
-	new->child_prototypes = list_new();
+	if (kxobject_recursive_mark_test(self))
+		return;
 
-	list_append(self->child_prototypes, child);
+	kxobject_recursive_mark_set(self);
 
-	return new;
+	int size = self->parent_slot.parent->profile->slots_symbols->size;
+	KxSymbol **symbols = (KxSymbol **) self->parent_slot.parent->profile->slots_symbols->items;
+	int t;
+	for (t=0; t < size; t++) {
+			if (!kxobject_profile_check_symbol(self->profile, symbols[t])) {
+				list_append(self->profile->slots_symbols, symbols[t]);
+			}
+	}
+
+	for (t=0; t < self->profile->child_prototypes->size; t++) {
+		KxObject *child = self->profile->child_prototypes->items[t];
+		kxobject_repair_prototype_profile_after_parent_change(child);
+	}
+
+	kxobject_recursive_mark_reset(self);
+}
+
+static int
+kxobject_check_if_instance_profile_is_valid(KxObject *self)
+{
+	int count = kxobject_slots_count(self);
+	int size = self->profile->slots_symbols->size;
+	int t;
+	for (t=0; t < size; t++) {
+			KxSymbol *symbol = self->profile->slots_symbols->items[t];
+
+			if (kxobject_get_slot(self, symbol)) {
+				count--;
+			}
+	}
+
+	return count == 0;
+}
+
+
+void
+kxobject_repair_profile_after_parent_change(KxObject *self)
+{
+	switch(self->ptype) {
+		case KXOBJECT_INSTANCE:
+			self->profile = self->parent_slot.parent->profile;
+			if (!kxobject_check_if_instance_profile_is_valid(self)) {
+				kxobject_set_as_singleton(self);
+			}
+			return;
+		case KXOBJECT_SINGLETON:
+			self->profile = self->parent_slot.parent->profile;
+			return;
+		case KXOBJECT_PROTOTYPE:
+			kxobject_repair_prototype_profile_after_parent_change(self);
+			return;
+	}
 }
