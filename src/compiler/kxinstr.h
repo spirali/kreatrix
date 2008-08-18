@@ -53,6 +53,8 @@ typedef enum {
 	KXCI_UPDATE_LOCAL, // 36
 	KXCI_UPDATE_OUTER_LOCAL, // 37
 
+	KXCI_HOTSPOT_PROBE = 40,
+
 	KXCI_INSTRUCTIONS_COUNT
 } KxInstructionType;
 

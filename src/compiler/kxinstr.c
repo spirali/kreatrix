@@ -63,7 +63,12 @@ KxInstructionInfo kxinstructions_info[KXCI_INSTRUCTIONS_COUNT] = {
 	{"push_self", 0},           // 34 KXCI_PUSH_SELF
 	{"push_activation", 0},     // 35 KXCI_PUSH_ACTIVATION
 	{"update_local", 1},        // 36 KXCI_UPDATE_LOCAL
-	{"update_outer_local", 2}   // 37 KXCI_UPDATE_OUTER_LOCAL
+	{"update_outer_local", 2},  // 37 KXCI_UPDATE_OUTER_LOCAL
+
+	{"reserved", 0},
+	{"reserved", 0},
+
+	{"hotspot_probe", 0},       // 40 KXCI_HOTSPOT_PROBE
 };
 
 

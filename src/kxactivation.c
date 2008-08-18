@@ -37,6 +37,7 @@
 #include "kxexception.h"
 #include "kxcharacter.h"
 #include "kxactivation_object.h"
+#include "kxglobals.h"
 
 #define FETCH_BYTE(codep) *(codep++)
 
@@ -279,6 +280,15 @@ kxactivation_return(KxActivation *self, KxReturn ret)
 	}
 }
 
+
+static void
+kxactivation_hotspot_detected(KxActivation *self)
+{
+	if (kx_verbose) {
+		printf("Hot spot detected: ");
+		kxobject_dump(self->codeblock);
+	}
+}
 
 KxObject * 
 kxactivation_run(KxActivation *self) 
@@ -610,6 +620,16 @@ kxactivation_run(KxActivation *self)
 				act->locals[pos] = obj;
 				continue;
 			}
+
+			case KXCI_HOTSPOT_PROBE:
+			#ifdef KX_HOTSPOT
+			cdata->run_counter++;
+			if (cdata->run_counter == 0) {
+				cdata->code++;
+				kxactivation_hotspot_detected(self);
+			}
+			#endif
+			continue;
 
 
 
