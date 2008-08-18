@@ -54,8 +54,8 @@ kxobject_new(KxCore *core)
 
 	KxObject *object = kxcore_raw_object_get(core);
 
-	#ifdef KX_MULTI_CORE
-		object->core = self->core;
+	#ifdef KX_MULTI_STATE
+		object->core = core;
 	#endif
 
 	object->ref_count = 1;

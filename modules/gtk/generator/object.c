@@ -68,8 +68,8 @@ KxObject *
 kx%name%_from(KxCore *core, %ctype% data)
 {
 	if (data == NULL) {
-		REF_ADD(KXCORE->object_nil);
-		return KXCORE->object_nil;
+		REF_ADD(core->object_nil);
+		return core->object_nil;
 	}
 	%new_from%
 }

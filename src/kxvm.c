@@ -84,6 +84,13 @@ kxvm_has_support(KxObject *self, KxMessage *message)
 		}
 	#endif // KX_LOG
 
+	#ifdef KX_HOTSPOT
+		if (!strcmp("hotspot",param)) {
+			KXRETURN_TRUE;
+		}
+	#endif // KX_HOTSPOT
+
+
 	KXRETURN_FALSE;
 }
 
@@ -99,6 +106,11 @@ kxvm_support_list(KxObject *self, KxMessage *message)
 	#ifdef KX_LOG
 	list_append(list, KXSTRING("log"));
 	#endif // KX_LOG
+
+	#ifdef KX_HOTSPOT
+	list_append(list, KXSTRING("hotspot"));
+	#endif // KX_HOTSPOT
+
 
 	return KXLIST(list);
 }

@@ -65,11 +65,12 @@ KxInstructionInfo kxinstructions_info[KXCI_INSTRUCTIONS_COUNT] = {
 	{"update_local", 1},        // 36 KXCI_UPDATE_LOCAL
 	{"update_outer_local", 2},  // 37 KXCI_UPDATE_OUTER_LOCAL
 
-	{"reserved", 0}, // 38
-	{"reserved", 0}, // 39
-
-	// 40 - 49
 	{"reserved", 0},
+	{"reserved", 0},
+
+	{"hotspot_probe", 0},       // 40 KXCI_HOTSPOT_PROBE
+
+	// 41 - 49
 	{"reserved", 0},
 	{"reserved", 0},
 	{"reserved", 0},

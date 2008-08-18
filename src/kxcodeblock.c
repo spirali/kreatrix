@@ -35,6 +35,7 @@
 #include "kxfloat.h"
 #include "compiler/kxinstr.h"
 #include "kxdecompiler.h"
+#include "kxglobals.h"
 
 #define GET_BYTECODE_CHAR *((*bytecode)++)
 
@@ -78,6 +79,9 @@ kxcodeblock_new(KxCore *core) {
 	codeblock->data.ptr = kxcalloc(1,sizeof(KxCodeBlockData));
 	ALLOCTEST(codeblock->data.ptr);
 
+	#ifdef KX_HOTSPOT
+		KXCODEBLOCK_DATA(codeblock)->run_counter = KXCODEBLOCK_RUN_COUNTER_START_VALUE;
+	#endif
 	return codeblock;
 }
 
@@ -185,8 +189,14 @@ kxcodeblock_free(KxCodeBlock *self) {
 		kxfree(data->locals_symbols);
 
 	
-	if (data->code)
+	if (data->code) {
+		#ifdef KX_HOTSPOT
+		if (data->code[0] != KXCI_HOTSPOT_PROBE) {
+			--data->code;
+		}
+		#endif
 		kxfree(data->code);
+	}
 	
 	if (data->prealocated_locals) 
 		kxfree(data->prealocated_locals);
@@ -208,10 +218,17 @@ kxcodeblock_data_new_return_self()
 
 	data->type = KXCODEBLOCK_METHOD;
 	data->source_filename = strdup("<build-in>");
+
+	#ifdef KX_HOTSPOT
+	data->code = kxmalloc(2);
+	ALLOCTEST(data->code);
+	data->code[0] = KXCI_HOTSPOT_PROBE;
+	data->code[1] = KXCI_RETURN_SELF;
+	#else
 	data->code = kxmalloc(1);
 	ALLOCTEST(data->code);
-
 	data->code[0] = KXCI_RETURN_SELF;
+	#endif
 
 	return data;
 }
@@ -357,12 +374,19 @@ kxcodeblock_read_code(KxCodeBlock *self, char **bytecode)
 		data->code = NULL;
 		return;
 	}
-
-	data->code = kxmalloc(size);
-	ALLOCTEST(data->code);
-
-	memcpy(data->code,*bytecode,size);
-	*bytecode += size;
+	
+	#ifdef KX_HOTSPOT
+		data->code = kxmalloc(size + 1);
+		ALLOCTEST(data->code);
+		data->code[0] = KXCI_HOTSPOT_PROBE;
+		memcpy(data->code + 1,*bytecode,size);
+		*bytecode += size;
+	#else 
+		data->code = kxmalloc(size);
+		ALLOCTEST(data->code);
+		memcpy(data->code,*bytecode,size);
+		*bytecode += size;
+	#endif
 
 }
 

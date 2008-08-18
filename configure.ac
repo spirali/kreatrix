@@ -66,7 +66,7 @@ AC_MSG_NOTICE([DEBUG OPTIONS: vm-log enabled])
 ],[])
 
 # MultiCore VM
-AC_ARG_ENABLE(threads,
+AC_ARG_ENABLE(multistate,
 [  --enable-multistate   Enable support for more VMs in one application ],
 [ 
 kx_multistate="${enableval}"
@@ -92,6 +92,22 @@ AC_MSG_NOTICE([Threads support disabled])
 else
 AC_DEFINE_UNQUOTED([KX_THREADS_SUPPORT],[1],[Support threads in VM])
 AM_CONDITIONAL([KX_THREADS_SUPPORT], true)
+fi
+
+
+# Hotspot support
+AC_ARG_ENABLE(hotspot,
+[  --disable-hotspot   Disable hotspot support ],
+[ 
+kx_hotspot="${enableval}"
+],[kx_hotspot=yes])
+
+if test "$kx_hotspot" = no; then
+AM_CONDITIONAL([KX_HOTSPOT], false)
+AC_MSG_NOTICE([Hotspot support disabled])
+else
+AC_DEFINE_UNQUOTED([KX_HOTSPOT],[1],[Support for hotspot])
+AM_CONDITIONAL([KX_HOTSPOT], true)
 fi
 
 

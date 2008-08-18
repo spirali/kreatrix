@@ -126,7 +126,7 @@ kxcore_new()
 	KxCore *core = kxcalloc(1,sizeof(KxCore));
 	ALLOCTEST(core);
 
-	#ifndef KX_MULTI_CORE
+	#ifndef KX_MULTI_STATE
 	if (kx_global_core) {
 		fprintf(stderr,"kxcore_new: Kreatrix is compiled without --enable-multistate, there can't be two cores");
 		abort();
