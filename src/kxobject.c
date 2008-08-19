@@ -408,6 +408,7 @@ kxobject_remove_parent(KxObject *self, KxObject *parent)
 		if (self->parent_slot.next == NULL) {
 			self->parent_slot.parent = NULL;
 			kxobject_set_as_noparent(self);
+			kx_inline_cache_repair_by_prototype(self);
 			return;
 		}
 		KxParentSlot *p = self->parent_slot.next;

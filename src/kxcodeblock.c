@@ -738,7 +738,7 @@ kxcodeblock_insert_inline_cache_instructions(KxCodeBlock *self)
 }
 
 void 
-kx_inline_cache_repair_prototype(KxObject *prototype)
+kx_inline_cache_repair_by_prototype(KxObject *prototype)
 {
 	if (kxobject_recursive_mark_test(prototype))
 		return;
@@ -770,14 +770,14 @@ kx_inline_cache_repair_prototype(KxObject *prototype)
 	int t;
 	List *list = prototype->profile->child_prototypes;
 	for (t=0; t < list->size; t++) {
-		kx_inline_cache_repair_prototype(list->items[t]);
+		kx_inline_cache_repair_by_prototype(list->items[t]);
 	}
 
 	kxobject_recursive_mark_reset(prototype);
 }
 
 void 
-kx_inline_cache_repair_prototype_and_name(KxObject *prototype, KxSymbol *message_name)
+kx_inline_cache_repair_by_prototype_and_name(KxObject *prototype, KxSymbol *message_name)
 {
 	if (kxobject_recursive_mark_test(prototype))
 		return;
@@ -815,7 +815,7 @@ kx_inline_cache_repair_prototype_and_name(KxObject *prototype, KxSymbol *message
 	List *list = prototype->profile->child_prototypes;
 
 	for (t=0; t < list->size; t++) {
-		kx_inline_cache_repair_prototype_and_name(list->items[t], message_name);
+		kx_inline_cache_repair_by_prototype_and_name(list->items[t], message_name);
 	}
 
 	kxobject_recursive_mark_reset(prototype);

@@ -162,7 +162,7 @@ kxobject_check_profile_and_repair(KxObject *self, KxSymbol *symbol, KxObject *va
 		kxobject_set_as_singleton(self);
 	} else {
 		if (self->ptype == KXOBJECT_PROTOTYPE) {
-			kx_inline_cache_repair_prototype_and_name(self, symbol);
+			kx_inline_cache_repair_by_prototype_and_name(self, symbol);
 			/*if (kx_verbose) {
 				printf("Inline cache repair '%s'/", KXSYMBOL_AS_CSTRING(symbol));
 				kxobject_dump(self);
@@ -229,6 +229,7 @@ kxobject_repair_profile_after_parent_change(KxObject *self)
 			return;
 		case KXOBJECT_PROTOTYPE:
 			kxobject_repair_prototype_profile_after_parent_change(self);
+			kx_inline_cache_repair_by_prototype(self);
 			return;
 	}
 }

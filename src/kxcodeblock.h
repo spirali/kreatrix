@@ -102,8 +102,8 @@ KxObject * kxcodeblock_run_scoped(KxCodeBlock *self, struct KxActivation *parent
 int kxcodeblock_message_name_id(KxCodeBlock *self, KxSymbol *message_name);
 void kxcodeblock_insert_inline_cache_instructions(KxCodeBlock *self);
 
-void kx_inline_cache_repair_prototype(KxObject *prototype);
-void kx_inline_cache_repair_prototype_and_name(KxObject *prototype, KxSymbol *message_name);
+void kx_inline_cache_repair_by_prototype(KxObject *prototype);
+void kx_inline_cache_repair_by_prototype_and_name(KxObject *prototype, KxSymbol *message_name);
 
 
 //KxObject * kxcodeblock_run_with_direct_target(KxCodeBlock *self, KxObject *target, KxMessage *message);
