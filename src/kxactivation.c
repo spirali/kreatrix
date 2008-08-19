@@ -281,6 +281,7 @@ kxactivation_return(KxActivation *self, KxReturn ret)
 	}
 }
 
+#ifdef KX_INLINE_CACHE
 static int
 kxactivation_try_to_fill_inline_cache(KxCodeBlockInlineCache *ic, KxObject *target)
 {
@@ -315,12 +316,15 @@ kxactivation_try_to_fill_inline_cache(KxCodeBlockInlineCache *ic, KxObject *targ
 	}
 	return 0;
 }
+#endif
 
 
 static void
 kxactivation_hotspot_detected(KxActivation *self)
 {
+	#ifdef KX_INLINE_CACHE
 	kxcodeblock_insert_inline_cache_instructions(self->codeblock);
+	#endif
 	if (kx_verbose) {
 		printf("Hot spot detected: ");
 		kxobject_dump(self->codeblock);
@@ -668,7 +672,7 @@ kxactivation_run(KxActivation *self)
 			#endif
 			continue;
 
-
+			#ifdef KX_INLINE_CACHE
 			case KXCI_UNARY_MSG_C:
 			{
 				int inlinecache_id = (int) FETCH_BYTE(codep);
@@ -965,6 +969,7 @@ kxactivation_run(KxActivation *self)
 
 				continue;
 			}
+			#endif // KX_INLINE_CACHE
 
 		
 

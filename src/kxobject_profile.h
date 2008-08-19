@@ -22,6 +22,9 @@
 #ifndef __KXOBJECT_PROFILE_H
 #define __KXOBJECT_PROFILE_H
 
+#include "kxconfig.h"
+
+#ifdef KX_INLINE_CACHE
 #include "kxobject.h"
 
 KxObjectProfile * kxobject_profile_new();
@@ -36,5 +39,11 @@ void kxobject_check_profile_and_repair(KxObject *self, KxSymbol *symbol, KxObjec
 List *kxobject_profile_instance_slots_to_list(KxObjectProfile *self);
 List *kxobject_profile_child_prototypes_to_list(KxObjectProfile *self);
 void kxobject_repair_profile_after_parent_change(KxObject *self);
+
+void kxobject_set_as_prototype(KxObject *self);
+void kxobject_set_as_singleton(KxObject *self);
+void kxobject_set_as_noparent(KxObject *self);
+
+#endif // KX_INLINE_CACHE
 
 #endif // __KXOBJECT_PROFILE_H

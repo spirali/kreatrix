@@ -28,6 +28,8 @@
 #include "kxglobals.h"
 #include "kxobject_slots.h"
 
+#ifdef KX_INLINE_CACHE
+
 KxObjectProfile * 
 kxobject_profile_new()
 {
@@ -233,3 +235,26 @@ kxobject_repair_profile_after_parent_change(KxObject *self)
 			return;
 	}
 }
+
+void
+kxobject_set_as_prototype(KxObject *self)
+{
+	self->profile = kxobject_profile_new_for_child(self->profile, self);
+	self->ptype = KXOBJECT_PROTOTYPE;
+}
+
+void
+kxobject_set_as_singleton(KxObject *self)
+{
+	self->ptype = KXOBJECT_SINGLETON;
+}
+
+void
+kxobject_set_as_noparent(KxObject *self)
+{
+	if (self->ptype != KXOBJECT_PROTOTYPE) {
+		kxobject_set_as_prototype(self);
+	}
+}
+
+#endif // KX_INLINE_CACHE

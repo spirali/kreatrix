@@ -138,12 +138,6 @@ int kxobject_check_type(KxObject *self, KxObjectExtension *extension);
 
 KxObject *kxobject_send_message_init(KxObject *self);
 
-void kxobject_set_as_prototype(KxObject *self);
-void kxobject_set_as_singleton(KxObject *self);
-void kxobject_set_as_noparent(KxObject *self);
-
-
-
 /** Only for 'foreach' constructions */
 void kxobject_ref_remove(void *self);
 void kxobject_ref_add(void *self);

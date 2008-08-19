@@ -168,8 +168,10 @@ kxcore_new()
 	core->base_object->gc_next = core->base_object;
 	/** base object inited */
 	
+	#ifdef KX_INLINE_CACHE
 	core->base_object->ptype = KXOBJECT_PROTOTYPE;
 	core->base_object->profile = kxobject_profile_new();
+	#endif
 
 	/* Prototypes */
 	KxSymbol *protosymbol = kxsymbol_new_prototype(core);

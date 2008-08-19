@@ -75,8 +75,10 @@ struct KxObject {
 		unsigned char charval;
 	} data;
 
+	#ifdef KX_INLINE_CACHE
 	KxObjectPType ptype;
 	KxObjectProfile *profile;
+	#endif // KX_INLINE_CACHE
 
 	int flags;
 

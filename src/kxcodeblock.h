@@ -65,7 +65,10 @@ struct KxCodeBlockData {
 	int locals_count;
 	KxSymbol **locals_symbols;
 
+	#ifdef KX_INLINE_CACHE
 	KxCodeBlockInlineCache *inline_cache;
+	#endif // KX_INLINE_CACHE
+
 	int inline_cache_size;
 	KxCodeBlock *next_codeblock_with_inline_cache;
 	

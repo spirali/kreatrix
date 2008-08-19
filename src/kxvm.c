@@ -91,6 +91,12 @@ kxvm_has_support(KxObject *self, KxMessage *message)
 		}
 	#endif // KX_HOTSPOT
 
+	#ifdef KX_INLINE_CACHE
+		if (!strcmp("icache",param)) {
+			KXRETURN_TRUE;
+		}
+	#endif // KX_INLINE_CACHE
+
 
 	KXRETURN_FALSE;
 }
@@ -112,6 +118,9 @@ kxvm_support_list(KxObject *self, KxMessage *message)
 	list_append(list, KXSTRING("hotspot"));
 	#endif // KX_HOTSPOT
 
+	#ifdef KX_INLINE_CACHE
+	list_append(list, KXSTRING("icache"));
+	#endif // KX_INLINE_CACHE
 
 	return KXLIST(list);
 }
@@ -174,6 +183,7 @@ kxvm_all_objects(KxObject *self, KxMessage *message)
 static KxObject *
 kxvm_add_instance_slot_to(KxObject *self, KxMessage *message)
 {
+	#ifdef KX_INLINE_CACHE
 	KxObject *symbol = message->params[0];
 	KXCHECK_SYMBOL(symbol, 0);
 
@@ -184,6 +194,7 @@ kxvm_add_instance_slot_to(KxObject *self, KxMessage *message)
 	}
 
 	kxobject_profile_add_symbol(obj->profile, symbol);
+	#endif
 
 	KXRETURN(self);
 }

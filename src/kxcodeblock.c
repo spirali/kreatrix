@@ -85,6 +85,7 @@ kxcodeblock_new(KxCore *core) {
 	return codeblock;
 }
 
+#ifdef KX_INLINE_CACHE
 static void
 kxcodeblock_clean_inline_cache(KxCodeBlock *self)
 {
@@ -125,6 +126,7 @@ kxcodeblock_clean_inline_cache(KxCodeBlock *self)
 
 
 }
+#endif // KX_INLINE_CACHE
 
 static void
 kxcodeblock_clean(KxCodeBlock *self) {
@@ -146,11 +148,13 @@ kxcodeblock_clean(KxCodeBlock *self) {
 		data->symbol_frame = NULL;
 	}
 
+	#ifdef KX_INLINE_CACHE
 	if (data->inline_cache)
 	{
 		kxcodeblock_clean_inline_cache(self);
 		data->inline_cache = NULL;
 	}
+	#endif
 }
 
 static void
@@ -201,10 +205,12 @@ kxcodeblock_free(KxCodeBlock *self) {
 	if (data->prealocated_locals) 
 		kxfree(data->prealocated_locals);
 
+	#ifdef KX_INLINE_CACHE
 	if (data->inline_cache)
 	{
 		kxcodeblock_clean_inline_cache(self);
 	}
+	#endif
 
 	if (data->created_slots) {
 		kxfree(data->created_slots);
@@ -648,6 +654,7 @@ kxcodeblock_mark(KxObject *self)
 		kxobject_mark(data->subcodeblocks[t]);
 	}
 
+	#ifdef KX_INLINE_CACHE
 	if (data->inline_cache)
 	{
 		int t;
@@ -662,9 +669,10 @@ kxcodeblock_mark(KxObject *self)
 				kxobject_mark(ic->message_name);
 		}
 	}
-
+	#endif
 }
 
+#ifdef KX_INLINE_CACHE
 void
 kxcodeblock_insert_inline_cache_instructions(KxCodeBlock *self)
 {
@@ -820,6 +828,7 @@ kx_inline_cache_repair_by_prototype_and_name(KxObject *prototype, KxSymbol *mess
 
 	kxobject_recursive_mark_reset(prototype);
 }
+#endif
 
 static KxObject *
 kxcodeblock_params(KxCodeBlock *self, KxMessage *message) 
@@ -892,7 +901,9 @@ kxcodeblock_message_names(KxCodeBlock *self, KxMessage *message)
 static KxObject *
 kxcodeblock_insert_inline_cache(KxCodeBlock *self, KxMessage *message)
 {
+	#ifdef KX_INLINE_CACHE
 	kxcodeblock_insert_inline_cache_instructions(self);
+	#endif
 	KXRETURN(self);
 }
 
