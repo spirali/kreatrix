@@ -17,6 +17,44 @@ testInlineCache = test TestCase clone do: {
 		((obj method: 0@0) == 0) assertTrue.
 	}.
 
+	testAddInstanceSlot = {
+		|obj|
+		obj << Object clone.
+		VM addInstanceSlot: #abc to: obj.
+
+		((Object __internalData: #__instanceSlots) == #()) assertTrue.
+		((obj __internalData: #__instanceSlots) == #(#abc)) assertTrue.
+
+	}.
+
+	testAccessors = { 
+		|Point1 Point2|
+
+		Point1 << Object clone do: {
+			type = "Point1".
+			x <- 0.
+			y <- 0.
+		}.
+
+		Point2 << Object clone do: {
+			type = "Point2".
+			x = 0.
+
+			doSomething = { }.
+			x: = { :parameter | doSomething. x = (parameter + 1) * (2 + #() at: 0 put: 2). x2 = resend x. }.
+			y <- 0.
+
+			xy = { abc cde = "a" }.
+			cd = { set: abc slot: (123 + 321) }.
+			
+			test1 = { m = println. m = println. }.
+			test2 = { m = 3+4 }.
+		}.
+
+		((Point1 __internalData: #__instanceSlots) == #(#x #y)) assertTrue.
+		((Point2 __internalData: #__instanceSlots) == #(#x #x2 #y #m)) assertTrue.
+	}.
+
 	testPrototype = {
 		|A B C|
 

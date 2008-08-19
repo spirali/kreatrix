@@ -44,7 +44,6 @@ struct KxcLiteral {
 	KxcLiteralType type;
 	union {
 		int integer;
-		int symbol;
 		int charval;
 		double floatval;
 		char *string;
@@ -84,6 +83,7 @@ struct KxcBlock {
 
 	struct List *message_linenumbers;
 
+	struct List *created_slots;
 };
 
 struct KxcBlock * kxcblock_new(int type,KxcBlock *parent, List *parameters, List *localslots, List *errors);

@@ -157,9 +157,6 @@ kxcinstruction_bytecode_write(KxcInstruction *instruction, char **bytecode, KxcB
 			BYTECODE_WRITE_CHAR(instruction->value.local.scope - 1);
 			BYTECODE_WRITE_CHAR(instruction->value.local.index);
 			return;
-
-
-
 	}
 
 	fprintf(stderr,"Internal error, invalid instruction type\n");
@@ -188,6 +185,7 @@ kxcblock_new(int type, KxcBlock * parent, List *parameters, List *localslots, Li
 
 	block->symbols = list_new();
 	block->literals = list_new();
+	block->created_slots = NULL;
 
 	block->type = type;
 
@@ -220,6 +218,9 @@ kxcblock_free(KxcBlock *block)
 
 	if (block->locals)
 		free(block->locals);
+	
+	if (block->created_slots)
+		list_free(block->created_slots);
 
 	// Free instructions
 	list_foreach(block->code, (ListForeachFcn*) &kxcinstruction_free);
@@ -431,6 +432,121 @@ kxcblock_message_substitution(KxcBlock *block, char *messagename)
 }
 
 
+static List *
+kxcblock_construct_stack_state(KxcBlock *block)
+{
+	List *stack = list_new();
+	int t;
+	for (t=0; t < block->code->size; t++) {
+		KxcInstruction *i = block->code->items[t];
+
+		switch(i->type) {
+
+			case KXCI_BINARY_MSG:
+				list_fast_pop(stack);
+				list_fast_pop(stack);
+				list_append(stack, i);
+				break;
+
+			case KXCI_UNARY_MSG:  
+				list_fast_pop(stack);
+				list_append(stack, i);
+				break;
+		
+			case KXCI_KEYWORD_MSG:
+				list_fast_pop(stack);
+			case KXCI_LOCAL_KEYWORD_MSG:
+			case KXCI_RESEND_KEYWORD_MSG:
+				{
+					int s;
+					char *msgname = (char*) block->symbols->items[i->value.symbol];
+					int count = params_count(msgname);
+
+					for (s = 0; s < count; s++) {
+						list_fast_pop(stack);
+					}
+					list_append(stack, i);
+					break;
+				}
+
+			case KXCI_LIST:
+				{
+					int s;
+					for (s = 0; s < i->value.list_size; s++) {
+						list_fast_pop(stack);
+					}
+					list_append(stack, i);
+					break;
+				}
+
+
+			case KXCI_UPDATE_LOCAL:
+			case KXCI_UPDATE_OUTER_LOCAL:
+			case KXCI_POP:
+				list_fast_pop(stack);
+				break;
+
+			case KXCI_LOCAL_UNARY_MSG:
+			case KXCI_RESEND_UNARY_MSG:
+			case KXCI_PUSH_LITERAL:
+			case KXCI_PUSH_METHOD:
+			case KXCI_PUSH_BLOCK: 
+			case KXCI_PUSH_LOCAL:
+			case KXCI_PUSH_OUTER_LOCAL:
+			case KXCI_PUSH_SELF:
+			case KXCI_PUSH_ACTIVATION:
+				list_append(stack, i);
+				break;
+				 
+			case KXCI_RETURN_STACK_TOP:
+			case KXCI_RETURN_SELF:
+			case KXCI_LONGRETURN:
+				 break;
+
+			case KXCI_HOTSPOT_PROBE:
+			case KXCI_UNARY_MSG_C:
+			case KXCI_BINARY_MSG_C:
+			case KXCI_KEYWORD_MSG_C:
+			case KXCI_LOCAL_UNARY_MSG_C:
+			case KXCI_LOCAL_KEYWORD_MSG_C:
+			case KXCI_INSTRUCTIONS_COUNT:
+			default:
+				printf("Internal error: kxcblock_construct_stack_state");
+				abort();
+				break;
+		}
+	}
+	return stack;
+}
+
+void kxcblock_add_to_created_slots(KxcBlock *block)
+{
+	List *stack = kxcblock_construct_stack_state(block);
+
+	int size = stack->size;
+	if (size < 2) {
+		list_free(stack);
+		return;
+	}
+	
+	KxcInstruction *i = stack->items[size - 2];
+	if (i->type == KXCI_PUSH_LITERAL) {
+		int lindex = i->value.literal;
+		KxcLiteral *literal = block->literals->items[lindex];
+		if (literal->type == KXC_LITERAL_SYMBOL) {
+			if (block->created_slots == NULL) {
+				block->created_slots = list_new();
+			}
+			if (!list_contains(block->created_slots, (void*) lindex)) {
+				list_append(block->created_slots, (void*) lindex);
+			}
+		}
+	}
+
+	list_free(stack);
+}
+
+
 /**
  *  Put message into block
  *	msgtype is instruction type of message
@@ -442,6 +558,10 @@ kxcblock_put_message(KxcBlock *block, KxInstructionType msgtype, char *messagena
 	if (msgtype == KXCI_LOCAL_UNARY_MSG) {
 		if (kxcblock_message_substitution(block, messagename))
 			return;
+	}
+
+	if (msgtype == KXCI_LOCAL_KEYWORD_MSG && !strcmp("slot:set:", messagename)) {
+		kxcblock_add_to_created_slots(block);
 	}
 
 	PDEBUG("sendmsg: %i %s\n",msgtype,messagename);
@@ -805,6 +925,17 @@ kxcblock_bytecode_lineno_size(KxcBlock *block)
 	return size;
 }
 
+static int
+kxcblock_bytecode_created_slots_size(KxcBlock *block)
+{
+	int size=1;
+	if (block->created_slots) {
+		size+=block->created_slots->size;
+	}
+	return size;
+}
+
+
 /**
  * Get bytecode's size of whole block
  */
@@ -820,6 +951,7 @@ kxcblock_bytecode_size(KxcBlock *block)
 
 	size += kxcblock_bytecode_code_size(block);
 	size += kxcblock_bytecode_lineno_size(block);
+	size += kxcblock_bytecode_created_slots_size(block);
 
 	size++; // number of subblocks
 	int t;
@@ -921,6 +1053,25 @@ kxcblock_bytecode_lineno_write(KxcBlock *block, char **bytecode)
 	}
 }
 
+static void
+kxcblock_bytecode_created_slots_write(KxcBlock *block, char **bytecode)
+{
+	int size;
+	if (block->created_slots) {
+		size = block->created_slots->size;
+	} else {
+		size = 0;
+	}
+	BYTECODE_WRITE_CHAR(size);
+
+	int t;
+	for (t=0;t<size;t++) {
+		char lindex = (long) block->created_slots->items[t];
+		BYTECODE_WRITE_CHAR(lindex);
+	}
+}
+
+
 /**
  * Write bytecode of codeblock and all subblocks recursively, 
  */ 
@@ -933,6 +1084,7 @@ kxcblock_bytecode_write(KxcBlock *block, char **bytecode)
 	kxcblock_bytecode_params_write(block, bytecode);
 	kxcblock_bytecode_locals_write(block, bytecode);
 	kxcblock_bytecode_lineno_write(block, bytecode);
+	kxcblock_bytecode_created_slots_write(block, bytecode);
 	kxcblock_bytecode_code_write(block,bytecode);
 	
 	BYTECODE_WRITE_CHAR(block->subblocks->size);

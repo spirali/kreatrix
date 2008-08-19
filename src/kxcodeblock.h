@@ -79,6 +79,7 @@ struct KxCodeBlockData {
 	char *source_filename;
 	int *message_linenumbers;
 
+	char *created_slots;
 };
 
 struct KxCodeBlockInlineCache {

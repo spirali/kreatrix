@@ -95,6 +95,7 @@ kxobject_profile_add_symbol(KxObjectProfile *self, KxSymbol *symbol)
 	list_append(self->slots_symbols, symbol);
 
 	int t;
+
 	for (t=0; t < self->child_prototypes->size; t++) {
 		KxObject *prototype = self->child_prototypes->items[t];
 		kxobject_profile_add_symbol(prototype->profile, symbol);
@@ -127,8 +128,28 @@ kxobject_profile_check_symbol(KxObjectProfile *self, KxSymbol *symbol)
 }
 
 void
-kxobject_check_profile_and_repair(KxObject *self, KxSymbol *symbol)
+kxobject_check_profile_and_repair(KxObject *self, KxSymbol *symbol, KxObject *value)
 {
+	if (IS_KXCODEBLOCK(value)) {
+		KxCodeBlockData *cdata = KXCODEBLOCK_DATA(value);
+		char *s = cdata->created_slots;
+		if (s) {
+			if (self->ptype != KXOBJECT_PROTOTYPE) {
+				kxobject_set_as_prototype(self);
+			}
+			while(*s != -1) {
+				if (kx_verbose) {
+					printf("Added slot '%s' to profile from 'created_slots'\n", 
+						KXSYMBOL_AS_CSTRING(cdata->literals[(int)*s]));
+				}
+
+				kxobject_profile_add_symbol(self->profile, cdata->literals[(int)*s]);
+				s++;
+
+			}
+		}
+	}
+
 	int t;
 	int size = self->profile->slots_symbols->size;
 	KxSymbol **symbols = (KxSymbol **) self->profile->slots_symbols->items;

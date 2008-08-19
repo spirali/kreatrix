@@ -469,13 +469,13 @@ kxobject_set_slot(KxObject *self, KxSymbol *key, KxObject *value)
 	if (slot) {
 		REF_REMOVE(slot->value);
 		slot->value = value;
-		kxobject_check_profile_and_repair(self, key);
+		kxobject_check_profile_and_repair(self, key, value);
 		return;
 	}
 	REF_ADD(key); // if slot not exist, reference to key must be added
 	kxobject_slot_add(self,key,value,0);
 	
-	kxobject_check_profile_and_repair(self, key);
+	kxobject_check_profile_and_repair(self, key, value);
 }
 
 void 
@@ -488,13 +488,13 @@ kxobject_set_slot_with_flags(KxObject *self, KxSymbol *key, KxObject *value, int
 		REF_REMOVE(slot->value);
 		slot->value = value;
 		slot->flags = flags;
-		kxobject_check_profile_and_repair(self, key);
+		kxobject_check_profile_and_repair(self, key, value);
 		return;
 	}
 	REF_ADD(key); // if slot not exist, reference to key must be added
 	kxobject_slot_add(self,key,value,flags);
 
-	kxobject_check_profile_and_repair(self, key);
+	kxobject_check_profile_and_repair(self, key, value);
 }
 
 
@@ -509,12 +509,12 @@ kxobject_set_slot_no_ref(KxObject *self, KxSymbol *key, KxObject *value)
 		REF_REMOVE(key);
 		REF_REMOVE(slot->value);
 		slot->value = value;
-		kxobject_check_profile_and_repair(self, key);
+		kxobject_check_profile_and_repair(self, key, value);
 		return;
 	}
 	kxobject_slot_add(self,key,value,0);
 
-	kxobject_check_profile_and_repair(self, key);
+	kxobject_check_profile_and_repair(self, key, value);
 }
 
 
@@ -527,12 +527,12 @@ kxobject_set_slot_no_ref2(KxObject *self, KxSymbol *key, KxObject *value)
 		REF_REMOVE(key);
 		REF_REMOVE(slot->value);
 		slot->value = value;
-		kxobject_check_profile_and_repair(self, key);
+		kxobject_check_profile_and_repair(self, key, value);
 		return;
 	}
 	kxobject_slot_add(self,key,value,0);
 
-	kxobject_check_profile_and_repair(self, key);
+	kxobject_check_profile_and_repair(self, key, value);
 }
 
 
@@ -545,7 +545,7 @@ kxobject_update_slot(KxObject *self, KxSymbol *key, KxObject *value)
 		REF_REMOVE(slot->value);
 		REF_ADD(value);
 		slot->value = value;
-		kxobject_check_profile_and_repair(self, key);
+		kxobject_check_profile_and_repair(self, key, value);
 		return 1;
 	}
 
@@ -578,7 +578,7 @@ kxobject_update_slot_flags(KxObject *self, KxSymbol *key, int flags)
 
 	if (slot) {
 		slot->flags = flags;
-		kxobject_check_profile_and_repair(self, key);
+		kxobject_check_profile_and_repair(self, key, key);
 		return 1;
 	}
 

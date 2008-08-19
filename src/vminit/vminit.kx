@@ -603,19 +603,19 @@ Lobby localImport: = { :aFilename | |obj path|
 
 Compiler do: {
 	
-	compileFileToBytecode: = { :aFilename |  |array|
+	compileFileToBytecode: = { :aFilename |  |array bytecode|
 		array << _compileToByteArray: aFilename.
-		bytecode = Bytecode clone.
+		bytecode << Bytecode clone.
 		bytecode bytearray: array.
 		bytecode sourceFilename: aFilename.
 		^bytecode.
 	}.
 
 	compileString:withSourceFilename: = { :aCodeString :aFilename | 
-		|array|
+		|array bytecode|
 		array << _compileStringToByteArray: aCodeString 
 				 withSourceFilename: aFilename.
-		bytecode = Bytecode clone.
+		bytecode << Bytecode clone.
 		bytecode bytearray: array.
 		bytecode sourceFilename: aFilename.
 		^bytecode.

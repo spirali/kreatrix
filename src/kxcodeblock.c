@@ -205,6 +205,11 @@ kxcodeblock_free(KxCodeBlock *self) {
 	{
 		kxcodeblock_clean_inline_cache(self);
 	}
+
+	if (data->created_slots) {
+		kxfree(data->created_slots);
+	}
+
 	kxfree(data);
 }
 
@@ -458,6 +463,26 @@ kxcodeblock_read_message_linenumbers(KxCodeBlock *self, char **bytecode)
 	}
 }
 
+static void
+kxcodeblock_read_created_slots(KxCodeBlock *self, char **bytecode)
+{
+	int size = GET_BYTECODE_CHAR;
+	KxCodeBlockData *data = KXCODEBLOCK_DATA(self);
+	if (size == 0) {
+		data->created_slots = NULL;
+		return;
+	}
+
+	data->created_slots = kxmalloc(size + 1);
+	ALLOCTEST(data->created_slots);
+
+	int t;
+	for (t=0;t<size;t++) {
+		data->created_slots[t] = GET_BYTECODE_CHAR;
+	}
+	data->created_slots[t] = -1;
+}
+
 KxCodeBlock *
 kxcodeblock_read_subblock(KxCore *core, char **bytecode, KxCodeBlock *parent_codeblock, char *source_filename)
 {
@@ -473,6 +498,8 @@ kxcodeblock_read_subblock(KxCore *core, char **bytecode, KxCodeBlock *parent_cod
 	kxcodeblock_read_localslots(codeblock, bytecode);
 
 	kxcodeblock_read_message_linenumbers(codeblock, bytecode);
+
+	kxcodeblock_read_created_slots(codeblock, bytecode);
 
 	kxcodeblock_read_code(codeblock, bytecode);
 	
