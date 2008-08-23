@@ -769,6 +769,8 @@ kx_inline_cache_repair_by_prototype(KxObject *prototype)
 				ic[t].prototype = NULL;
 				REF_REMOVE(ic[t].cached_object);
 				ic[t].cached_object = NULL;
+				REF_REMOVE(ic[t].slot_holder);
+				ic[t].slot_holder = NULL;
 			}
 		}
 

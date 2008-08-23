@@ -392,6 +392,13 @@ kxobject_add_parent(KxObject *self, KxObject *parent)
 		return;
 	}
 
+	#ifdef KX_INLINE_CACHE
+	if (parent->ptype != KXOBJECT_PROTOTYPE) {
+		kxobject_set_as_prototype(parent);
+	}
+	#endif
+
+
 	KxParentSlot *pslot = &self->parent_slot;
 	
 	KxParentSlot *prev = NULL;
@@ -403,18 +410,25 @@ kxobject_add_parent(KxObject *self, KxObject *parent)
 	KxParentSlot *slot = kxparentslot_new(parent);
 
 	prev->next =  slot;
+
+
+	#ifdef KX_INLINE_CACHE
+	if (self->ptype == KXOBJECT_PROTOTYPE) {
+		kxobject_profile_add_child_prototype(parent->profile, self);
+	}
+	#endif
 }
 
 void
 kxobject_remove_parent(KxObject *self, KxObject *parent) 
 {
-	if (self->parent_slot.parent == parent) {
-		#ifdef KX_INLINE_CACHE
-		if (self->ptype == KXOBJECT_PROTOTYPE) {
-			kxobject_profile_remove_child_prototype(parent->profile, self);
-		}
-		#endif
+	#ifdef KX_INLINE_CACHE
+	if (self->ptype == KXOBJECT_PROTOTYPE) {
+		kxobject_profile_remove_child_prototype(parent->profile, self);
+	}
+	#endif
 
+	if (self->parent_slot.parent == parent) {
 		REF_REMOVE(parent);
 		if (self->parent_slot.next == NULL) {
 			self->parent_slot.parent = NULL;
@@ -445,6 +459,11 @@ kxobject_remove_parent(KxObject *self, KxObject *parent)
 			prev->next = pslot->next;
 			REF_REMOVE(parent);
 			kxfree(pslot);
+
+			#ifdef KX_INLINE_CACHE
+			kx_inline_cache_repair_by_prototype(self);
+			#endif
+
 			return;
 		}
 		prev = pslot;

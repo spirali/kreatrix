@@ -206,6 +206,67 @@ testInlineCache = test TestCase clone do: {
 		((i __internalData: #__instanceSlots) == #(#x #y)) assertTrue.
 	}.
 
+	testParentChange2 = { |A B C D H obj|
+		A << Object clone.
+		B << (Object clone method = { ^1 }).
+		C << (Object clone method = { ^2 }).
+
+
+		D << A clone do: {
+			run = {
+				^method.
+			}.
+
+			(slot: #run) insertInlineCache.
+		}.
+
+		H << Object clone.
+
+		
+		D addParent: H.
+
+		D addParent: B.
+		D addParent: C.
+		D addParent: Object clone.
+
+		obj << D clone.
+
+	/*	A dump: "A".
+		B dump: "B".
+		C dump: "C".
+		D dump: "D". 
+		H dump: "H". 
+		obj dump: "obj". 
+		Object dump: "Object".*/
+
+		(obj run == 1) assertTrue.
+		(obj run == 1) assertTrue.
+		(obj run == 1) assertTrue.
+		(obj run == 1) assertTrue.
+
+
+		D removeParent: B.
+
+		(obj run == 2) assertTrue.
+		(obj run == 2) assertTrue.
+		(obj run == 2) assertTrue.
+		(obj run == 2) assertTrue.
+
+		H parent: B.
+
+		(obj run == 1) assertTrue.
+		(obj run == 1) assertTrue.
+		(obj run == 1) assertTrue.
+		(obj run == 1) assertTrue.
+
+		A parent: C.
+
+		(obj run == 2) assertTrue.
+		(obj run == 2) assertTrue.
+		(obj run == 2) assertTrue.
+		(obj run == 2) assertTrue.
+	}.
+
 	testParentlessObject = {
 		| void1 void2 obj |
 

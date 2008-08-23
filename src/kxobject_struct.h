@@ -30,7 +30,8 @@
 #define kxobject_flag_reset(self, flag) ((self)->flags &= (~(flag)))
 #define kxobject_flag_test(self, flag) ((self)->flags & (flag))
 
-#define KXOBJECT_FLAG_GC             0x01
+#define KXOBJECT_FLAG_GC                  0x01
+#define KXOBJECT_FLAG_PROFILE_REPAIR_MARK 0x02
 
 #define kxobject_recursive_mark_set(self)   ((self)->recursive_mark = 1)
 #define kxobject_recursive_mark_reset(self) ((self)->recursive_mark = 0)
