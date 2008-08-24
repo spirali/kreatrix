@@ -130,6 +130,13 @@ kxobject_free(KxObject *self)
 		kxobject_profile_free(self->profile);
 		if (self->parent_slot.parent) {
 			kxobject_profile_remove_child_prototype(self->parent_slot.parent->profile, self);
+
+			KxParentSlot *pslot = self->parent_slot.next;
+			while(pslot) {
+				kxobject_profile_remove_child_prototype(pslot->parent->profile, self);
+				pslot = pslot->next;
+			}
+
 		}
 	}
 	#endif

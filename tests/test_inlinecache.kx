@@ -314,6 +314,36 @@ testInlineCache = test TestCase clone do: {
 
 	}.
 
+	testFree = { |A B C|
+		A << Object clone.
+		B << Object clone.
+		C << A clone.
+		C addParent: B.
+		C clone.
+		C << nil.
+		
+		((A __internalData: #__childPrototypes) == #()) assertTrue.
+		((B __internalData: #__childPrototypes) == #()) assertTrue.
+	}.
+
+	testInstanceSlotsFromParents = { |A B C|
+		A << Object clone do: {
+			x <- 0.
+			y <- 0.
+			z = 0.
+			update = { n = 0. }
+		}.
+
+		B << Object clone do: {
+			update = { m = 0. }.
+			l <- 0.
+		}.
+
+		C << A clone.
+		C addParent: B.
+		
+		((A __internalData: #__instanceSlots) == #(#x #y #n)) assertTrue.
+	}.
 }.
 
 testInlineCache run.
