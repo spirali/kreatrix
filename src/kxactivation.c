@@ -165,6 +165,21 @@ kxactivation_inner_stack_pop(KxActivation *self)
 	return self->inner_stack[ --self->inner_stack_pos ];
 }
 
+static inline KxObject *
+kxactivation_inner_stack_top(KxActivation *self) 
+{
+	/*if (self->inner_stack_pos == 0) {
+		KxCodeBlockData *cdata = self->codeblock->data.ptr;
+		fprintf(stderr,"Inner stack pop: Stack is empty (%s:%i)\n", 
+			cdata->source_filename, 
+			cdata->message_linenumbers[kxactivation_get_line_index(self)]);
+		abort();
+	}*/
+	
+	return self->inner_stack[ self->inner_stack_pos - 1];
+}
+
+
 /** Drop second item on stack */
 static inline void
 kxactivation_inner_stack_drop2(KxActivation *self) 
@@ -1101,6 +1116,27 @@ kxactivation_run(KxActivation *self)
 
 			}
 
+			case KXCI_JUMP_IFTRUE: {
+				int jump = (int) FETCH_BYTE(codep);
+				KxObject *obj = kxactivation_inner_stack_top(self);
+				if (obj == KXCORE->object_true) {
+					kxactivation_inner_stack_pop(self);
+					REF_REMOVE(obj);
+					codep += jump;
+				}
+				continue;
+			}
+
+			case KXCI_JUMP_IFFALSE: {
+				int jump = (int) FETCH_BYTE(codep);
+				KxObject *obj = kxactivation_inner_stack_top(self);
+				if (obj == KXCORE->object_false) {
+					kxactivation_inner_stack_pop(self);
+					REF_REMOVE(obj);
+					codep += jump;
+				}
+				continue;
+			}
 
 			default: 
 	/*		{

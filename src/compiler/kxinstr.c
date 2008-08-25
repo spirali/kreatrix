@@ -70,6 +70,10 @@ KxInstructionInfo kxinstructions_info[KXCI_INSTRUCTIONS_COUNT] = {
 	{"tobydo_end", 2},          // 60 KXCI_TOBYDO_END
 	{"repeat", 2},              // 61 KXCI_REPEAT
 	{"repeat_end", 1},          // 62 KXCI_REPEAT_END
+	{"jump_iftrue", 1},         // 63 KXCI_JUMP_IFTRUE
+	{"jump_iffalse", 1},        // 64 KXCI_JUMP_IFFALSE
+	{"jump_ifnottrue", 1},      // 65 KXCI_JUMP_IFNOTTRUE
+	{"jump_ifnotfalse", 1},     // 66 KXCI_JUMP_IFFALSE
 };
 
 

@@ -33,6 +33,8 @@ static void kxcblock_replace_instructions_foreach_local
 	(KxcBlock *, KxcInstruction *, int, KxcBlock **, KxcInstruction **, KxInstructionReplacingRule *);
 static void kxcblock_replace_instructions_cycle
 	(KxcBlock *, KxcInstruction *, int, KxcBlock **, KxcInstruction **, KxInstructionReplacingRule *);
+static void kxcblock_replace_instructions_while_cycle
+	(KxcBlock *, KxcInstruction *, int, KxcBlock **, KxcInstruction **, KxInstructionReplacingRule *);
 
 
 static KxInstructionReplacingRule replacing_rules[] = {
@@ -45,6 +47,8 @@ static KxInstructionReplacingRule replacing_rules[] = {
 	{ KXCI_KEYWORD_MSG, "to:do:", KXCI_TODO, 1, {1}, kxcblock_replace_instructions_cycle  },
     { KXCI_KEYWORD_MSG, "repeat:", KXCI_REPEAT, 1, {0}, kxcblock_replace_instructions_cycle  },
 	{ KXCI_KEYWORD_MSG, "to:by:do:", KXCI_TOBYDO, 1, {1}, kxcblock_replace_instructions_cycle  },
+	{ KXCI_UNARY_MSG,   "whileTrue",  KXCI_JUMP_IFTRUE,  1, {0}, kxcblock_replace_instructions_while_cycle },
+	{ KXCI_UNARY_MSG,   "whileFalse",  KXCI_JUMP_IFFALSE,  1, {0}, kxcblock_replace_instructions_while_cycle },
 	{ 0, NULL, 0 }
 };
 
@@ -209,6 +213,23 @@ kxcblock_replace_instructions_condition(
 	int bytes = kxcblock_insert_instructions(block, position, closures[0], codeblock);
 	instruction->type = rule->replacingInstruction;
 	instruction->value.condition.jump = bytes;
+}
+
+static void
+kxcblock_replace_instructions_while_cycle(	
+	KxcBlock *block,
+	KxcInstruction *instruction,
+	int position, 
+	KxcBlock **closures, 
+	KxcInstruction **prev_instructions,
+	KxInstructionReplacingRule *rule)
+
+{
+	int codeblock = prev_instructions[0]->value.codeblock;
+	kxcblock_remove_instruction(block, position - 1);
+	int bytes = kxcblock_insert_instructions(block, position - 1, closures[0], codeblock);
+	instruction->type = rule->replacingInstruction;
+	instruction->value.jump = - (bytes + kxinstructions_info[instruction->type].params_count + 1);
 }
 
 static void
@@ -409,8 +430,10 @@ kxcblock_optimise_replace_instructions(KxcBlock *block)
 					&& closures_count >= rule->countOfClosures
 					&& !strcmp(message_name, rule->messageName)) 
 			{
+				int delta = closures_count - rule->countOfClosures;
+
 				for (s = 0; s < rule->countOfClosures;s++) {
-					if (closures[s]->params_count != rule->countOfParameters[s]) {
+					if (closures[s + delta]->params_count != rule->countOfParameters[s]) {
 						break;
 					}
 				}
@@ -419,7 +442,7 @@ kxcblock_optimise_replace_instructions(KxcBlock *block)
 					break;
 				}
 
-				rule->replace_function(block, i, t, closures, previ, rule);
+				rule->replace_function(block, i, t, closures + delta, previ + delta, rule);
 
 				kxcblock_optimise_replace_instructions(block);
 				return;
