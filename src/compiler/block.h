@@ -167,5 +167,8 @@ void kxcforeignblock_free(KxcForeignBlock *fblock);
 void kxcforeignblock_add_into_path(KxcForeignBlock *fblock, int subblock);
 KxcForeignBlock *kxcforeignblock_copy(KxcForeignBlock *fblock);
 KxcBlock *kxcblock_get_foreign_block(KxcBlock *block, KxcForeignBlock *fblock);
+void kxcblock_remove_linenumber_for_instruction(KxcBlock *block, int iposition);
+int kxcblock_get_line_index_from_position(KxcBlock *block, int position);
+
 
 #endif

@@ -25,7 +25,15 @@ blockTest = test TestCase clone do: {
 		[ x < 6 ] whileTrue: [ y << y + 2. x << x + 1].
 		assert: x equals: 6.
 		assert: y equals: 12.
-
+		
+		x << 300.
+		[ x == 0 ] whileFalse: [ x << x - 1 ].
+		x << 300.
+		[ x != 0 ] whileTrue: [ x << x - 1 ].
+		x << 300.
+		[ x << x - 1. x != 0 ] whileTrue.
+		x << 300.
+		[ x << x - 1. x == 0 ] whileFalse.
 	}.
 
 	testValue = { | x y z r |

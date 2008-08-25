@@ -1138,6 +1138,30 @@ kxactivation_run(KxActivation *self)
 				continue;
 			}
 
+			case KXCI_JUMP_IFNOTTRUE: {
+				int jump = (int) FETCH_BYTE(codep);
+				KxObject *obj = kxactivation_inner_stack_top(self);
+				if (obj == KXCORE->object_true) {
+					kxactivation_inner_stack_pop(self);
+					REF_REMOVE(obj);
+				} else {
+					codep += jump;
+				}
+				continue;
+			}
+
+			case KXCI_JUMP_IFNOTFALSE: {
+				int jump = (int) FETCH_BYTE(codep);
+				KxObject *obj = kxactivation_inner_stack_top(self);
+				if (obj == KXCORE->object_false) {
+					kxactivation_inner_stack_pop(self);
+					REF_REMOVE(obj);
+				} else {
+					codep += jump;
+				}
+				continue;
+			}
+
 			default: 
 	/*		{
 				KxInstructionInfo *ii = &kxinstructions_info[(int)instruction];

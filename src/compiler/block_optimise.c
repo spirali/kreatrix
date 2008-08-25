@@ -35,7 +35,8 @@ static void kxcblock_replace_instructions_cycle
 	(KxcBlock *, KxcInstruction *, int, KxcBlock **, KxcInstruction **, KxInstructionReplacingRule *);
 static void kxcblock_replace_instructions_while_cycle
 	(KxcBlock *, KxcInstruction *, int, KxcBlock **, KxcInstruction **, KxInstructionReplacingRule *);
-
+static void kxcblock_replace_instructions_while_cycle2
+	(KxcBlock *, KxcInstruction *, int, KxcBlock **, KxcInstruction **, KxInstructionReplacingRule *);
 
 static KxInstructionReplacingRule replacing_rules[] = {
 	{ KXCI_KEYWORD_MSG, "ifTrue:",  KXCI_IFTRUE,  1, {0}, kxcblock_replace_instructions_condition },
@@ -49,6 +50,8 @@ static KxInstructionReplacingRule replacing_rules[] = {
 	{ KXCI_KEYWORD_MSG, "to:by:do:", KXCI_TOBYDO, 1, {1}, kxcblock_replace_instructions_cycle  },
 	{ KXCI_UNARY_MSG,   "whileTrue",  KXCI_JUMP_IFTRUE,  1, {0}, kxcblock_replace_instructions_while_cycle },
 	{ KXCI_UNARY_MSG,   "whileFalse",  KXCI_JUMP_IFFALSE,  1, {0}, kxcblock_replace_instructions_while_cycle },
+	{ KXCI_KEYWORD_MSG, "whileTrue:",  KXCI_JUMP_IFNOTTRUE,  2, {0,0}, kxcblock_replace_instructions_while_cycle2 },
+	{ KXCI_KEYWORD_MSG, "whileFalse:",  KXCI_JUMP_IFNOTFALSE,  2, {0,0}, kxcblock_replace_instructions_while_cycle2 },
 	{ 0, NULL, 0 }
 };
 
@@ -70,20 +73,6 @@ kxcblock_optimise_remove_pops(KxcBlock *block)
 			}
 		}
 	}
-}
-
-static int
-kxcblock_get_line_index_from_position(KxcBlock *block, int position)
-{
-	int index = 0;
-	int t;
-	for (t=0; t < position; t++) {
-		KxcInstruction *i = block->code->items[t];
-		if (kxcinstruction_has_linenumber(i->type)) {
-			index++;
-		}
-	}
-	return index;
 }
 
 static void
@@ -225,11 +214,44 @@ kxcblock_replace_instructions_while_cycle(
 	KxInstructionReplacingRule *rule)
 
 {
+	kxcblock_remove_linenumber_for_instruction(block, position);
+	instruction->type = rule->replacingInstruction;
+
 	int codeblock = prev_instructions[0]->value.codeblock;
 	kxcblock_remove_instruction(block, position - 1);
 	int bytes = kxcblock_insert_instructions(block, position - 1, closures[0], codeblock);
-	instruction->type = rule->replacingInstruction;
 	instruction->value.jump = - (bytes + kxinstructions_info[instruction->type].params_count + 1);
+}
+
+static void
+kxcblock_replace_instructions_while_cycle2(	
+	KxcBlock *block,
+	KxcInstruction *instruction,
+	int position, 
+	KxcBlock **closures, 
+	KxcInstruction **prev_instructions,
+	KxInstructionReplacingRule *rule)
+
+{
+	kxcblock_remove_linenumber_for_instruction(block, position);
+	instruction->type = rule->replacingInstruction;
+
+	int codeblock = prev_instructions[0]->value.codeblock;
+	kxcblock_remove_instruction(block, position - 1);
+	kxcblock_remove_instruction(block, position - 2);
+
+	KxcInstruction *jump_instr = kxcinstruction_new(KXCI_JUMP);
+	kxcblock_insert_instruction(block, jump_instr, position - 1);
+
+	KxcInstruction *pop_instr = kxcinstruction_new(KXCI_POP);
+	kxcblock_insert_instruction(block, pop_instr, position - 1);
+
+	int bytes2 = kxcblock_insert_instructions(block, position - 1, closures[1], codeblock + 1);
+	int bytes1 = kxcblock_insert_instructions(block, position - 2, closures[0], codeblock);
+	instruction->value.jump = bytes2 + kxinstructions_info[KXCI_JUMP].params_count + 1 + 
+		kxinstructions_info[KXCI_POP].params_count + 1;
+
+	jump_instr->value.jump = - (instruction->value.jump + bytes1 + kxinstructions_info[instruction->type].params_count + 1);
 }
 
 static void

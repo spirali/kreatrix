@@ -1034,6 +1034,26 @@ kxcblock_insert_linenumbers(KxcBlock *block, KxcBlock *source, int position)
 	}
 }
 
+int
+kxcblock_get_line_index_from_position(KxcBlock *block, int position)
+{
+	int index = 0;
+	int t;
+	for (t=0; t < position; t++) {
+		KxcInstruction *i = block->code->items[t];
+		if (kxcinstruction_has_linenumber(i->type)) {
+			index++;
+		}
+	}
+	return index;
+}
+
+void 
+kxcblock_remove_linenumber_for_instruction(KxcBlock *block, int iposition)
+{
+	list_remove(block->message_linenumbers, kxcblock_get_line_index_from_position(block, iposition));
+}
+
 KxcForeignBlock *
 kxcforeignblock_create(int position)
 {
