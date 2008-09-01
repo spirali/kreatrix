@@ -103,12 +103,14 @@ kxc_write_bytecode(FILE *file, char *bytecode, int bytecode_size, char *source_f
  *   errors is saved in kxc_error_list
  */ 
 List *
-kxc_compile_and_save_file(char *input_filename, char *output_filename, int compile_docs) 
+kxc_compile_and_save_file(char *input_filename, char *output_filename,
+	int compile_docs, int level_of_optimisation) 
 {
 	char *bytecode;
 	int size;
 
-	List *errors = kxc_compile_file(input_filename, compile_docs, &bytecode, &size);
+	List *errors = kxc_compile_file(input_filename, compile_docs, 
+		level_of_optimisation, &bytecode, &size);
 	if (errors)
 		return errors;
 	
@@ -135,11 +137,13 @@ kxc_compile_and_save_file(char *input_filename, char *output_filename, int compi
  *   returns NULL if compilation is successfull otherwise list with error string is returned
  */ 
 List * 
-kxc_compile_file(char *input_filename, int compile_docs, char **bytecode, int *size) 
+kxc_compile_file(char *input_filename, int compile_docs, 
+	int level_of_optimisation, char **bytecode, int *size) 
 {
 	KxcBlock *block;
 	List *errors;
-	errors = kxcomp_compile_file(input_filename, compile_docs,  &block);
+	errors = kxcomp_compile_file(input_filename, compile_docs, 
+		level_of_optimisation, &block);
 	if (errors) {
 		if (block)
 			kxcblock_free(block);
@@ -159,10 +163,13 @@ kxc_compile_file(char *input_filename, int compile_docs, char **bytecode, int *s
  *   returns NULL if compilation is successfull otherwise list with error string is returned
  */ 
 List * 
-kxc_compile_string(char *code_string, char *filename, int compile_docs,  char **bytecode, int *size) 
+kxc_compile_string(char *code_string, char *filename, int compile_docs, 
+	int level_of_optimisation, char **bytecode, int *size) 
 {
 	KxcBlock *block;
-	List *errors = kxcomp_compile_string(code_string, filename, compile_docs, &block);
+	List *errors = kxcomp_compile_string(code_string, filename, 
+		compile_docs, level_of_optimisation, &block);
+
 	if (errors) {
 		if (block)
 			kxcblock_free(block);

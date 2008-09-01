@@ -39,7 +39,7 @@ int main(int argc, char **argv)
 	char *bytecode;
 	int bytecode_size;
 	
-	List *errors = kxc_compile_file(argv[1], 0, &bytecode, &bytecode_size);
+	List *errors = kxc_compile_file(argv[1], 0, 2, &bytecode, &bytecode_size);
 	
 	if (errors != NULL) {
 		int t;

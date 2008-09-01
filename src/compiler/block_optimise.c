@@ -475,26 +475,28 @@ kxcblock_optimise_replace_instructions(KxcBlock *block)
 }
 
 static void 
-kxcblock_optimise(KxcBlock *block)
+kxcblock_optimise(KxcBlock *block, int level)
 {
 	kxcblock_optimise_remove_pops(block);
 
 	// Should be last optimazition, because removing instruction can demage jumps
-	kxcblock_optimise_replace_instructions(block);
+	if (level >= 2) {
+		kxcblock_optimise_replace_instructions(block);
+	}
 }
 
 static void 
-kxcblock_optimise_run(KxcBlock *block)
+kxcblock_optimise_run(KxcBlock *block, int level)
 {
 	int t;
 	for (t=0;t<block->subblocks->size;t++) {
-		kxcblock_optimise_run((KxcBlock *) block->subblocks->items[t]);
+		kxcblock_optimise_run((KxcBlock *) block->subblocks->items[t], level);
 	}
-	kxcblock_optimise(block);
+	kxcblock_optimise(block, level);
 }
 
 void 
-kxcblock_optimise_root_block(KxcBlock *block)
+kxcblock_optimise_root_block(KxcBlock *block, int level)
 {
-	kxcblock_optimise_run(block);
+	kxcblock_optimise_run(block, level);
 }

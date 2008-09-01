@@ -15,6 +15,7 @@
 #include "kxbytearray.h"
 #include "kxcodeblock.h"
 #include "kxcompile_utils.h"
+#include "kxglobals.h"
 
 
 /*KXobject Base Compiler
@@ -51,7 +52,7 @@ kxcompiler_compile_file_to_bytearray(KxCompiler *self, KxMessage *message)
 	char *bytecode;
 	int size;
 	// TODO: Set compile_docs flag
-	List *errors = kxc_compile_file(param,0,&bytecode, &size);
+	List *errors = kxc_compile_file(param,0, kx_level_of_optimisation, &bytecode, &size);
 	if (errors) {
 		KxException *excp = kxexception_new_with_text(KXCORE,errors->items[0]);
 		// TODO: save errors
@@ -75,7 +76,7 @@ kxcompiler_compile_string_to_bytearray(KxCompiler *self, KxMessage *message)
 
 	char *bytecode;
 	int size;
-	List *errors = kxc_compile_string(code,filename,0, &bytecode, &size);
+	List *errors = kxc_compile_string(code,filename,0, kx_level_of_optimisation, &bytecode, &size);
 	if (errors) {
 		KxException *excp = kxexception_new_with_text(KXCORE,errors->items[0]);
 		list_free_all(errors);

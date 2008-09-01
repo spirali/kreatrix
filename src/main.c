@@ -43,7 +43,6 @@
 #include "kxactivation_object.h"
 #include "kxiterator.h"
 
-int kx_doc_flag = 0;
 int kx_interactive = 0;
 int kx_compile_flag = 0;
 static char *evaluate_commands = NULL;
@@ -98,7 +97,8 @@ compile_and_load(char *filename, char **source_filename) {
 	char *bytecode;
 	int size;
 	List *errors;
-	errors = kxc_compile_file(filename, kx_doc_flag, &bytecode, &size);
+	errors = kxc_compile_file(filename, kx_doc_flag, 
+		kx_level_of_optimisation, &bytecode, &size);
 
 	if (errors) {
 		list_print_strings(errors);
@@ -176,8 +176,9 @@ void print_help()
 		printf("  -c cmd    : run command\n");
 		printf("  -C        : compile source file in .kxc file (file is not interpreted)\n");
 		printf("  -d        : activate 'documentation' mode\n");
-		printf("  -i        : run interpreter in interactive mode\n");
 		printf("  -h --help : show this help text\n");
+		printf("  -i        : run interpreter in interactive mode\n");
+		printf("  -O level  : set level of optimisations (default: 2)\n");
 		printf("  -v        : switch interpreter into verbose mode\n");
 		printf("  --cflags  : CFLAGS for building modules\n");
 }
@@ -191,7 +192,7 @@ int parse_arguments(int argc, char **argv)
      { NULL,       0,    NULL,  0  }
   };
 
-  while ((c = getopt_long (argc, argv, "dvhiCc:", longopts, NULL)) != -1)
+  while ((c = getopt_long (argc, argv, "dvhiCc:O:", longopts, NULL)) != -1)
     switch (c)
       {
       case 'd':
@@ -213,6 +214,17 @@ int parse_arguments(int argc, char **argv)
 	  case 'c':
 	    evaluate_commands = optarg;
 		break;
+
+	  case 'O': {
+	  	char *err = NULL;
+	  	int level = strtol(optarg, &err, 10);
+		if (*err != '\0' || level < 0 || level > 2) {
+			printf("Invalid level of optimization\n");
+			exit(1);
+		}
+		kx_level_of_optimisation = level;
+		break;
+	  }
 	  
 	  case 1:
 	  	#ifdef KX_THREADS_SUPPORT
@@ -243,7 +255,7 @@ static int run_interactive(KxCore *core, KxStack *stack)
 	char *bytecode;
 	int size;
 	List *errors;
-	errors = kxc_compile_string("VM runShellReadFrom: stdin writeOn: stdout", "<built-in>", 0, &bytecode, &size);
+	errors = kxc_compile_string("VM runShellReadFrom: stdin writeOn: stdout", "<built-in>", 0, kx_level_of_optimisation, &bytecode, &size);
 	if (errors) {
 		list_free_all(errors);
 		printf("Internal error: interactive mode: init compilation FAILED\n");
@@ -272,7 +284,8 @@ compile_and_save(char *source_filename)
 		printf("Compiling file %s into file %s\n", source_filename, output_filename);
 	}
 
-	List *errors = kxc_compile_and_save_file(source_filename, output_filename, kx_doc_flag);
+	List *errors = kxc_compile_and_save_file(source_filename, output_filename, 
+		kx_doc_flag, kx_level_of_optimisation);
 	kxfree(output_filename);
 
 	if (errors) {
@@ -310,7 +323,8 @@ main(int argc, char **argv)
 		source_filename = strdup("<string>");
 		int size;
 		List *errors;
-		errors = kxc_compile_string(evaluate_commands,source_filename,kx_doc_flag, &bytecode, &size);
+		errors = kxc_compile_string(evaluate_commands,source_filename,kx_doc_flag, 
+			kx_level_of_optimisation, &bytecode, &size);
 		if (errors) {
 			kxfree(source_filename);
 			list_print_strings(errors);

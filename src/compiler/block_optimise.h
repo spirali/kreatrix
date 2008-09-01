@@ -4,6 +4,6 @@
 
 #include "block.h"
 
-void kxcblock_optimise_root_block(KxcBlock *block);
+void kxcblock_optimise_root_block(KxcBlock *block, int level);
 
 #endif
