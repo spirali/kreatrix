@@ -283,11 +283,13 @@ kxcodeblock_read_code(KxCodeBlock *self, char **bytecode)
 		return;
 	}
 
-	data->code = kxmalloc(size);
+	data->code = kxmalloc(size + 1);
 	ALLOCTEST(data->code);
 
 	memcpy(data->code,*bytecode,size);
 	*bytecode += size;
+
+	data->code[size] = KXCI_INSTRUCTIONS_COUNT;
 
 }
 
