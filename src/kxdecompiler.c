@@ -101,3 +101,20 @@ kxdecompiler_dump_instructions(List *instructions)
 	}
 	printf("------\n");
 }
+
+void
+kxdecompiler_instruction_wrapper_to_bytecode(List *instructions, char *mem)
+{
+	int t;
+	for (t=0;t<instructions->size;t++) {
+		KxInstructionWrapper *iw = instructions->items[t];
+		KxInstructionInfo *info = &kxinstructions_info[iw->type];
+		*mem = iw->type;
+		mem++;
+		int s;
+		for (s=0;s<info->params_count;s++) {
+			*mem = iw->params[s];
+			mem++;
+		}
+	}
+}

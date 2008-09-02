@@ -94,6 +94,37 @@ AC_DEFINE_UNQUOTED([KX_THREADS_SUPPORT],[1],[Support threads in VM])
 AM_CONDITIONAL([KX_THREADS_SUPPORT], true)
 fi
 
+# Inline cache support
+AC_ARG_ENABLE(icache,
+[  --disable-icache   Disable inline cache support ],
+[ 
+kx_icache="${enableval}"
+],[kx_icache=yes])
+
+if test "$kx_icache" = no; then
+AM_CONDITIONAL([KX_INLINE_CACHE], false)
+AC_MSG_NOTICE([Inline cache support disabled])
+else
+AC_DEFINE_UNQUOTED([KX_INLINE_CACHE],[1],[Support for inline cache])
+AM_CONDITIONAL([KX_INLINE_CACHE], true)
+fi
+
+
+# Hotspot support
+AC_ARG_ENABLE(hotspot,
+[  --disable-hotspot   Disable hotspot support ],
+[ 
+kx_hotspot="${enableval}"
+],[kx_hotspot=yes])
+
+if test "$kx_hotspot" = no; then
+AM_CONDITIONAL([KX_HOTSPOT], false)
+AC_MSG_NOTICE([Hotspot support disabled])
+else
+AC_DEFINE_UNQUOTED([KX_HOTSPOT],[1],[Support for hotspot])
+AM_CONDITIONAL([KX_HOTSPOT], true)
+fi
+
 
 # ---- XML module ---------------------------
 AC_ARG_ENABLE(xml,

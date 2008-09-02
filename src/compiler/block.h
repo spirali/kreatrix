@@ -131,6 +131,7 @@ struct KxcBlock {
 
 	struct List *foreign_blocks; 
 
+	struct List *created_slots;
 };
 
 struct KxcBlock * kxcblock_new(int type,KxcBlock *parent, List *parameters, List *localslots, List *errors);

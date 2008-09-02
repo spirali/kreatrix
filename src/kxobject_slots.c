@@ -24,6 +24,9 @@
 
 #include "kxobject_slots.h"
 #include "kxobject.h"
+#include "kxobject_profile.h"
+#include "kxcodeblock.h"
+#include "kxglobals.h"
 
 #define KXSLOTS_DEFAULT_SIZE 5
 
@@ -132,7 +135,6 @@ kxobject_slot_add(KxObject *self, KxObject *key, KxObject *value, int flags)
 	slot++;
 	
 	slot->key = NULL;
-
 }
 
 int 

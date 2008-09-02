@@ -68,7 +68,7 @@ KxInstructionInfo kxinstructions_info[KXCI_INSTRUCTIONS_COUNT] = {
 
 	{"reserved", 0},            // 38
 	{"reserved", 0},            // 39
-	{"reserved", 0},            // 40
+	{"hotspot_probe", 0},       // 40 KXCI_HOTSPOT_PROBE
 	{"reserved", 0},            // 41
 	{"reserved", 0},            // 42
 	{"reserved", 0},            // 43
@@ -95,6 +95,53 @@ KxInstructionInfo kxinstructions_info[KXCI_INSTRUCTIONS_COUNT] = {
 	{"jump_iffalse", 1},        // 64 KXCI_JUMP_IFFALSE
 	{"jump_ifnottrue", 1},      // 65 KXCI_JUMP_IFNOTTRUE
 	{"jump_ifnotfalse", 1},     // 66 KXCI_JUMP_IFFALSE
+
+	// 67 - 69
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+
+	// 70 - 79
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+
+	// 80 - 89
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+
+	// 90 - 99
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+	{"reserved", 0},
+
+	{"send_unary_c", 1},
+	{"send_binary_c", 1},
+	{"send_keyword_c", 2},
+	{"send_local_unary_c", 1},
+	{"send_local_keyword_c", 2},
 };
 
 
@@ -116,6 +163,11 @@ int kxcinstruction_has_linenumber(KxInstructionType instruction)
 		case KXCI_TODO:
 		case KXCI_TOBYDO:
 		case KXCI_REPEAT:
+		case KXCI_UNARY_MSG_C:
+		case KXCI_BINARY_MSG_C:
+		case KXCI_KEYWORD_MSG_C:
+		case KXCI_LOCAL_UNARY_MSG_C:
+		case KXCI_LOCAL_KEYWORD_MSG_C:
 			return 1;
 		default:
 			return 0;

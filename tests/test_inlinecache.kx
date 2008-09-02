@@ -1,0 +1,375 @@
+(VM hasSupport: "icache") ifFalse: [ 
+	"Inline cache not supported ... SKIPPED" println.
+	VM quit: 0.
+].
+
+
+import: "test".
+
+testInlineCache = test TestCase clone do: {
+
+	testInstance = {
+		|obj|
+		obj << Object clone.
+		obj method: = { :p |
+			^p x.
+		}.
+
+		(obj slot: #method:) insertInlineCache.
+		
+		((obj method: 10@2) == 10) assertTrue.
+		((obj method: 12@3) == 12) assertTrue.
+		((obj method: 0@0) == 0) assertTrue.
+	}.
+
+	testAddInstanceSlot = {
+		|obj|
+		obj << Object clone.
+		VM addInstanceSlot: #abc to: obj.
+
+		((Object __internalData: #__instanceSlots) == #()) assertTrue.
+		((obj __internalData: #__instanceSlots) == #(#abc)) assertTrue.
+
+	}.
+
+	testAccessors = { 
+		|Point1 Point2|
+
+		Point1 << Object clone do: {
+			type = "Point1".
+			x <- 0.
+			y <- 0.
+		}.
+
+		Point2 << Object clone do: {
+			type = "Point2".
+			x = 0.
+
+			doSomething = { }.
+			x: = { :parameter | doSomething. x = (parameter + 1) * (2 + #() at: 0 put: 2). x2 = resend x. }.
+			y <- 0.
+
+			xy = { abc cde = "a" }.
+			cd = { set: abc slot: (123 + 321) }.
+			
+			test1 = { m = println. m = println. }.
+			test2 = { m = 3+4 }.
+		}.
+
+		((Point1 __internalData: #__instanceSlots) == #(#x #y)) assertTrue.
+		((Point2 __internalData: #__instanceSlots) == #(#x #x2 #y #m)) assertTrue.
+	}.
+
+	testPrototype = {
+		|A B C|
+
+		A << Object clone do: {
+			method: = { :a | ^a * 2 }.
+			method1: = { :a | ^a + 1 }.
+			method2: = { :a | ^a - 1 }.
+			method3: = 0.
+		}.
+
+		B << A clone.
+
+		C << Object clone.
+		C methodObj:x: = { :obj :a | ^obj method: a }.
+		(C slot: #methodObj:x:) insertInlineCache.
+
+		((C methodObj: B clone x: 10) == 20) assertTrue.
+		((C methodObj: B clone x: 11) == 22) assertTrue.
+		((C methodObj: B clone x: 12) == 24) assertTrue.
+		((C methodObj: B clone x: 13) == 26) assertTrue.
+
+		A method: = { :a |  ^method1: a }.
+
+		((C methodObj: B clone x: 10) == 11) assertTrue.
+		((C methodObj: B clone x: 11) == 12) assertTrue.
+		((C methodObj: B clone x: 12) == 13) assertTrue.
+		((C methodObj: B clone x: 13) == 14) assertTrue.
+
+		B method: = { :a | ^ method2: a }.
+
+		((C methodObj: B clone x: 10) == 09) assertTrue.
+		((C methodObj: B clone x: 11) == 10) assertTrue.
+		((C methodObj: B clone x: 12) == 11) assertTrue.
+		((C methodObj: B clone x: 13) == 12) assertTrue.
+
+		B method: = { :a | ^ method3: a }.
+
+		((C methodObj: B clone x: 10) == 0) assertTrue.
+		((C methodObj: B clone x: 11) == 0) assertTrue.
+		((C methodObj: B clone x: 12) == 0) assertTrue.
+		((C methodObj: B clone x: 13) == 0) assertTrue.
+	}.
+
+	testInstanceSlots = {
+		|MyPoint Point3d|
+
+		MyPoint << Object clone do: {
+			type = "MyPoint".
+			
+			x <- 0.
+			y <- 0.
+		}.
+
+		((MyPoint clone __internalData: #__ptype) == 0) assertTrue.
+		((MyPoint __internalData: #__ptype) == 1) assertTrue.
+
+		((MyPoint __internalData: #__instanceSlots) == #(#x #y)) assertTrue.
+	
+		((MyPoint __internalData: #__childPrototypes) == #()) assertTrue.
+
+		Point3d << MyPoint clone do: {
+			x <- 0.
+			z <- 11.
+			z <- 0.
+		}.
+
+		((Point3d __internalData: #__instanceSlots) == #(#x #y #z)) assertTrue.
+		((MyPoint __internalData: #__instanceSlots) == #(#x #y)) assertTrue.
+		((MyPoint __internalData: #__childPrototypes) == #(Point3d)) assertTrue.
+
+		MyPoint name <- "x".
+
+		((Point3d __internalData: #__instanceSlots) == #(#x #y #z #name)) assertTrue.
+		((MyPoint __internalData: #__instanceSlots) == #(#x #y #name)) assertTrue.
+
+	}.
+
+	testParentSlotCycle = {
+		|A B|
+		A << Object clone.
+		B << A clone.
+		
+		A type = "A".
+		B type = "B".
+
+		A slot:updater:set: = A slot: #slot:updater:set:.
+		A __internalData: = A slot: #__internalData:.
+
+		A k <- 1.
+		B j <- 2.
+
+		A parent: B.
+
+		B x <- 0.
+		A y <- 0.
+
+		((A __internalData: #__instanceSlots) == #(#k #j #x #y)) assertTrue.
+		((B __internalData: #__instanceSlots) == #(#k #j #x #y)) assertTrue.
+
+	}.
+
+	testChangeParent = {
+		|BaseA BaseB BaseC i|
+
+		BaseA << Object clone do: {
+			x <- 0.
+			y <- 1.
+		}.
+
+		BaseB << Object clone do: {
+			y <- 2.
+			z <- 3.
+		}.
+
+		BaseC << Object clone do: {
+			h <- 4.
+		}.
+
+
+		i << BaseA clone.
+
+		((i __internalData: #__instanceSlots) == #(#x #y)) assertTrue.
+		
+		i parent: BaseB.
+
+		((i __internalData: #__instanceSlots) == #(#y #z)) assertTrue.
+
+		i addParent: BaseC.
+		((i __internalData: #__instanceSlots) == #(#y #z)) assertTrue.
+		
+		i << BaseA clone.
+
+		((BaseA __internalData: #__instanceSlots) == #(#x #y)) assertTrue.
+		((i __internalData: #__instanceSlots) == #(#x #y)) assertTrue.
+	
+		i insertParent: BaseB.
+
+		((i __internalData: #__instanceSlots) == #(#y #z)) assertTrue.
+
+		i removeParent: BaseB.
+
+		((BaseA __internalData: #__instanceSlots) == #(#x #y)) assertTrue.
+		((BaseB __internalData: #__instanceSlots) == #(#y #z)) assertTrue.
+		((i __internalData: #__instanceSlots) == #(#x #y)) assertTrue.
+	}.
+
+	testParentChange2 = { |A B C D H obj|
+		A << Object clone.
+		B << (Object clone method = { ^1 }).
+		C << (Object clone method = { ^2 }).
+
+
+		D << A clone do: {
+			run = {
+				^method.
+			}.
+
+			(slot: #run) insertInlineCache.
+		}.
+
+		H << Object clone.
+
+		
+		D addParent: H.
+
+		D addParent: B.
+		D addParent: C.
+		D addParent: Object clone.
+
+		obj << D clone.
+
+	/*	A dump: "A".
+		B dump: "B".
+		C dump: "C".
+		D dump: "D". 
+		H dump: "H". 
+		obj dump: "obj". 
+		Object dump: "Object".*/
+
+		(obj run == 1) assertTrue.
+		(obj run == 1) assertTrue.
+		(obj run == 1) assertTrue.
+		(obj run == 1) assertTrue.
+
+
+		D removeParent: B.
+
+		(obj run == 2) assertTrue.
+		(obj run == 2) assertTrue.
+		(obj run == 2) assertTrue.
+		(obj run == 2) assertTrue.
+
+		H parent: B.
+
+		(obj run == 1) assertTrue.
+		(obj run == 1) assertTrue.
+		(obj run == 1) assertTrue.
+		(obj run == 1) assertTrue.
+
+		A parent: C.
+
+		(obj run == 2) assertTrue.
+		(obj run == 2) assertTrue.
+		(obj run == 2) assertTrue.
+		(obj run == 2) assertTrue.
+	}.
+
+	testParentlessObject = {
+		| void1 void2 obj |
+
+		void1 << Object clone.
+		void1 method = { ^ "void1" }.
+		void1 removeParent: Object.
+
+		void2 << Object clone.
+		void2 method = { ^ "void2" }.
+		void2 removeParent: Object.
+
+		obj << Object clone.
+		obj test: = { :param | 
+			^param method.
+		}.
+		
+		(obj slot: #test:) insertInlineCache.
+
+		((obj test: void1) == "void1") assertTrue.
+		((obj test: void1) == "void1") assertTrue.
+		((obj test: void1) == "void1") assertTrue.
+		((obj test: void1) == "void1") assertTrue.
+
+		((obj test: void2) == "void2") assertTrue.
+		((obj test: void2) == "void2") assertTrue.
+
+		((obj test: void1) == "void1") assertTrue.
+		((obj test: void1) == "void1") assertTrue.
+
+		((obj test: void2) == "void2") assertTrue.
+		((obj test: void1) == "void1") assertTrue.
+	}.
+
+	testCopy = { |BaseA BaseB|
+		BaseA << Object clone do: {
+			x <- 0.
+			y <- 1.
+		}.
+			
+		BaseB << BaseA copy.
+		BaseB c <- 12.
+
+		((BaseA __internalData: #__instanceSlots) == #(#x #y)) assertTrue.
+		((BaseB __internalData: #__instanceSlots) == #(#x #y #c)) assertTrue.
+
+	}.
+
+	testFree = { |A B C|
+		A << Object clone.
+		B << Object clone.
+		C << A clone.
+		C addParent: B.
+		C clone.
+		C << nil.
+		
+		((A __internalData: #__childPrototypes) == #()) assertTrue.
+		((B __internalData: #__childPrototypes) == #()) assertTrue.
+	}.
+
+	testInstanceSlotsFromParents = { |A B C|
+		A << Object clone do: {
+			x <- 0.
+			y <- 0.
+			z = 0.
+			update = { n = 0. }
+		}.
+
+		B << Object clone do: {
+			update = { m = 0. }.
+			l <- 0.
+		}.
+
+		C << A clone.
+		C addParent: B.
+		
+		((A __internalData: #__instanceSlots) == #(#x #y #n)) assertTrue.
+	}.
+
+	testSingleton = { 
+		|A B|
+		A << Object clone.
+		A m: = { :x | ^x doSomething }.
+		
+		(A slot: #m:) insertInlineCache.
+
+		B << Object clone.
+		B doSomething = { ^"x" }.
+
+		((A m: B) == "x") assertTrue.
+		((A m: B) == "x") assertTrue.
+		((A m: B) == "x") assertTrue.
+		((A m: B) == "x") assertTrue.
+		((A m: B) == "x") assertTrue.
+
+		B doSomething = { ^"y" }.
+
+		((A m: B) == "y") assertTrue.
+		((A m: B) == "y") assertTrue.
+		((A m: B) == "y") assertTrue.
+		((A m: B) == "y") assertTrue.
+		((A m: B) == "y") assertTrue.
+	}.
+}.
+
+testInlineCache run.
+

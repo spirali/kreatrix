@@ -156,6 +156,9 @@ struct KxCore  {
 	List *mark_functions;
 
 	List *local_import_paths;
+	
+	KxObject *first_codeblock_with_inline_cache;
+	KxObject *last_codeblock_with_inline_cache;
 
 	int activation_cache_count;
 	void *activation_cache[KXCORE_ACTIVATION_CACHE_SIZE];

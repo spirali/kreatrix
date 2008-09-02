@@ -76,4 +76,7 @@ void list_print_strings(List *list);
 
 void list_collapse(List *list);
 
+int list_contains(List *list, void *data);
+
+
 #endif // __LIST_H

@@ -28,6 +28,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "kxbaseobject.h"
 #include "kxobject.h"
@@ -37,6 +38,7 @@
 #include "kxcodeblock.h"
 #include "kxlist.h"
 #include "kxinteger.h"
+#include "kxobject_profile.h"
 
 KxObject * kxobject_new(KxCore *core);
 
@@ -482,6 +484,13 @@ kxbaseobject_slot_updater_set(KxObject *self, KxMessage *message)
 
 	REF_REMOVE(cfunction);
 
+	#ifdef KX_INLINE_CACHE
+	if (self->ptype != KXOBJECT_PROTOTYPE) {
+		kxobject_set_as_prototype(self);
+	}
+	kxobject_profile_add_symbol(self->profile, symbol);
+	#endif
+
 	KXRETURN(message->params[2]);
 }
 
@@ -545,6 +554,37 @@ kxbaseobject_dump(KxObject *self, KxMessage *message)
 	KXRETURN(self);
 }
 
+static KxObject *
+kxbaseobject_internal_data(KxObject *self, KxMessage *message)
+{
+	KxObject *symbol = message->params[0];
+	KXCHECK_SYMBOL(symbol, 0);
+	char *str = KXSYMBOL_AS_CSTRING(symbol);
+	
+	#ifdef KX_INLINE_CACHE
+	if (!strcmp(str,"__instanceSlots")) {
+		List *list = kxobject_profile_instance_slots_to_list(self->profile);
+		list_foreach(list, kxobject_ref_add);
+		return KXLIST(list);
+	}
+
+	if (!strcmp(str, "__ptype")) {
+		return KXINTEGER(self->ptype);
+	}
+
+	if (!strcmp(str, "__childPrototypes")) {
+		List *list = kxobject_profile_child_prototypes_to_list(self->profile);
+		list_foreach(list, kxobject_ref_add);
+		return KXLIST(list);
+	}
+	#endif
+
+	if (!strcmp(str, "__refcount")) {
+		return KXINTEGER(self->ref_count);
+	}
+
+	KXRETURN(KXCORE->object_nil);
+}
 
 
 void 
@@ -583,6 +623,7 @@ kxbaseobject_add_method_table(KxObject *self)
 		{"freezeSlot:",1, kxbaseobject_freeze_slot },
 		{"unfreezeSlot:",1, kxbaseobject_unfreeze_slot },
 		{"dump",0, kxbaseobject_dump },
+		{"__internalData:",1, kxbaseobject_internal_data },
 		{NULL,0, NULL}
 	};
 	kxobject_add_methods(self, table);

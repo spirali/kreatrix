@@ -96,10 +96,9 @@ char *kxobject_raw_type_name(KxObject *self);
 KxObject *kxobject_type_name(KxObject *self);
 
 void kxobject_set_parent(KxObject *self, KxObject *parent);
+void kxobject_remove_all_parents(KxObject *self);
 
 void kxobject_dump(KxObject *self);
-
-void kxobject_remove_all_parents(KxObject *self);
 
 void kxobject_mark(KxObject *self) ;
 
@@ -139,8 +138,6 @@ KxObject *kxobject_need_boolean(KxObject *self);
 int kxobject_check_type(KxObject *self, KxObjectExtension *extension);
 
 KxObject *kxobject_send_message_init(KxObject *self);
-
-
 
 /** Only for 'foreach' constructions */
 void kxobject_ref_remove(void *self);

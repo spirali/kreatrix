@@ -29,6 +29,7 @@
 #include "kxglobals.h"
 #include "kxinteger.h"
 #include "kxlist.h"
+#include "kxobject_profile.h"
 
 extern int kx_doc_flag;
 
@@ -84,6 +85,19 @@ kxvm_has_support(KxObject *self, KxMessage *message)
 		}
 	#endif // KX_LOG
 
+	#ifdef KX_HOTSPOT
+		if (!strcmp("hotspot",param)) {
+			KXRETURN_TRUE;
+		}
+	#endif // KX_HOTSPOT
+
+	#ifdef KX_INLINE_CACHE
+		if (!strcmp("icache",param)) {
+			KXRETURN_TRUE;
+		}
+	#endif // KX_INLINE_CACHE
+
+
 	KXRETURN_FALSE;
 }
 
@@ -99,6 +113,14 @@ kxvm_support_list(KxObject *self, KxMessage *message)
 	#ifdef KX_LOG
 	list_append(list, KXSTRING("log"));
 	#endif // KX_LOG
+
+	#ifdef KX_HOTSPOT
+	list_append(list, KXSTRING("hotspot"));
+	#endif // KX_HOTSPOT
+
+	#ifdef KX_INLINE_CACHE
+	list_append(list, KXSTRING("icache"));
+	#endif // KX_INLINE_CACHE
 
 	return KXLIST(list);
 }
@@ -158,6 +180,25 @@ kxvm_all_objects(KxObject *self, KxMessage *message)
 	return KXLIST(list);
 }
 
+static KxObject *
+kxvm_add_instance_slot_to(KxObject *self, KxMessage *message)
+{
+	#ifdef KX_INLINE_CACHE
+	KxObject *symbol = message->params[0];
+	KXCHECK_SYMBOL(symbol, 0);
+
+	KxObject *obj = message->params[1];
+
+	if (obj->ptype != KXOBJECT_PROTOTYPE) {
+		kxobject_set_as_prototype(obj);
+	}
+
+	kxobject_profile_add_symbol(obj->profile, symbol);
+	#endif
+
+	KXRETURN(self);
+}
+
 KxObject *
 kxvm_new(KxCore *core)
 {
@@ -180,6 +221,7 @@ kxvm_new(KxCore *core)
 		{"logWrite:", 1, kxvm_log_write},
 		{"supportList", 0, kxvm_support_list},
 		{"allObjects", 0, kxvm_all_objects},
+		{"addInstanceSlot:to:", 2, kxvm_add_instance_slot_to},
 		{NULL,0, NULL}
 	};
 

@@ -195,6 +195,18 @@ list_remove_first(List *list, void *data)
 		}
 	}
 }
+
+int
+list_contains(List *list, void *data)
+{
+	int t;
+	for (t=0;t<list->size;t++) {
+		if (list->items[t] == data) {
+			return 1;
+		}
+	}
+	return 0;
+}
   
 /**
     Remove all items

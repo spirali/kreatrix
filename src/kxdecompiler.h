@@ -38,6 +38,7 @@ void kxdecompiler_dump_instructions(List *instructions);
 
 KxInstructionWrapper *kxinstructionwrapper_new();
 void kxinstructionwrapper_free(KxInstructionWrapper *self);
+void kxdecompiler_instruction_wrapper_to_bytecode(List *instructions, char *mem);
 
 
 #endif // __KXDECOMPILER_H
