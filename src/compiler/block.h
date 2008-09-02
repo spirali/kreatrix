@@ -31,12 +31,46 @@
 
 typedef struct KxcInstruction KxcInstruction;
 typedef struct KxcLocal KxcLocal;
+typedef struct KxcMessage KxcMessage;
+typedef struct KxcCondition KxcCondition;
+typedef struct KxcForeach KxcForeach;
+typedef struct KxcCycle KxcCycle;
+typedef struct KxcCycleEnd KxcCycleEnd;
 typedef struct KxcLiteral KxcLiteral;
-
+typedef struct KxcBlock KxcBlock;
+typedef struct KxcForeignBlock KxcForeignBlock;
 
 struct KxcLocal { 
 	int index;
 	int scope; 
+};
+
+struct KxcMessage {
+	int symbol;
+	int params_count;
+};
+
+struct KxcCondition {
+	int codeblock;
+	int jump;
+	int jump2;
+};
+
+struct KxcForeach  {
+	int jump;
+	int local;
+	int codeblock;
+};
+
+struct KxcCycle {
+	int jump;
+	int codeblock;
+	int local;
+};
+
+struct KxcCycleEnd {
+	int jump;
+	int local;
 };
 
 
@@ -58,11 +92,22 @@ struct KxcInstruction {
 		int codeblock;
 		int list_size;
 		int literal;
+		int jump;
 		KxcLocal local;
+		KxcMessage msg;
+		KxcCondition condition;
+		KxcForeach foreach;
+		KxcCycle cycle;
+		KxcCycleEnd cycle_end;
 	} value;
 };
 
-typedef struct KxcBlock KxcBlock;
+/* Foreign block is KxcBlock that is not defined directly in block but in block's child */
+struct KxcForeignBlock {
+	List *child_path;
+	int position;
+};
+
 
 struct KxcBlock {
 	
@@ -83,6 +128,8 @@ struct KxcBlock {
 	struct List *subblocks;
 
 	struct List *message_linenumbers;
+
+	struct List *foreign_blocks; 
 
 };
 
@@ -120,6 +167,29 @@ void kxcblock_push_local(KxcBlock *block, KxcLocal *local);
 
 void kxcblock_remove_instruction(KxcBlock *block, int position);
 
+char* kxcblock_get_symbol_at(KxcBlock *block, int position);
+KxcBlock* kxcblock_get_subblock_at(KxcBlock *block, int position);
+KxcLiteral* kxcblock_get_literal_at(KxcBlock *block, int position);
+
+KxcInstruction* kxcinstruction_new(KxInstructionType type);
+KxcInstruction* kxcinstruction_copy(KxcInstruction *instruction);
+void kxcinstruction_free(KxcInstruction *instruction);
+void kxcblock_insert_instruction(KxcBlock *block, KxcInstruction *instruction, int position);
+
+int kxcblock_add_literal(KxcBlock *block, KxcLiteral *literal);
+KxcLiteral* kxcliteral_copy(KxcLiteral *literal);
+int kxcblock_get_symbol(KxcBlock *block, char *symbolname);
+void kxcblock_append_locals(KxcBlock *block, KxcBlock *source);
+
+void kxcblock_insert_linenumbers(KxcBlock *block, KxcBlock *source, int position);
+
+KxcForeignBlock * kxcforeignblock_create(int position);
+void kxcforeignblock_free(KxcForeignBlock *fblock);
+void kxcforeignblock_add_into_path(KxcForeignBlock *fblock, int subblock);
+KxcForeignBlock *kxcforeignblock_copy(KxcForeignBlock *fblock);
+KxcBlock *kxcblock_get_foreign_block(KxcBlock *block, KxcForeignBlock *fblock);
+void kxcblock_remove_linenumber_for_instruction(KxcBlock *block, int iposition);
+int kxcblock_get_line_index_from_position(KxcBlock *block, int position);
 
 
 #endif

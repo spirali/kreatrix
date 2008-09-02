@@ -298,11 +298,13 @@ kxcodeblock_read_code(KxCodeBlock *self, char **bytecode)
 		return;
 	}
 
-	data->code = kxmalloc(size);
+	data->code = kxmalloc(size + 1);
 	ALLOCTEST(data->code);
 
 	memcpy(data->code,*bytecode,size);
 	*bytecode += size;
+
+	data->code[size] = KXCI_INSTRUCTIONS_COUNT;
 
 }
 
@@ -336,6 +338,47 @@ kxcodeblock_read_subblocks(KxCodeBlock *self, char **bytecode, char *source_file
 		KxCodeBlock *codeblock = kxcodeblock_read_subblock(KXCORE, bytecode, self, source_filename);		
 		data->subcodeblocks[t] = codeblock;
 	}
+}
+
+static KxCodeBlock *
+kxcodeblock_get_foreign_subblocks(KxCodeBlock *self, char **bytecode)
+{
+	KxCodeBlockData *data = KXCODEBLOCK_DATA(self);
+	int pos = GET_BYTECODE_CHAR;
+
+	if (pos < 100) {
+		return kxcodeblock_get_foreign_subblocks(data->subcodeblocks[pos], bytecode);
+	} else {
+		pos -= 100;
+		return data->subcodeblocks[pos];
+	}
+}
+
+static void
+kxcodeblock_read_foreign_subblocks(KxCodeBlock *self, char **bytecode)
+{
+	int count = GET_BYTECODE_CHAR;
+
+	if (count == 0) {
+		return;
+	}
+
+	KxCodeBlockData *data = KXCODEBLOCK_DATA(self);
+
+	int oldsize = data->subcodeblocks_size;
+
+	data->subcodeblocks_size += count;
+
+	data->subcodeblocks = kxrealloc(data->subcodeblocks, data->subcodeblocks_size * sizeof(KxCodeBlock*));
+	ALLOCTEST(data->subcodeblocks);
+
+	int t; 
+
+	for (t = oldsize; t < data->subcodeblocks_size; t++) {
+		data->subcodeblocks[t] = kxcodeblock_get_foreign_subblocks(self, bytecode);
+		REF_ADD(data->subcodeblocks[t]);
+	}
+
 }
 
 static int 
@@ -393,6 +436,8 @@ kxcodeblock_read_subblock(KxCore *core, char **bytecode, KxCodeBlock *parent_cod
 	kxcodeblock_read_code(codeblock, bytecode);
 	
 	kxcodeblock_read_subblocks(codeblock, bytecode, source_filename);
+
+	kxcodeblock_read_foreign_subblocks(codeblock, bytecode);
 
 	return codeblock;
 }

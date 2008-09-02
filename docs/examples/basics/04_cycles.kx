@@ -1,8 +1,6 @@
 
 // All integers has slot "repeat:"
 4 repeat: [ "Message!" println. ].
-// Block can have one parameter:
-5 repeat: [ :index | index println ].
 
 // Last result of last call of block is returned
 z = 1.

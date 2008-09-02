@@ -180,60 +180,27 @@ kxinteger_is_odd(KxInteger *self, KxMessage *message)
  If receiver is positive number, aBlock is receiver-times executed and
  Value of last execution is returned.
  if number is negative number or zero. nil is returned and aBlock isn't executed.
+ aBlock is block with no parameters or with one parameter.
  <br/>
- aBlock is block with no parameters or with one parameter. If block has parameter 
-  then in parameter is stored sequnece number of execution - 1.
-
 */
 static KxObject *
 kxinteger_repeat(KxInteger *self, KxMessage *message)
 {
 	KxInt selfvalue = KXINTEGER_VALUE(self);
 	
-	KxObject *param = message->params[0];
 
 	if (selfvalue <= 0) {
 		KXRETURN(KXCORE->object_nil);
 	}
 
-	// Param is block with 1 param
-	if (IS_KXSCOPEDBLOCK(param) && (KXCODEBLOCK_DATA(KXSCOPEDBLOCK_DATA(param)->codeblock)->params_count == 1)) {
-		KxMessage msg;
-		msg.message_name = NULL;
-		msg.params_count = 1;
-		msg.target = self;
-
-		int t;
-		for (t=0;t<selfvalue-1;t++) {
-
-			// TODO: recylace pocitadla
-			KxInteger *i = KXINTEGER(t);
-			msg.params[0] = i;
-			KxObject * ret =  kxobject_evaluate_block(message->params[0],&msg);
-			REF_REMOVE(i);
-			KXCHECK(ret);
-			REF_REMOVE(ret);
-		}
-		KxInteger *i = KXINTEGER(t);
-		msg.params[0] = i;
-		KxObject * ret =  kxobject_evaluate_block(message->params[0],&msg);
-		REF_REMOVE(i);
-		return ret;
-	} else {
-	/*printf(">>>>>REPEAT:");
-	kxobject_dump(message->params[0]);*/
-
-		// Generic param
-		int t;
-		for (t=0;t<selfvalue-1;t++) {
-			KxObject * ret = kxobject_evaluate_block_simple(message->params[0]);
-			KXCHECK(ret);
-			REF_REMOVE(ret);
-		}
-	    return kxobject_evaluate_block_simple(message->params[0]);
-
+	KxObject *param = message->params[0];
+	int t;
+	for (t=0;t<selfvalue-1;t++) {
+		KxObject * ret = kxobject_evaluate_block_simple(param);
+		KXCHECK(ret);
+		REF_REMOVE(ret);
 	}
-	KXRETURN(self);
+    return kxobject_evaluate_block_simple(param);
 }
 
 static KxObject *

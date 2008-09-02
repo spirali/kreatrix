@@ -398,7 +398,7 @@ kxobject_set_slot(KxObject *self, KxSymbol *key, KxObject *value)
 	}
 	REF_ADD(key); // if slot not exist, reference to key must be added
 	kxobject_slot_add(self,key,value,0);
-
+	
 }
 
 void 
@@ -694,6 +694,15 @@ kxobject_send_unary_message(KxObject *self, KxSymbol *message_name)
 {
 		KxMessage msg;
 		kxmessage_init(&msg, self, 0, message_name);
+		return kxmessage_send(&msg);
+}
+
+KxObject *
+kxobject_send_binary_message(KxObject *self, KxSymbol *message_name, KxObject *parameter)
+{
+		KxMessage msg;
+		kxmessage_init(&msg, self, 1, message_name);
+		msg.params[0] = parameter;
 		return kxmessage_send(&msg);
 }
 

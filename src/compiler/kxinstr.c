@@ -21,6 +21,7 @@
 	
 #include "kxinstr.h"
 
+
 KxInstructionInfo kxinstructions_info[KXCI_INSTRUCTIONS_COUNT] = {
 	{"send_unary", 1},          // 00 KXCI_UNARY_MSG 
 	{"send_binary", 1},         // 01 KXCI_BINARY_MSG 
@@ -63,7 +64,37 @@ KxInstructionInfo kxinstructions_info[KXCI_INSTRUCTIONS_COUNT] = {
 	{"push_self", 0},           // 34 KXCI_PUSH_SELF
 	{"push_activation", 0},     // 35 KXCI_PUSH_ACTIVATION
 	{"update_local", 1},        // 36 KXCI_UPDATE_LOCAL
-	{"update_outer_local", 2}   // 37 KXCI_UPDATE_OUTER_LOCAL
+	{"update_outer_local", 2},  // 37 KXCI_UPDATE_OUTER_LOCAL
+
+	{"reserved", 0},            // 38
+	{"reserved", 0},            // 39
+	{"reserved", 0},            // 40
+	{"reserved", 0},            // 41
+	{"reserved", 0},            // 42
+	{"reserved", 0},            // 43
+	{"reserved", 0},            // 44
+	{"reserved", 0},            // 45
+	{"reserved", 0},            // 46
+	{"reserved", 0},            // 47
+	{"reserved", 0},            // 48
+	{"reserved", 0},            // 49
+	{"iftrue", 2},              // 50 KXCI_IFTRUE
+	{"iffalse", 2},             // 51 KXCI_IFFALSE
+	{"iftrue_iffalse", 3},      // 52 KXCI_IFTRUE_IFFALSE
+	{"iffalse_iftrue", 3},      // 53 KXCI_IFFALSE_IFTRUE
+	{"jump", 1},                // 54 KXCI_JUMP
+	{"foreach", 3},             // 55 KXCI_FOREACH
+	{"nextiter", 2},            // 56 KXCI_NEXTITER
+	{"todo", 3},                // 57 KXCI_TODO
+	{"todo_end", 2},            // 58 KXCI_TODO_END
+	{"tobydo", 3},              // 59 KXCI_TOBYDO
+	{"tobydo_end", 2},          // 60 KXCI_TOBYDO_END
+	{"repeat", 2},              // 61 KXCI_REPEAT
+	{"repeat_end", 1},          // 62 KXCI_REPEAT_END
+	{"jump_iftrue", 1},         // 63 KXCI_JUMP_IFTRUE
+	{"jump_iffalse", 1},        // 64 KXCI_JUMP_IFFALSE
+	{"jump_ifnottrue", 1},      // 65 KXCI_JUMP_IFNOTTRUE
+	{"jump_ifnotfalse", 1},     // 66 KXCI_JUMP_IFFALSE
 };
 
 
@@ -77,6 +108,14 @@ int kxcinstruction_has_linenumber(KxInstructionType instruction)
 		case KXCI_LOCAL_KEYWORD_MSG:
 		case KXCI_RESEND_UNARY_MSG:
 		case KXCI_RESEND_KEYWORD_MSG:
+		case KXCI_IFTRUE:
+		case KXCI_IFFALSE:
+		case KXCI_IFTRUE_IFFALSE:
+		case KXCI_IFFALSE_IFTRUE:
+		case KXCI_FOREACH:
+		case KXCI_TODO:
+		case KXCI_TOBYDO:
+		case KXCI_REPEAT:
 			return 1;
 		default:
 			return 0;

@@ -6,7 +6,7 @@ Benchmark clone do: {
 	run = {
 		|list|
 		list << #().
-		3000 repeat: [ :i | list add: i ].
+		0 to: 3000 do: [ :i | list add: i ].
 		list reversed sort.
 	}.
 

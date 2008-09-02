@@ -63,9 +63,18 @@ kxdecompiler_instructions_list(KxCodeBlock *self)
 	char *code = data->code;
 
 	List *list = list_new();
+
+	if (code == NULL) {
+		return list;
+	}
 	
 	for(;;) {
 		int instruction = *(code++);
+
+		if (instruction == KXCI_INSTRUCTIONS_COUNT) {
+			return list;
+		}
+
 		KxInstructionInfo *info = &kxinstructions_info[instruction];
 		KxInstructionWrapper *iw = kxinstructionwrapper_new();
 		iw->type = instruction;
@@ -77,12 +86,6 @@ kxdecompiler_instructions_list(KxCodeBlock *self)
 	//	kxinstructionwrapper_dump(iw);
 		list_append(list, iw);
 
-		switch(instruction) {
-			case KXCI_RETURN_SELF:
-			case KXCI_LONGRETURN:
-			case KXCI_RETURN_STACK_TOP:
-				return list;			
-		}
 	}
 }
 

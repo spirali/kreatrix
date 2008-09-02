@@ -29,6 +29,7 @@
 #include "utils/utils.h"
 #include "kxinteger.h"
 #include "kxexception.h"
+#include "kxiterator.h"
 
 /*KXobject Base List
  [Data structures] 
@@ -42,6 +43,8 @@ static void kxlist_add_methods_table(KxList *self);
 static void kxlist_mark(KxList *self);
 static KxList * kxlist_clone(KxList *self);
 static void kxlist_clean(KxList *self);
+static KxIterator * kxlist_iterator_create(KxList *self);
+static KxObject * kxlist_iterator_next(KxList *self, KxIteratorData *iterator);
 
 void
 kxlist_init_extension() 
@@ -52,6 +55,8 @@ kxlist_init_extension()
 	kxlist_extension.mark = kxlist_mark;
 	kxlist_extension.clone = kxlist_clone;
 	kxlist_extension.clean = kxlist_clean;
+	kxlist_extension.iterator_create = kxlist_iterator_create;
+	kxlist_extension.iterator_next = kxlist_iterator_next;
 
 }
 
@@ -113,6 +118,29 @@ static void
 kxlist_mark(KxList *self)
 {
 	list_foreach(self->data.ptr, (ListForeachFcn*)kxobject_mark);
+}
+
+static KxIterator *
+kxlist_iterator_create(KxList *self)
+{
+	KxIteratorDataInt *data = kxmalloc(sizeof(KxIteratorDataInt));
+	ALLOCTEST(data);
+	data->object = self;
+	REF_ADD(self);
+	data->position = 0;
+	return kxiterator_create(KXCORE, (KxIteratorData *) data);
+}
+
+static KxObject *
+kxlist_iterator_next(KxList *self, KxIteratorData *iterator)
+{
+	List *list = KXLIST_DATA(self);
+	if ( ((KxIteratorDataInt *) iterator)->position < list->size)
+	{
+		return list->items[((KxIteratorDataInt *) iterator)->position++];
+	} else {
+		return NULL;
+	}
 }
 
 

@@ -563,7 +563,7 @@ kxcomp_start(KxCompiler *self)
 
 	kxcblock_end_of_main_block(self->block);
 
-	kxcblock_optimise_root_block(self->block);
+	kxcblock_optimise_root_block(self->block, self->level_of_optimisation);
 	return 1;
 }
 
@@ -583,12 +583,14 @@ kxcomp_one_error_list(char *form, ...)
 }
 
 List *
-kxcomp_compile_string(char *string, char *filename, int compile_docs, KxcBlock **block)
+kxcomp_compile_string(char *string, char *filename, 
+	int compile_docs, int level_of_optimisation, KxcBlock **block)
 {
 	*block = NULL;
 	KxCompiler *self = kxcomp_new();
 	self->filename = filename;
 	self->compile_docs = compile_docs;
+	self->level_of_optimisation = level_of_optimisation;
 	self->parser = kxparser_parse_string(string, compile_docs);
 
 	int r = kxcomp_start(self);
@@ -613,7 +615,8 @@ kxcomp_compile_string(char *string, char *filename, int compile_docs, KxcBlock *
 }
 
 List * 
-kxcomp_compile_file(char *filename, int compile_docs, KxcBlock **block) 
+kxcomp_compile_file(char *filename, int compile_docs, 
+	int level_of_optimisation, KxcBlock **block) 
 {
 	*block = NULL;
 	FILE *file = fopen(filename,"r");
@@ -646,7 +649,9 @@ kxcomp_compile_file(char *filename, int compile_docs, KxcBlock **block)
 		}
 	}
 	
-	List *errors = kxcomp_compile_string(start, filename, compile_docs, block);
+	List *errors = kxcomp_compile_string(start, filename, compile_docs, 
+		level_of_optimisation, block);
+
 	free(content);
 	return errors;
 }

@@ -41,8 +41,10 @@ integerTest = test TestCase clone do: {
 		assert: z equals: 131071.
 
 		x << 9.
-		7 repeat: [ :index | x << x - index ].
-		assert: x equals: (-12).
+		7 repeat: [ x << x - 1 ].
+		assert: x equals: 2.
+
+		((0 repeat: [ 5 ]) == nil) assertTrue.
 	}.
 
 	testToDoBy = { |x y|

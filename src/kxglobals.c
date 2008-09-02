@@ -27,6 +27,8 @@
 
 
 int kx_verbose = 0;
+int kx_doc_flag = 0;
+int kx_level_of_optimisation = 2;
 
 #ifdef KX_THREADS_SUPPORT
 	int kx_threads_support = 1;

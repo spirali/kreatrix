@@ -61,6 +61,7 @@
 #include "kxset.h"
 #include "kxarray2d.h"
 #include "kxactivation_object.h"
+#include "kxiterator.h"
 
 #ifndef KX_MULTI_STATE
 
@@ -85,6 +86,8 @@ extern int kx_verbose;
 static char *core_dictionary[KXDICTIONARY_SIZE] = 
 { "self","type","message","==","print","value","value:","value:value:","value:value:value:",
   "valueWithList:","init","doesNotUnderstand:parameters:","asString", "hash", "key", "printString",
+  "ifTrue:", "ifFalse:", "ifTrue:ifFalse:", "ifFalse:ifTrue:", "foreach:", 
+  "repeat:", "to:do:", "to:by:do:",
  };
 
 static void 
@@ -188,6 +191,7 @@ kxcore_new()
 	kxcore_add_basic_prototype(core, KXPROTO_FLOAT, kxfloat_new_prototype(core));
 	kxcore_add_basic_prototype(core, KXPROTO_SET, kxset_new_prototype(core));
 	kxcore_add_basic_prototype(core, KXPROTO_ACTIVATION, kxactivationobject_new_prototype(core));
+	kxcore_add_basic_prototype(core, KXPROTO_ITERATOR, kxiterator_new_prototype(core));
 
 	kxsymbol_add_method_table(core->basic_prototypes[KXPROTO_SYMBOL]);
 
@@ -418,6 +422,13 @@ kxcore_clone_basic_prototype(KxCore *core, KxBasicPrototypes proto)
 {
 	return kxobject_clone(core->basic_prototypes[proto]);
 }
+
+KxObject *
+kxcore_raw_clone_basic_prototype(KxCore *core, KxBasicPrototypes proto) 
+{
+	return kxobject_raw_clone(core->basic_prototypes[proto]);
+}
+
 
 KxObject *
 kxcore_clone_base_object(KxCore *self) 

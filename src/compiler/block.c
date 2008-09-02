@@ -37,7 +37,7 @@
 /**
  * Create new instruction
  */
-static KxcInstruction*
+KxcInstruction*
 kxcinstruction_new(KxInstructionType type)
 {
 	KxcInstruction *instruction = malloc(sizeof(KxcInstruction));
@@ -47,10 +47,19 @@ kxcinstruction_new(KxInstructionType type)
 	return instruction;
 }
 
+KxcInstruction*
+kxcinstruction_copy(KxcInstruction *instruction)
+{
+	KxcInstruction *i = malloc(sizeof(KxcInstruction));
+	ALLOCTEST(i);
+	memcpy(i, instruction, sizeof(KxcInstruction));
+	return i;
+}
+
 /**
  * Free instruction 
  */
-static void
+void
 kxcinstruction_free(KxcInstruction *instruction)
 {   
 	free(instruction);
@@ -75,6 +84,18 @@ kxcliteral_new(KxcLiteralType type)
 	return literal;
 }
 
+KxcLiteral *
+kxcliteral_copy(KxcLiteral *literal)
+{
+	KxcLiteral *literal_new = malloc(sizeof(KxcLiteral));
+	ALLOCTEST(literal_new);
+	memcpy(literal_new, literal, sizeof(KxcLiteral));
+	if (literal->type == KXC_LITERAL_STRING || literal->type == KXC_LITERAL_SYMBOL) {
+		literal_new->value.string = strdup(literal->value.string);
+	}
+	return literal_new;
+}
+
 static void
 kxcliteral_free(KxcLiteral *literal)
 {   
@@ -85,12 +106,32 @@ kxcliteral_free(KxcLiteral *literal)
 }
 
 
-static char
-params_count(char *name) 
+static int
+params_count_of_message(KxInstructionType msgtype, char *name) 
 {
+	switch(msgtype) {
+		case KXCI_UNARY_MSG:
+		case KXCI_LOCAL_UNARY_MSG:
+		case KXCI_RESEND_UNARY_MSG:
+			return 0;
+
+		case KXCI_BINARY_MSG:
+			return 1;
+
+		case KXCI_KEYWORD_MSG: 
+		case KXCI_LOCAL_KEYWORD_MSG: 
+		case KXCI_RESEND_KEYWORD_MSG: 
+			break;
+		
+		default:
+			fprintf(stderr,"Internal error: Unknown message (params_count_of_message)\n");
+			abort();
+	}
+
 	int count = 0;
 	int t;
-	for (t=0;t<strlen(name);t++) {
+	int len = strlen(name);
+	for (t=0;t<len;t++) {
 		if (name[t] == ':')
 			count++;
 	}
@@ -103,72 +144,29 @@ params_count(char *name)
 static void 
 kxcinstruction_bytecode_write(KxcInstruction *instruction, char **bytecode, KxcBlock *block) 
 {
+
 	BYTECODE_WRITE_CHAR(instruction->type);
 	int typesize = sizeof(char);
 
 	switch(instruction->type) {
-		case KXCI_UNARY_MSG:
-		case KXCI_BINARY_MSG:
-		case KXCI_LOCAL_UNARY_MSG:
-		case KXCI_RESEND_UNARY_MSG:
-			BYTECODE_WRITE_CHAR(instruction->value.symbol);
-			return;
-
-		case KXCI_KEYWORD_MSG: 
-		case KXCI_LOCAL_KEYWORD_MSG: 
-		case KXCI_RESEND_KEYWORD_MSG: {
-			char symbol = instruction->value.symbol;
-			BYTECODE_WRITE_CHAR(symbol);
-			char *msg_name = list_get(block->symbols,(int)symbol);
-			char params = params_count(msg_name);
-			BYTECODE_WRITE_CHAR(params);
-			return;
-		}
-		case KXCI_LIST:
-			BYTECODE_WRITE_CHAR(instruction->value.list_size);
-			return;
-
-		case KXCI_POP:
-		case KXCI_RETURN_STACK_TOP:
-		case KXCI_LONGRETURN:
-		case KXCI_RETURN_SELF:
-			return; // No aditional data
-	
-		case KXCI_PUSH_METHOD:			
-		case KXCI_PUSH_BLOCK:
-			BYTECODE_WRITE_CHAR(instruction->value.codeblock);
-			return;
-
-		case KXCI_PUSH_SELF:
-		case KXCI_PUSH_ACTIVATION:
-			return;
-
-		case KXCI_PUSH_LITERAL:
-			BYTECODE_WRITE_CHAR(instruction->value.literal);
-			return;
-
-		case KXCI_PUSH_LOCAL:
-		case KXCI_UPDATE_LOCAL:
-			BYTECODE_WRITE_CHAR(instruction->value.local.index);
-			return;
-
 		case KXCI_PUSH_OUTER_LOCAL:
 		case KXCI_UPDATE_OUTER_LOCAL:
 			BYTECODE_WRITE_CHAR(instruction->value.local.scope - 1);
 			BYTECODE_WRITE_CHAR(instruction->value.local.index);
 			return;
-
-
-
+		default: {
+			int t;
+			int *data = (int *) &instruction->value;
+			int count = kxinstructions_info[instruction->type].params_count;
+			for (t=0; t < count; t++) {
+				BYTECODE_WRITE_CHAR(data[t]);
+			}
+		}
 	}
-
-	fprintf(stderr,"Internal error, invalid instruction type\n");
-	abort();
 }
 
 /// -- KxcBlock --------------------------------------------------
 
-static int kxcblock_get_symbol(KxcBlock *block, char *symbolname);
 static void kxcblock_add_params_and_locals(KxcBlock *block, List *parameters, List *locals, List *errors);
 
 
@@ -196,6 +194,7 @@ kxcblock_new(int type, KxcBlock * parent, List *parameters, List *localslots, Li
 	block->code = list_new();
 	block->subblocks = list_new();
 	block->message_linenumbers = list_new();
+	block->foreign_blocks = list_new();
 
 	return block;
 }
@@ -228,6 +227,9 @@ kxcblock_free(KxcBlock *block)
 
 	list_foreach(block->literals, (ListForeachFcn*) &kxcliteral_free);
 	list_free(block->literals);
+
+	list_foreach(block->foreign_blocks, (ListForeachFcn*) &kxcforeignblock_free);
+	list_free(block->foreign_blocks);
 	
 	list_free(block->message_linenumbers);
 
@@ -258,6 +260,27 @@ kxcblock_add_symbol(KxcBlock *block, char *symbolname)
 	return block->symbols->size-1;
 }
 
+char *
+kxcblock_get_symbol_at(KxcBlock *block, int position)
+{
+	return block->symbols->items[position];
+}
+
+KxcLiteral *
+kxcblock_get_literal_at(KxcBlock *block, int position)
+{
+	return block->literals->items[position];
+}
+
+KxcBlock *
+kxcblock_get_subblock_at(KxcBlock *block, int position)
+{
+	if (position >= block->subblocks->size) {
+		position -= block->subblocks->size;
+		return kxcblock_get_foreign_block(block, block->foreign_blocks->items[position]);
+	}
+	return block->subblocks->items[position];
+}
 
 /**
  *  Add instruction into block
@@ -269,16 +292,25 @@ kxcblock_add_instruction(KxcBlock *block, KxcInstruction *instruction)
 }
 
 /**
+ * Insert instrucion into block
+ */
+void
+kxcblock_insert_instruction(KxcBlock *block, KxcInstruction *instruction, int position)
+{
+	list_insert_at(block->code, instruction, position);
+}
+
+/**
  *	Find id of symbols by symbolname.
  *	If symbolname don't exist, symbol is createn
  */
-static int 
+int 
 kxcblock_get_symbol(KxcBlock *block, char *symbolname)
 {
 	int t;
 	for (t=0;t<block->symbols->size;t++) {
 		if (!strcmp(symbolname,block->symbols->items[t])) {
-			free(symbolname); // Symbol find in table, our symbolname can be freed
+			free(symbolname); // Symbol found in table, our symbolname can be freed
 			return t;
 		}
 	}
@@ -357,6 +389,29 @@ kxcblock_add_params_and_locals(KxcBlock *block, List *parameters, List *locals, 
 
 	if (locals)
 		list_free(locals);
+}
+
+void 
+kxcblock_append_locals(KxcBlock *block, KxcBlock *source)
+{
+	int locals_count = source->locals_count;
+	char *locals = source->locals;
+
+	if (locals == NULL)
+		return;
+
+
+	int start_id = block->locals_count;
+	int count = start_id + locals_count;
+	block->locals_count = count;
+
+	block->locals = kxrealloc(block->locals, count * sizeof(char));
+	int t;
+	for (t=0; t < locals_count; t++) {
+		char *symbolname = strdup(kxcblock_get_symbol_at(source, t));
+		int symbol = kxcblock_get_symbol(block, symbolname);
+		block->locals[t + start_id] = symbol;
+	}
 }
 
 void
@@ -445,10 +500,13 @@ kxcblock_put_message(KxcBlock *block, KxInstructionType msgtype, char *messagena
 	}
 
 	PDEBUG("sendmsg: %i %s\n",msgtype,messagename);
+
+	int params_count = params_count_of_message(msgtype, messagename);
 	int symbol = kxcblock_get_symbol(block, messagename);
 
 	KxcInstruction *i = kxcinstruction_new(msgtype);
-	i->value.symbol = symbol;
+	i->value.msg.symbol = symbol;
+	i->value.msg.params_count = params_count;
 	kxcblock_add_instruction(block,i);
 
 	list_append(block->message_linenumbers,(void*)(long)lineno);
@@ -577,7 +635,7 @@ kxcblock_literals_equals(KxcLiteral *literal1, KxcLiteral *literal2)
 	}
 }
 
-static int
+int
 kxcblock_add_literal(KxcBlock *block, KxcLiteral *literal)
 {
 	int t;
@@ -805,6 +863,19 @@ kxcblock_bytecode_lineno_size(KxcBlock *block)
 	return size;
 }
 
+static int
+kxcblock_bytecode_foreign_block_size(KxcBlock *block)
+{
+	int size = 1;
+	int t;
+
+	for (t = 0; t < block->foreign_blocks->size; t++) {
+		KxcForeignBlock *fblock = block->foreign_blocks->items[t];
+		size += 1 + fblock->child_path->size;
+	}
+	return size;
+}
+
 /**
  * Get bytecode's size of whole block
  */
@@ -820,6 +891,7 @@ kxcblock_bytecode_size(KxcBlock *block)
 
 	size += kxcblock_bytecode_code_size(block);
 	size += kxcblock_bytecode_lineno_size(block);
+	size += kxcblock_bytecode_foreign_block_size(block);
 
 	size++; // number of subblocks
 	int t;
@@ -921,6 +993,25 @@ kxcblock_bytecode_lineno_write(KxcBlock *block, char **bytecode)
 	}
 }
 
+static void
+kxcblock_bytecode_foreign_block_write(KxcBlock *block, char ** bytecode)
+{
+	int size = 1;
+	int t;
+	
+	BYTECODE_WRITE_CHAR(block->foreign_blocks->size);
+	
+	for (t = 0; t < block->foreign_blocks->size; t++) {
+		KxcForeignBlock *fblock = block->foreign_blocks->items[t];
+		int s;
+		for (s = 0; s < fblock->child_path->size; s++) {
+			BYTECODE_WRITE_CHAR( (int) fblock->child_path->items[s]);
+		}
+		BYTECODE_WRITE_CHAR(fblock->position + 100);
+	}
+}
+
+
 /**
  * Write bytecode of codeblock and all subblocks recursively, 
  */ 
@@ -935,11 +1026,14 @@ kxcblock_bytecode_write(KxcBlock *block, char **bytecode)
 	kxcblock_bytecode_lineno_write(block, bytecode);
 	kxcblock_bytecode_code_write(block,bytecode);
 	
+
 	BYTECODE_WRITE_CHAR(block->subblocks->size);
 	int t;
 	for (t=0;t<block->subblocks->size;t++) {
 		kxcblock_bytecode_write(block->subblocks->items[t],bytecode);
 	}
+
+	kxcblock_bytecode_foreign_block_write(block, bytecode);
 }
 
 void 
@@ -948,4 +1042,79 @@ kxcblock_remove_instruction(KxcBlock *block, int position)
 	KxcInstruction *i = block->code->items[position];
 	list_fast_remove(block->code, position);
 	kxcinstruction_free(i);
+}
+
+void
+kxcblock_insert_linenumbers(KxcBlock *block, KxcBlock *source, int position)
+{
+	int t;
+	List *source_list = source->message_linenumbers;
+	List *dest_list = block->message_linenumbers;
+	for (t = 0; t < source_list->size; t++) {
+		list_insert_at(dest_list, source_list->items[t], position + t);
+	}
+}
+
+int
+kxcblock_get_line_index_from_position(KxcBlock *block, int position)
+{
+	int index = 0;
+	int t;
+	for (t=0; t < position; t++) {
+		KxcInstruction *i = block->code->items[t];
+		if (kxcinstruction_has_linenumber(i->type)) {
+			index++;
+		}
+	}
+	return index;
+}
+
+void 
+kxcblock_remove_linenumber_for_instruction(KxcBlock *block, int iposition)
+{
+	list_remove(block->message_linenumbers, kxcblock_get_line_index_from_position(block, iposition));
+}
+
+KxcForeignBlock *
+kxcforeignblock_create(int position)
+{
+	KxcForeignBlock *fblock = kxmalloc(sizeof(KxcForeignBlock));
+	ALLOCTEST(fblock);
+	fblock->child_path = list_new();
+	fblock->position = position;
+	return fblock;
+}
+
+KxcForeignBlock *
+kxcforeignblock_copy(KxcForeignBlock *fblock)
+{
+	KxcForeignBlock *fblock_copy = kxmalloc(sizeof(KxcForeignBlock));
+	ALLOCTEST(fblock_copy);
+	fblock_copy->child_path = list_copy(fblock->child_path);
+	fblock_copy->position = fblock->position;
+	return fblock_copy;
+}
+
+
+void
+kxcforeignblock_free(KxcForeignBlock *fblock)
+{
+	list_free(fblock->child_path);
+	free(fblock);
+}
+
+void
+kxcforeignblock_add_into_path(KxcForeignBlock *fblock, int subblock)
+{
+	list_append(fblock->child_path, (void*) subblock);
+}
+
+KxcBlock *
+kxcblock_get_foreign_block(KxcBlock *block, KxcForeignBlock *fblock)
+{
+	int t;
+	for (t=0; t < fblock->child_path->size; t++) {
+		block = block->subblocks->items[ (int) fblock->child_path->items[t] ];
+	}
+	return block->subblocks->items[ fblock->position ];
 }
