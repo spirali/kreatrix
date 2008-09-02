@@ -440,7 +440,7 @@ kxactivation_try_to_fill_inline_cache(KxCodeBlockInlineCache *ic, KxObject *targ
 }
 #endif
 
-
+#ifdef KX_HOTSPOT
 static void
 kxactivation_hotspot_detected(KxActivation *self)
 {
@@ -452,6 +452,7 @@ kxactivation_hotspot_detected(KxActivation *self)
 		kxobject_dump(self->codeblock);
 	}
 }
+#endif // KX_HOTSPOT
 
 KxObject * 
 kxactivation_run(KxActivation *self) 

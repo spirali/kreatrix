@@ -230,14 +230,16 @@ kxcodeblock_data_new_return_self()
 	data->source_filename = strdup("<build-in>");
 
 	#ifdef KX_HOTSPOT
-	data->code = kxmalloc(2);
+	data->code = kxmalloc(3);
 	ALLOCTEST(data->code);
 	data->code[0] = KXCI_HOTSPOT_PROBE;
 	data->code[1] = KXCI_RETURN_SELF;
+	data->code[2] = KXCI_INSTRUCTIONS_COUNT;
 	#else
-	data->code = kxmalloc(1);
+	data->code = kxmalloc(2);
 	ALLOCTEST(data->code);
 	data->code[0] = KXCI_RETURN_SELF;
+	data->code[1] = KXCI_INSTRUCTIONS_COUNT;
 	#endif
 
 	return data;
