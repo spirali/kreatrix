@@ -344,6 +344,31 @@ testInlineCache = test TestCase clone do: {
 		
 		((A __internalData: #__instanceSlots) == #(#x #y #n)) assertTrue.
 	}.
+
+	testSingleton = { 
+		|A B|
+		A << Object clone.
+		A m: = { :x | ^x doSomething }.
+		
+		(A slot: #m:) insertInlineCache.
+
+		B << Object clone.
+		B doSomething = { ^"x" }.
+
+		((A m: B) == "x") assertTrue.
+		((A m: B) == "x") assertTrue.
+		((A m: B) == "x") assertTrue.
+		((A m: B) == "x") assertTrue.
+		((A m: B) == "x") assertTrue.
+
+		B doSomething = { ^"y" }.
+
+		((A m: B) == "y") assertTrue.
+		((A m: B) == "y") assertTrue.
+		((A m: B) == "y") assertTrue.
+		((A m: B) == "y") assertTrue.
+		((A m: B) == "y") assertTrue.
+	}.
 }.
 
 testInlineCache run.

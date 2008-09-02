@@ -285,8 +285,7 @@ kxactivation_return(KxActivation *self, KxReturn ret)
 static int
 kxactivation_try_to_fill_inline_cache(KxCodeBlockInlineCache *ic, KxObject *target)
 {
-	if (target->ptype == KXOBJECT_INSTANCE  
-		&& !kxobject_profile_check_symbol(target->profile, ic->message_name)) {
+	if (!kxobject_profile_check_symbol(target->profile, ic->message_name)) {
 		if (ic->prototype) {
 				REF_REMOVE(ic->prototype);
 				REF_REMOVE(ic->cached_object);
@@ -296,15 +295,21 @@ kxactivation_try_to_fill_inline_cache(KxCodeBlockInlineCache *ic, KxObject *targ
 			int flags;
 			KxObject *slot_holder;
 
-			// Find slots only in first parent, other parents are not cachned
-			KxObject *object = kxobject_find_slot_and_holder(target->parent_slot.parent,ic->message_name, 
+			KxObject *start;
+
+			if (target->ptype == KXOBJECT_INSTANCE) {
+				start = target->parent_slot.parent;
+			} else {
+				start = target;
+			}
+			KxObject *object = kxobject_find_slot_and_holder(start,ic->message_name, 
 				&slot_holder, &flags);
 
 			if (object && !(flags & KXOBJECT_SLOTFLAG_FREEZE)) {
 				REF_ADD(object);
 				ic->cached_object = object;
-				REF_ADD(target->parent_slot.parent);
-				ic->prototype = target->parent_slot.parent;
+				REF_ADD(start);
+				ic->prototype = start;
 				REF_ADD(slot_holder);
 				ic->slot_holder = slot_holder;
 				return 1;
@@ -678,7 +683,8 @@ kxactivation_run(KxActivation *self)
 				int inlinecache_id = (int) FETCH_BYTE(codep);
 				KxCodeBlockInlineCache *ic = &cdata->inline_cache[inlinecache_id];
 				KxObject *target = kxactivation_inner_stack_pop(self);
-				if (target->parent_slot.parent == ic->prototype && target->ptype == KXOBJECT_INSTANCE) {
+				if ((target->parent_slot.parent == ic->prototype && target->ptype == KXOBJECT_INSTANCE) 
+					|| target == ic->prototype ) {
 					KxObject *obj = ic->cached_object;
 					if (!obj->extension || !obj->extension->activate) {
 						REF_REMOVE(target);
@@ -728,7 +734,8 @@ kxactivation_run(KxActivation *self)
 				int inlinecache_id = (int) FETCH_BYTE(codep);
 				KxCodeBlockInlineCache *ic = &cdata->inline_cache[inlinecache_id];
 				KxObject *target = self->receiver;
-				if (target->parent_slot.parent == ic->prototype && target->ptype == KXOBJECT_INSTANCE) {
+				if ((target->parent_slot.parent == ic->prototype && target->ptype == KXOBJECT_INSTANCE)
+					|| target == ic->prototype) {
 					KxObject *obj = ic->cached_object;
 					if (!obj->extension || !obj->extension->activate) {
 						REF_ADD(obj);
@@ -779,7 +786,8 @@ kxactivation_run(KxActivation *self)
 				KxCodeBlockInlineCache *ic = &cdata->inline_cache[inlinecache_id];
 				KxObject *param = kxactivation_inner_stack_pop(self);
 				KxObject *target = kxactivation_inner_stack_pop(self);
-				if (target->parent_slot.parent == ic->prototype && target->ptype == KXOBJECT_INSTANCE) {
+				if ((target->parent_slot.parent == ic->prototype && target->ptype == KXOBJECT_INSTANCE)
+					|| target == ic->prototype) {
 					KxObject *obj = ic->cached_object;
 					if (!obj->extension || !obj->extension->activate) {
 						REF_REMOVE(target);
@@ -842,7 +850,8 @@ kxactivation_run(KxActivation *self)
 
 
 				KxObject *target = kxactivation_inner_stack_pop(self);
-				if (target->parent_slot.parent == ic->prototype && target->ptype == KXOBJECT_INSTANCE) {
+				if ((target->parent_slot.parent == ic->prototype && target->ptype == KXOBJECT_INSTANCE) 
+					|| target == ic->prototype) {
 					KxObject *obj = ic->cached_object;
 					if (!obj->extension || !obj->extension->activate) {
 						REF_REMOVE(target);
@@ -913,7 +922,8 @@ kxactivation_run(KxActivation *self)
 
 				KxObject *target = self->receiver;
 
-				if (target->parent_slot.parent == ic->prototype && target->ptype == KXOBJECT_INSTANCE) {
+				if ((target->parent_slot.parent == ic->prototype && target->ptype == KXOBJECT_INSTANCE) 
+					|| target == ic->prototype) {
 					KxObject *obj = ic->cached_object;
 					if (!obj->extension || !obj->extension->activate) {
 						REF_ADD(obj);
