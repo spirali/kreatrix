@@ -41,6 +41,7 @@ KxObjectExtension kxinteger_extension;
 static void kxinteger_add_method_table(KxInteger *self);
 //static void kxinteger_free(KxInteger *self);
 static KxInteger* kxinteger_clone(KxInteger *self);
+static void kxinteger_dump(KxInteger *self);
 
 void
 kxinteger_init_extension() 
@@ -48,6 +49,7 @@ kxinteger_init_extension()
 	kxobjectext_init(&kxinteger_extension);
 	kxinteger_extension.type_name = "Integer";
 	kxinteger_extension.clone = kxinteger_clone;
+	kxinteger_extension.dump = kxinteger_dump;
 	kxinteger_extension.is_immutable = 1;
 }
 
@@ -58,6 +60,12 @@ kxinteger_clone(KxInteger *self)
 	KxObject *clone = kxobject_raw_clone(self);
 	clone->data.intval = self->data.intval;
 	return clone;
+}
+
+static void 
+kxinteger_dump(KxInteger *self) 
+{
+	printf("%li",KXINTEGER_VALUE(self));
 }
 
 

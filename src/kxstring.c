@@ -48,6 +48,7 @@ KxObjectExtension kxstring_extension;
 
 static void kxstring_add_method_table(KxString *self);
 static void kxstring_free(KxString *self);
+static void kxstring_dump(KxString *self);
 
 void
 kxstring_init_extension() 
@@ -55,6 +56,7 @@ kxstring_init_extension()
 	kxobjectext_init(&kxstring_extension);
 	kxstring_extension.type_name = "String";
 	kxstring_extension.free = kxstring_free;
+	kxstring_extension.dump = kxstring_dump;
 }
 
 static void 
@@ -63,6 +65,11 @@ kxstring_free(KxString *self)
 	kxfree(KXSTRING_VALUE(self));
 }
 
+static void 
+kxstring_dump(KxString *self) 
+{
+	printf("%s",KXSTRING_VALUE(self));
+}
 
 KxObject *
 kxstring_new_prototype(KxCore *core) 

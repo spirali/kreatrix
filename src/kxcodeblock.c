@@ -44,6 +44,7 @@ KxObjectExtension kxcodeblock_extension;
 static void kxcodeblock_free(KxCodeBlock *self);
 static void kxcodeblock_clean(KxCodeBlock *self);
 static void kxcodeblock_mark(KxObject *self);
+static void kxcodeblock_dump(KxObject *self);
 static KxCodeBlockData *kxcodeblock_data_new_return_self();
 
 static void 
@@ -58,7 +59,16 @@ kxcodeblock_init_extension()
 	kxcodeblock_extension.clean = kxcodeblock_clean;
 	kxcodeblock_extension.activate = kxcodeblock_run;
 	kxcodeblock_extension.mark = kxcodeblock_mark;
+	kxcodeblock_extension.dump = kxcodeblock_dump;
 	kxcodeblock_extension.is_immutable = 1;
+}
+
+void
+kxcodeblock_dump(KxCodeBlock *self)
+{
+	KxCodeBlockData *cdata = KXCODEBLOCK_DATA(self);
+	printf("%s:%i", cdata->source_filename, 
+		cdata->message_linenumbers?cdata->message_linenumbers[0]:-1);
 }
 
 

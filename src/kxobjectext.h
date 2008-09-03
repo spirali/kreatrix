@@ -39,6 +39,7 @@ typedef struct KxObject*(KxObjectFcnDepthCopy)(struct KxObject *self);
 typedef void (KxObjectFcnMark)(struct KxObject *self);
 typedef void(KxObjectFcnFree)(struct KxObject *self);
 typedef void(KxObjectFcnClean)(struct KxObject *self);
+typedef void(KxObjectFcnDump)(struct KxObject *self);
 typedef int(KxObjectFcnCompare)(struct KxObject *self, struct KxObject *param);
 typedef struct KxObject * (KxObjectFcnIteratorCreate)(struct KxObject *self);
 typedef struct KxObject * (KxObjectFcnIteratorNext)(struct KxObject *self, struct KxIteratorData *iterator);
@@ -56,6 +57,7 @@ struct KxObjectExtension {
 
 	KxObjectFcnIteratorCreate *iterator_create;
 	KxObjectFcnIteratorNext *iterator_next;
+	KxObjectFcnDump *dump;
 
 	char *type_name;
 	KxObjectExtension *parent;

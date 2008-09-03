@@ -37,6 +37,7 @@ KxObjectExtension kxsymbol_extension;
 
 static KxSymbol *kxsymbol_clone(KxSymbol *self);
 static void kxsymbol_free(KxSymbol *self);
+static void kxsymbol_dump(KxSymbol *self);
 
 
 void kxsymbol_init_extension() 
@@ -45,6 +46,7 @@ void kxsymbol_init_extension()
 	kxsymbol_extension.type_name = "Symbol";
 	kxsymbol_extension.clone = kxsymbol_clone;
 	kxsymbol_extension.free = kxsymbol_free;
+	kxsymbol_extension.dump = kxsymbol_dump;
 	kxsymbol_extension.is_immutable = 1;
 }
 
@@ -82,6 +84,12 @@ kxsymbol_free(KxSymbol *self)
 {
 	kxcore_symbol_remove(KXCORE,self);
 	kxfree(self->data.ptr);
+}
+
+static void 
+kxsymbol_dump(KxSymbol *self) 
+{
+	printf("#%s", KXSYMBOL_AS_CSTRING(self));
 }
 
 KxObject *

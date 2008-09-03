@@ -216,25 +216,30 @@ kxobject_dump(KxObject *self)
 		printf("<NULL>\n");
 		return;
 	}
-	char *proto_tail = "";
-
-	if (self->parent_slot.parent == KXCORE->base_object) {
-			proto_tail = "(proto)";
+	printf("(%p_%s:%i", self, kxobject_raw_type_name(self), self->ref_count);
+	
+	#ifdef KX_INLINE_CACHE
+	switch(self->ptype) {
+		case KXOBJECT_INSTANCE:
+			printf(":i"); break;
+		case KXOBJECT_PROTOTYPE:
+			printf(":p"); break;
+		case KXOBJECT_SINGLETON:
+			printf(":s"); break;
 	}
+	#endif
 
-	if (IS_KXSYMBOL(self) || IS_KXSTRING(self)) {
-		printf("(%p_%s:%i) {%p} %s %s\n", self, kxobject_raw_type_name(self), self->ref_count,self->data.ptr,(char*) self->data.ptr, proto_tail);
-	} else if (IS_KXCHARACTER(self)) {
-		printf("(%p_%s:%i) {%p} %c %s\n", self, kxobject_raw_type_name(self), self->ref_count,self->data.ptr, self->data.charval, proto_tail);
-	} else if (IS_KXCODEBLOCK(self)) {
-		KxCodeBlockData *data = KXCODEBLOCK_DATA(self);
-		if (data) {
-			printf("(%p_%s:%i) {%p} %s:%i %s\n", self, kxobject_raw_type_name(self), self->ref_count, self->data.ptr,data->source_filename, data->message_linenumbers?data->message_linenumbers[0]:-1, proto_tail);
+	if (self->extension) {
+		printf(") {");
+		if (self->extension->dump) {
+			self->extension->dump(self);
 		} else {
-			printf("(%p_%s:%i) {%p} %s\n", self, kxobject_raw_type_name(self), self->ref_count,self->data.ptr, proto_tail);
+			printf("%p", self->data.ptr);
 		}
-	} else 
-		printf("(%p_%s:%i) {%p} %s\n", self, kxobject_raw_type_name(self), self->ref_count,self->data.ptr, proto_tail);
+		printf("}\n");
+	} else {
+		printf(")\n");
+	}
 }
 
 

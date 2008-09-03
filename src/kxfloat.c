@@ -39,6 +39,7 @@
 KxObjectExtension kxfloat_extension;
 
 static void kxfloat_add_method_table(KxFloat *self);
+static void kxfloat_dump(KxFloat *self);
 
 void
 kxfloat_init_extension() 
@@ -46,9 +47,14 @@ kxfloat_init_extension()
 	kxobjectext_init(&kxfloat_extension);
 	kxfloat_extension.type_name = "Float";
 	kxfloat_extension.is_immutable = 1;
+	kxfloat_extension.dump = kxfloat_dump;
 }
 
-
+static void 
+kxfloat_dump(KxFloat *self) 
+{
+	printf("%g",KXFLOAT_VALUE(self));
+}
 
 KxObject *
 kxfloat_new_prototype(KxCore *core) 
