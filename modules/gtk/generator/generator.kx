@@ -28,29 +28,10 @@ localImport: "wrapper.kx".
 localImport: "class.kx".
 localImport: "struct.kx".
 localImport: "enum.kx".
+localImport: "constant.kx".
 
 "Initalizing and reading configs ... " println.
 
-Constant = Object clone do: {
-	type = "Constant".
-	name <- "".
-	value <- "".
-	valueType <- "".
-
-	valueCode = {
-		^#("KX" (valueType asUppercase) "(" value ")") asString.
-	}.
-
-	getCode = { 
-		^"\tkxobject_set_slot_no_ref2(constants, KXSYMBOL(\"",name,"\"),",valueCode,");\n".
-	}.
-}.
-
-IntegerConstant = Constant clone do: {
-	type = "IntegerConstant".
-	
-	valueType = "integer".
-}.
 
 Generator = Object clone do: {
 	type = "Generator".
@@ -88,22 +69,39 @@ Generator = Object clone do: {
 
 	}.
 
-	
+	createDefaultConstantsContainer = {
+		|cc|
+		cc << GContantsContainer.
+		cc name: "constants".
+		cc cname: cc name.
+		cc insertIntoParent: true.
+		^cc.
+	}.
+
+	constantsContainers = #(createDefaultConstantsContainer).
 
 	loadEnums = {
 		|enums|
 		enums << GEnum loadFromFile: "enums.txt".
 
 		enums foreach: [ :each | 
-			constants join: each getConstants.
+			constants join: (each getConstants: constantsContainers first).
 			addType: each getType.
 		].
+	}.
+
+	loadConstants = {
+		|cons|
+		cons << GConstants loadFromFile: "constants.xml".
+
+		constantsContainers join: cons containers.
+		constants join: cons getConstants	
 	}.
 
 	initTypes.
 
 	loadEnums.
-
+	loadConstants.
 
 	document = xml Document clone readFile: "class.xml".
 
@@ -238,8 +236,20 @@ Generator = Object clone do: {
 		rep saveTo: "../Makefile.am".
 	}.
 
+	getCodeFromList:send: = { :list :message |
+		^(list collect: [ :each | each perform: message ]) asString.
+	}.
+
 	constantsString = { 
-		^(constants collect: [ :each | each getCode ]) asString.
+		^getCodeFromList: constants send: #getCode.
+	}.
+
+	constantsContainersInitString = { 
+		^getCodeFromList: constantsContainers send: #getCodeInit.
+	}.
+
+	constantsContainersEndString = { 
+		^getCodeFromList: constantsContainers send: #getCodeEnd.
 	}.
 
 	createModule = { |rep extensions prototypes removePrototypesString include|
@@ -262,6 +272,8 @@ Generator = Object clone do: {
 			("%remove_prototypes%" => removePrototypesString)
 			("%init_prototypes%" => prototypes)
 			("%constants%" => constantsString)
+			("%constantsContainersInit%" => constantsContainersInitString)
+			("%constantsContainersEnd%" => constantsContainersEndString)
 			("%include%" => includeString)
 		) asDictionary.
 		rep saveTo: "../gtk.c".

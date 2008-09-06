@@ -28,6 +28,10 @@ String replaceByDictionary: = { :aDictionary |
 	^str.	
 }.
 
+String cutPrefix: = { :prefix | 
+	(beginsWith: prefix) ifTrue: [ ^sliceFrom: prefix size ].
+}.
+
 Replacer = Object clone do: {
 	type = "Replacer".
 

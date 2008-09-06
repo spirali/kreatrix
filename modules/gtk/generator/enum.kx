@@ -51,9 +51,10 @@ GEnum = GType clone do: {
 
 
 
-	getConstants = {
+	getConstants: = { :container | 
 		^values collect: [ :each | |const|
-			const << IntegerConstant clone.
+			const << GIntegerConstant clone.
+			const container: container.
 			const value: each.
 			const name: (each sliceFrom: 4).
 		].

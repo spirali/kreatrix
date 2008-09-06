@@ -1,4 +1,5 @@
 #include <gtk/gtk.h>
+#include <gdk/gdkkeysyms.h>
 
 #include "kxmodule.h"
 #include "kxmessage.h"
@@ -35,12 +36,11 @@ kxmodule_main(KxModule *self, KxMessage *message)
 
 %init_prototypes%
 
-	KxObject *constants = kxcore_clone_base_object(KXCORE);
+%constantsContainersInit%
 
 %constants%
 	
-	kxobject_add_parent(self, constants);
-	kxobject_set_slot_no_ref2(self, KXSYMBOL("contants"), constants);
+%constantsContainersEnd%
 
 	kxgtk_add_method_table(self);
 	KXRETURN(self);

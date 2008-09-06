@@ -26,6 +26,9 @@
 #include <kxmessage.h>
 #include <kxobject.h>
 #include <kxcfunction.h>
+#include <kxinteger.h>
+#include <kxsymbol.h>
+#include <kxexception.h>
 
 #include "gdkevent.h"
 
@@ -79,16 +82,50 @@ kxgdkevent_new_prototype(KxCore *core)
 }
 
 static KxObject *
-kxgdkevent_method(KxGdkEvent *self, KxMessage *message)
+kxgdkevent_throw_error(KxGdkEvent *self, KxMessage *message)
 {
-	KXRETURN(self);
+	KxException *excp = kxexception_new_with_text(KXCORE,
+		"This event type don't support property '%s'",
+		KXSYMBOL_AS_CSTRING(message->message_name));
+	KXTHROW(excp);
+}
+
+static KxObject *
+kxgdkevent_eventType(KxGdkEvent *self, KxMessage *message)
+{
+	GdkEvent *data = KXGDKEVENT_DATA(self);
+	return KXINTEGER((long)data->type);
+}
+
+static KxObject *
+kxgdkevent_state(KxGdkEvent *self, KxMessage *message)
+{
+	GdkEvent *data = KXGDKEVENT_DATA(self);
+	if (data->type != GDK_KEY_PRESS && 
+		data->type != GDK_KEY_RELEASE)
+		return kxgdkevent_throw_error(self, message);
+
+	return KXINTEGER((long)data->key.state);
+}
+
+static KxObject *
+kxgdkevent_key_value(KxGdkEvent *self, KxMessage *message)
+{
+	GdkEvent *data = KXGDKEVENT_DATA(self);
+	if (data->type != GDK_KEY_PRESS && 
+		data->type != GDK_KEY_RELEASE)
+		return kxgdkevent_throw_error(self, message);
+
+	return KXINTEGER((long)data->key.keyval);
 }
 
 static void
 kxgdkevent_add_method_table(KxGdkEvent *self)
 {
 	KxMethodTable table[] = {
-		{"method",0, kxgdkevent_method },
+		{"eventType",0, kxgdkevent_eventType },
+		{"state",0, kxgdkevent_state },
+		{"keyValue",0, kxgdkevent_key_value },
 		{NULL,0, NULL}
 	};
 	kxobject_add_methods(self, table);

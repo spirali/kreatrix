@@ -1,0 +1,92 @@
+
+GConstant = Object clone do: {
+	type = "GConstant".
+	name <- "".
+	value <- "".
+	valueType <- "".
+	container <- nil.
+
+	valueCode = {
+		^#("KX" (valueType asUppercase) "(" value ")") asString.
+	}.
+
+	getCode = { 
+		^"\tkxobject_set_slot_no_ref2(",container cname,", KXSYMBOL(\"",name,"\"),",valueCode,");\n".
+	}.
+}.
+
+GIntegerConstant = GConstant clone do: {
+	type = "GIntegerConstant".
+	
+	valueType = "integer".
+}.
+
+
+GContantsContainer = Object clone do: {
+	type = "GContantsContainer".
+	
+	name <- "constants".
+	cname <- name.
+	insertIntoParent <- false.
+
+	getCodeInit = { |s|
+		^"\tKxObject *%s = kxcore_clone_base_object(KXCORE);\n" % cname.
+	}.
+
+	getCodeEnd = { 
+		|s|
+		s << insertIntoParent ifTrue: [
+			"\tkxobject_add_parent(self, %s);\n" % cname.
+		] ifFalse: [ "" ].
+		^s, ("\tkxobject_set_slot_no_ref2(self, KXSYMBOL(\"%s\"), %s);\n" % cname % name).
+	}.
+}.
+
+GConstants = Object clone do: {
+	type = "GContants".
+
+	loadFromFile: = { :filename |
+	  |	cs document |
+
+	  cs << clone.
+
+      document << xml Document clone readFile: filename.
+
+	  constants: #().
+	
+	  containers: ((document rootElement childrens: "container") collect: [ :node |
+		readContainer: node.
+	  ]).
+	}.
+
+	readContainer: = { :node |
+		|container prefix|
+		container << GContantsContainer clone.
+		container name: (node attribute: "name").
+		container cname: (node attribute: "cname").
+		prefix << node attribute: "prefix".
+
+		(node childrens: "define") foreach: [ :node |
+			|const cname|
+			const << GIntegerConstant clone.
+			cname << (node attribute: "cname").
+			const name: (cname cutPrefix: prefix).
+			const value: cname.
+			const container: container.
+			constants add: const.
+		].
+
+		^container.
+	}.
+	
+	containers <- #().
+	constants <- #().
+
+	/*init = { 
+		containers: #(). 
+		constants: #().	
+	}.*/
+
+	getConstants = { ^constants }.
+}.
+
