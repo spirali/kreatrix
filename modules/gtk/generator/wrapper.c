@@ -1,32 +1,12 @@
-/*************************
- *
- *  %Name%
- *  Generated file by kxgtk generator
- */
-
-
-#include <stdlib.h>
-#include <string.h>
-
-#include "kxmessage.h"
-#include "kxobject.h"
-#include "kxcfunction.h"
-#include "kxinteger.h"
-#include "kxfloat.h"
-#include "kxstring.h"
-#include "kxexception.h"
-#include "gdkevent.h"
-
-%include%
+/************************************
+ *  Wrapper for: %Name%
+ ************************************/
 
 KxObjectExtension kx%name%_extension;
 
 static void kx%name%_free(KxObject *self)
 {
-	//g_object_remove_toggle_ref(self->data.ptr);
-	//g_object_unref(self->data.ptr);
 	%free%
-	//kxgtk_remove_wrapper(self);
 }
 
 static void kx%name%_mark(KxObject *self)
@@ -35,7 +15,6 @@ static void kx%name%_mark(KxObject *self)
 }
 
 %extra_code%
-
 void kx%name%_extension_init() {
 	kxobjectext_init(&kx%name%_extension);
 	kx%name%_extension.type_name = "%Name%";
@@ -44,7 +23,6 @@ void kx%name%_extension_init() {
 	kx%name%_extension.mark = kx%name%_mark;
     %init_extension%
 }
-
 
 static void
 kx%name%_add_method_table(Kx%Name% *self);
@@ -55,14 +33,12 @@ kx%name%_new_prototype(KxObject *parent)
 	KxObject *self = kxobject_raw_clone(parent);
 	self->extension = &kx%name%_extension;
 
-	
 	kx%name%_add_method_table(self);
 
 	%init_prototype%
 
 	return self;
 }
-
 
 KxObject *
 kx%name%_from(KxCore *core, %ctype% data)
@@ -75,7 +51,6 @@ kx%name%_from(KxCore *core, %ctype% data)
 }
 
 %cfunctions%
-
 
 static void
 kx%name%_add_method_table(KxObject *self)
@@ -90,3 +65,4 @@ kx%name%_add_method_table(KxObject *self)
 	kxobject_add_methods(self, table);
 	self->extension = ext;
 }
+

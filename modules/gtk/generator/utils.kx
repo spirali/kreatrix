@@ -57,3 +57,10 @@ String replaceAll:to: = { :pattern :target |
 	  str == new ] whileFalse: [ str << new ].
 	 ^str
 }.
+
+File appendFileWithName: = { :filename |
+	|file|
+	file << (File clone name: filename) openForReading.
+	write: file contentAsString.
+	file close.
+}.

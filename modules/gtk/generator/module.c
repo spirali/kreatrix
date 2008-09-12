@@ -11,8 +11,8 @@
 #include "kxstring.h"
 #include "kxcore.h"
 #include "gdkevent.h"
-
-%include%
+#include "kxgtk_wrapper.h"
+#include "gtk_utils.h"
 
 static void kxgtk_add_method_table(KxObject *self);
 

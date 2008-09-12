@@ -37,8 +37,8 @@ GWrapper = Object clone do: {
 
 	functions <- #().
 
-	templateC = (File clone name: "object.c") openForReading contentAsString.
-	templateH = (File clone name: "object.h") openForReading contentAsString.
+	templateC = (File clone name: "wrapper.c") openForReading contentAsString.
+	templateH = (File clone name: "wrapper.h") openForReading contentAsString.
 
 	filename = { ^name asLowercase }.
 
@@ -82,21 +82,11 @@ GWrapper = Object clone do: {
 		^(list asStringDelimiter: "_") asUppercase.
 	}.
 
-
-	write = {
-		|dict file|
+	writeBodyTo:headerTo: = { :fileC :fileH | |dict|
 		dict << replaceDictionary.
 
-		file << (File clone name: "../",filenameC) openForWriting.
-		file write: (templateC replaceByDictionary: dict).
-
-		file << (File clone name: "../",filenameH) openForWriting.
-		file write: (templateH replaceByDictionary: dict).
-	}.
-
-	create = {
-		("Creating ",name," ... ") println.
-		write.
+		fileC write: (templateC replaceByDictionary: dict).
+		fileH write: (templateH replaceByDictionary: dict).
 	}.
 
 	codeParentExtension = { |p|
@@ -132,7 +122,6 @@ GWrapper = Object clone do: {
 		^#( ("%name%" => name asLowercase)
 		   ("%Name%" => name)
 		   ("%NAME%" => name asUppercase)
-		   ("%include%" => generator includeString)
 		   ("%ctype%" => cname)
 		   ("%parent_extension%" => codeParentExtension)
 		   ("%cfunctions%" => functionsCode)

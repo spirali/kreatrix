@@ -31,9 +31,7 @@
 #include "kxexception.h"
 #include "gdkevent.h"
 
-#include "gtktextbuffer.h"
-#include "gtktextiter.h"
-
+#include "kxgtk_wrapper.h"
 
 static KxObject *
 kxgtktextbuffer_insert (KxObject *self, KxMessage *message)

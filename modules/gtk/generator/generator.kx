@@ -136,13 +136,6 @@ Generator = Object clone do: {
 		multiPartsNames: (findMultiPartsNameWrappers sort: [ :a :b | a size < b size ]) reversed.
 	}.
 
-	includeString = { 
-		includeString = 
-			(headers collect: [ :filename | "#include \"",filename,"\"\n" ]) asString.
-		includeString = includeString, "#include \"gtk_utils.h\"".
-		^includeString.
-	}.
-
 	loadFunctions = { |linenumber file|
 		file << (File clone name: "functions.txt") openForReading.
 		linenumber << 0.
@@ -213,29 +206,6 @@ Generator = Object clone do: {
 		].
 	}.*/
 
-	createMakefile = { |rep filenames filenames_colon|
-		"Creating makefile ... " println.
-		filenames << (allWrappers collect: 
-				[ :class | 
-					class filenameH," \\\n", class filenameC," \\\n" 
-				]) asString.
-
-		filenames_colon << (allWrappers collect: 
-				[ :class | 
-					class filenameH,": kxgenerated.tmp\n", 
-					class filenameC,": kxgenerated.tmp\n" 
-				]) asString.
-
-
-
-		rep << Replacer clone loadTemplate: "Makefile-template.am".
-		rep replaceDictionary: #(
-			("%filenames%" => filenames)
-			("%filenames_colon%" => filenames_colon)
-		) asDictionary.
-		rep saveTo: "../Makefile.am".
-	}.
-
 	getCodeFromList:send: = { :list :message |
 		^(list collect: [ :each | each perform: message ]) asString.
 	}.
@@ -274,18 +244,31 @@ Generator = Object clone do: {
 			("%constants%" => constantsString)
 			("%constantsContainersInit%" => constantsContainersInitString)
 			("%constantsContainersEnd%" => constantsContainersEndString)
-			("%include%" => includeString)
 		) asDictionary.
 		rep saveTo: "../gtk.c".
 	}.
-	
+
+	createWrapperCode = {
+		|fileC fileH|
+		fileC << (File clone name: "../kxgtk_wrapper.c") openForWriting.
+		fileH << (File clone name: "../kxgtk_wrapper.h") openForWriting.
+
+		fileC appendFileWithName: "wrapper_head.c".
+		fileH appendFileWithName: "wrapper_head.h".
+
+		allWrappers foreach: [ :class | 
+			("Writing %s" % class name) println.
+			class writeBodyTo: fileC headerTo: fileH ].
+
+		fileC close.
+
+		fileH appendFileWithName: "wrapper_end.h".
+		fileH close.
+	}.
 
 	create = {
-		(args size > 0) ifTrue: [
-			createMakefile.
-		].
 		createModule.
-		allWrappers foreach: [ :class | class create ].
+		createWrapperCode.
 	}.
 
 	findWrapperByFunctionPrefix: = { :aString | 

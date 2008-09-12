@@ -32,9 +32,7 @@
 #include "kxexception.h"
 #include "kxlist.h"
 #include "gtk_utils.h"
-#include "gtktreeiter.h"
-#include "gtktreemodel.h"
-#include "gtktreeview.h"
+#include "kxgtk_wrapper.h"
 
 static KxObject *
 kxgtkliststore_clone_with_columns (KxObject *self, KxMessage *message)

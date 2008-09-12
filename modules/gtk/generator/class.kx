@@ -86,24 +86,6 @@ GClass = GWrapper clone do: {
 		]).
 	}.
 	
-
-
-	write = {
-		|dict file|
-		dict << replaceDictionary.
-
-		file << (File clone name: "../",filenameC) openForWriting.
-		file write: (templateC replaceByDictionary: dict).
-
-		file << (File clone name: "../",filenameH) openForWriting.
-		file write: (templateH replaceByDictionary: dict).
-	}.
-
-	create = {
-		("Creating ",name," ... ") println.
-		write.
-	}.
-
 	asString = { ^"GClass:",name }.
 
 	functionsCode = { 
