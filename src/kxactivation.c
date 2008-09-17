@@ -36,7 +36,7 @@
 #include "kxfloat.h"
 #include "kxexception.h"
 #include "kxcharacter.h"
-#include "kxactivation_object.h"
+#include "kxlocalcontext.h"
 #include "kxiterator.h"
 #include "kxobject_profile.h"
 #include "kxglobals.h"
@@ -739,9 +739,9 @@ kxactivation_run(KxActivation *self)
 
 			}
 
-			case KXCI_PUSH_ACTIVATION:
+			case KXCI_PUSH_LOCAL_CONTEXT:
 			{
-				KxObject *obj = kxactivationobject_new(KXCORE, self);
+				KxObject *obj = kxlocalcontext_new(KXCORE, self);
 				kxactivation_inner_stack_push(self, obj);
 				continue;
 

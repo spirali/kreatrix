@@ -21,48 +21,48 @@
 	
 #include <stdlib.h>
 
-#include "kxactivation_object.h"
+#include "kxlocalcontext.h"
 #include "kxobject.h"
 #include "kxcore.h"
 #include "kxactivation.h"
 #include "utils/utils.h"
 #include "kxexception.h"
 
-KxObjectExtension kxactivationobject_extension;
+KxObjectExtension kxlocalcontext_extension;
 
-static void kxactivationobject_free(KxActivationObject *self);
-static void kxactivationobject_add_method_table(KxActivationObject *self);
-static void kxactivationobject_mark(KxActivationObject *self);
-static void kxactivationobject_clean(KxActivationObject *self);
+static void kxlocalcontext_free(KxActivationObject *self);
+static void kxlocalcontext_add_method_table(KxActivationObject *self);
+static void kxlocalcontext_mark(KxActivationObject *self);
+static void kxlocalcontext_clean(KxActivationObject *self);
 
 
 void
-kxactivationobject_init_extension() {
-	kxobjectext_init(&kxactivationobject_extension);
-	kxactivationobject_extension.type_name = "Activation";
-	kxactivationobject_extension.free = kxactivationobject_free;
-	kxactivationobject_extension.mark = kxactivationobject_mark;
-	kxactivationobject_extension.clean = kxactivationobject_clean;
+kxlocalcontext_init_extension() {
+	kxobjectext_init(&kxlocalcontext_extension);
+	kxlocalcontext_extension.type_name = "LocalContext";
+	kxlocalcontext_extension.free = kxlocalcontext_free;
+	kxlocalcontext_extension.mark = kxlocalcontext_mark;
+	kxlocalcontext_extension.clean = kxlocalcontext_clean;
 }
 
 
 KxObject *
-kxactivationobject_new_prototype(KxCore *core) 
+kxlocalcontext_new_prototype(KxCore *core) 
 {
 	KxObject *object = kxcore_clone_base_object(core);
 
-	object->extension = &kxactivationobject_extension;
+	object->extension = &kxlocalcontext_extension;
 	object->data.ptr = NULL;
 
-	kxactivationobject_add_method_table(object);
+	kxlocalcontext_add_method_table(object);
 
 	return object;
 }
 
 KxActivationObject *
-kxactivationobject_new(KxCore *core, struct KxActivation *activation)
+kxlocalcontext_new(KxCore *core, struct KxActivation *activation)
 {
-	KxObject *proto = kxcore_get_basic_prototype(core,KXPROTO_ACTIVATION);
+	KxObject *proto = kxcore_get_basic_prototype(core,KXPROTO_LOCALCONTEXT);
 	KxObject *self = kxobject_raw_clone(proto);
 
 	activation->ref_count++;
@@ -74,7 +74,7 @@ kxactivationobject_new(KxCore *core, struct KxActivation *activation)
 
 
 static void
-kxactivationobject_free(KxActivationObject *self) 
+kxlocalcontext_free(KxActivationObject *self) 
 {
 	KxActivation *activation = self->data.ptr;
 
@@ -87,15 +87,15 @@ kxactivationobject_free(KxActivationObject *self)
 }
 
 static void
-kxactivationobject_clean(KxActivationObject *self) 
+kxlocalcontext_clean(KxActivationObject *self) 
 {
-	kxactivationobject_free(self);
+	kxlocalcontext_free(self);
 	self->data.ptr = NULL;
 }
 
 
 static void
-kxactivationobject_mark(KxActivationObject *self) 
+kxlocalcontext_mark(KxActivationObject *self) 
 {
 	KxActivation *activation = self->data.ptr;
 	if (activation == NULL)
@@ -106,30 +106,30 @@ kxactivationobject_mark(KxActivationObject *self)
 }
 
 static KxObject *
-kxactivationobject_throw_invalid_activation(KxActivationObject *self)
+kxlocalcontext_throw_invalid_activation(KxActivationObject *self)
 {
 	KxException *excp = kxexception_new_with_text(KXCORE, "Invalid activation");
 	KXTHROW(excp);
 }
 
 static KxObject *
-kxactivationobject_codeblock(KxActivationObject *self, KxMessage *message)
+kxlocalcontext_codeblock(KxActivationObject *self, KxMessage *message)
 {
 	KxActivation *activation = self->data.ptr;
 	if (activation == NULL) {
-		return kxactivationobject_throw_invalid_activation(self);
+		return kxlocalcontext_throw_invalid_activation(self);
 	}
 
 	KXRETURN(activation->codeblock);
 }
 
 static KxObject *
-kxactivationobject_get_local(KxActivationObject *self, KxMessage *message)
+kxlocalcontext_get_local(KxActivationObject *self, KxMessage *message)
 {
 	KxActivation *activation = self->data.ptr;
 
 	if (activation == NULL) {
-		return kxactivationobject_throw_invalid_activation(self);
+		return kxlocalcontext_throw_invalid_activation(self);
 	}
 
 	KxSymbol *name = message->params[0];
@@ -144,12 +144,12 @@ kxactivationobject_get_local(KxActivationObject *self, KxMessage *message)
 }
 
 static KxObject *
-kxactivationobject_put_local(KxActivationObject *self, KxMessage *message)
+kxlocalcontext_put_local(KxActivationObject *self, KxMessage *message)
 {
 	KxActivation *activation = self->data.ptr;
 
 	if (activation == NULL) {
-		return kxactivationobject_throw_invalid_activation(self);
+		return kxlocalcontext_throw_invalid_activation(self);
 	}
 
 	KxSymbol *name = message->params[0];
@@ -168,12 +168,12 @@ kxactivationobject_put_local(KxActivationObject *self, KxMessage *message)
 
 
 static void 
-kxactivationobject_add_method_table(KxActivationObject *self)
+kxlocalcontext_add_method_table(KxActivationObject *self)
 {
 	KxMethodTable table[] = {
-		{"codeblock",0, kxactivationobject_codeblock },
-		{"local:",1, kxactivationobject_get_local },
-		{"local:put:",2, kxactivationobject_put_local },
+		{"codeblock",0, kxlocalcontext_codeblock },
+		{"local:",1, kxlocalcontext_get_local },
+		{"local:put:",2, kxlocalcontext_put_local },
 		{NULL,0, NULL}
 	};
 	kxobject_add_methods(self, table);

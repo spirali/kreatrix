@@ -1,5 +1,5 @@
 /*
-   kxactivation_object.h
+   kxlocalcontext.h
    Copyright (C) 2007, 2008  Stanislav Bohm
 
    This file is part of Kreatrix.
@@ -19,18 +19,18 @@
    <http://www.gnu.org/licenses/>.
 */
 	
-#ifndef __KXACTIVATION_OBJECT_H
-#define __KXACTIVATION_OBJECT_H
+#ifndef __KXLOCALCONTEXT_H
+#define __KXLOCALCONTEXT_H
 
 #include "kxcore.h"
 
 typedef struct KxObject KxActivationObject;
 
-KxObject *kxactivationobject_new_prototype(KxCore *core);
-void kxactivationobject_init_extension();
-KxActivationObject *kxactivationobject_new(KxCore *core, struct KxActivation *activation);
+KxObject *kxlocalcontext_new_prototype(KxCore *core);
+void kxlocalcontext_init_extension();
+KxActivationObject *kxlocalcontext_new(KxCore *core, struct KxActivation *activation);
 
 
-extern KxObjectExtension kxactivationobject_extension;
+extern KxObjectExtension kxlocalcontext_extension;
 
-#endif // __KXDYNLIB_H
+#endif // __KXLOCALCONTEXT_H

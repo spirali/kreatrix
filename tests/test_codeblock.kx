@@ -16,9 +16,9 @@ codeblockTest = test TestCase clone do: {
 		method << { :a :b | 
 			|local act| 
 			local << 123.
-			act << activation.
+			act << localContext.
 			act local: #b put: #c.
-			^activation.
+			^localContext.
 		}.
 		act << do: method parameters: #(3 11).
 		method << nil.

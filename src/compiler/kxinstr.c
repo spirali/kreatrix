@@ -62,7 +62,7 @@ KxInstructionInfo kxinstructions_info[KXCI_INSTRUCTIONS_COUNT] = {
 	{"push_local", 1},          // 32 KXCI_PUSH_LOCAL
 	{"push_outer_local", 2},    // 33 KXCI_PUSH_OUTER_LOCAL
 	{"push_self", 0},           // 34 KXCI_PUSH_SELF
-	{"push_activation", 0},     // 35 KXCI_PUSH_ACTIVATION
+	{"push_local_context", 0},  // 35 KXCI_PUSH_LOCAL_CONTEXT
 	{"update_local", 1},        // 36 KXCI_UPDATE_LOCAL
 	{"update_outer_local", 2},  // 37 KXCI_UPDATE_OUTER_LOCAL
 

@@ -60,7 +60,7 @@
 #include "kxfloat.h"
 #include "kxset.h"
 #include "kxarray2d.h"
-#include "kxactivation_object.h"
+#include "kxlocalcontext.h"
 #include "kxiterator.h"
 #include "kxobject_profile.h"
 
@@ -195,7 +195,7 @@ kxcore_new()
 	kxcore_add_basic_prototype(core, KXPROTO_MODULE, kxmodule_new_prototype(core));
 	kxcore_add_basic_prototype(core, KXPROTO_FLOAT, kxfloat_new_prototype(core));
 	kxcore_add_basic_prototype(core, KXPROTO_SET, kxset_new_prototype(core));
-	kxcore_add_basic_prototype(core, KXPROTO_ACTIVATION, kxactivationobject_new_prototype(core));
+	kxcore_add_basic_prototype(core, KXPROTO_LOCALCONTEXT, kxlocalcontext_new_prototype(core));
 	kxcore_add_basic_prototype(core, KXPROTO_ITERATOR, kxiterator_new_prototype(core));
 
 	kxsymbol_add_method_table(core->basic_prototypes[KXPROTO_SYMBOL]);

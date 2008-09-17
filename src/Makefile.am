@@ -89,8 +89,8 @@ kreatrix_SOURCES = \
 	kxglobals.c \
 	kxarray2d.c \
 	kxarray2d.h \
-	kxactivation_object.c \
-	kxactivation_object.h \
+	kxlocalcontext.c \
+	kxlocalcontext.h \
 	kxdecompiler.h \
 	kxdecompiler.c \
 	kxiterator.c \
@@ -138,7 +138,7 @@ pkginclude_HEADERS=\
 	kxobject_slots.h \
 	kxglobals.h \
 	kxarray2d.h \
-	kxactivation_object.h \
+	kxlocalcontext.h \
 	kxdecompiler.h \
 	kxiterator.h \
 	kxobject_profile.h

@@ -475,9 +475,9 @@ kxcblock_message_substitution(KxcBlock *block, char *messagename)
 		return 1;
 	}
 
-	if (!strcmp(messagename,"activation")) {
+	if (!strcmp(messagename,"localContext")) {
 		free(messagename);
-		i = kxcinstruction_new(KXCI_PUSH_ACTIVATION);
+		i = kxcinstruction_new(KXCI_PUSH_LOCAL_CONTEXT);
 		kxcblock_add_instruction(block, i);
 		return 1;
 	}
@@ -556,7 +556,7 @@ kxcblock_construct_stack_state(KxcBlock *block)
 			case KXCI_PUSH_LOCAL:
 			case KXCI_PUSH_OUTER_LOCAL:
 			case KXCI_PUSH_SELF:
-			case KXCI_PUSH_ACTIVATION:
+			case KXCI_PUSH_LOCAL_CONTEXT:
 				list_append(stack, i);
 				break;
 				 

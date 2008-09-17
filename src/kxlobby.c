@@ -61,7 +61,6 @@ kxlobby_do_file(KxObject *self, KxMessage *message)
 KxObject *kxlobby_new(KxCore *core) 
 {
 
-
 	KxObject *self = kxcore_clone_base_object(core);
 
 	/** TMP */
@@ -125,8 +124,8 @@ KxObject *kxlobby_new(KxCore *core)
 	kxobject_set_slot_no_ref(self,kxcore_get_symbol(core,"Array2d"), 
 		kxcore_get_basic_prototype(core,KXPROTO_ARRAY2D));
 
-	kxobject_set_slot_no_ref(self,kxcore_get_symbol(core,"Activation"), 
-		kxcore_get_basic_prototype(core,KXPROTO_ACTIVATION));
+	kxobject_set_slot_no_ref(self,kxcore_get_symbol(core,"LocalContext"), 
+		kxcore_get_basic_prototype(core,KXPROTO_LOCALCONTEXT));
 
 
 
