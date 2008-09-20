@@ -95,6 +95,24 @@ testObject = test TestCase clone do: {
 		assert: s slots size equals: 0.
 		assert: s parent equals: obj.
 		assert: ObjA parents equals: #(Object ObjB).
+
+		t << obj clone.
+		0 to: 1000 do: [ :i | |sym|
+			sym << ("slot",i) asSymbol.
+			t slot: sym set: i.
+		].
+
+		(t copy slots asSet == t slots asSet) assertTrue.
+
+		s << t copy.
+		s slot25 << 100.
+		s slot300 << 250.
+		s slot950 << 700.
+		s slot10001 = 2.
+
+		(s slot25 == 100) assertTrue.
+		(s slot950 == 700) assertTrue.
+		(s slots size == (t slots size + 1)) assertTrue.
 	}.
 
 	testDo = { |m1 m2 m3|
