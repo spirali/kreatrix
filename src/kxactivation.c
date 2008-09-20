@@ -154,26 +154,26 @@ kxactivation_process_throw(KxActivation *self)
 
 /** ! INNER STACK DON'T MODIFY REFERENCE COUNT ! */
  
-static void
+static inline void
 kxactivation_inner_stack_push(KxActivation *self, KxObject *object) 
 {
-	if (self->inner_stack_pos == KXACTIVATION_INNER_STACK_SIZE) {
+	/*if (self->inner_stack_pos == KXACTIVATION_INNER_STACK_SIZE) {
 		fprintf(stderr,"Inner stack push: Stack is full\n");
 		abort();
-	}
+	}*/
 	self->inner_stack[ self->inner_stack_pos++ ] = object;
 }
 
-static KxObject *
+static inline KxObject *
 kxactivation_inner_stack_pop(KxActivation *self) 
 {
-	if (self->inner_stack_pos == 0) {
+	/*if (self->inner_stack_pos == 0) {
 		KxCodeBlockData *cdata = self->codeblock->data.ptr;
 		fprintf(stderr,"Inner stack pop: Stack is empty (%s:%i)\n", 
 			cdata->source_filename, 
 			cdata->message_linenumbers[kxactivation_get_line_index(self)]);
 		abort();
-	}
+	}*/
 	
 	return self->inner_stack[ --self->inner_stack_pos ];
 }
