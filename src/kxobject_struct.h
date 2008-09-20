@@ -37,6 +37,8 @@
 #define kxobject_recursive_mark_reset(self) ((self)->recursive_mark = 0)
 #define kxobject_recursive_mark_test(self)  ((self)->recursive_mark)
 
+#define KXOBJECT_SIMPLE_SLOTS_LIMIT 5
+
 typedef struct KxObject KxObject;
 typedef struct KxParentSlot KxParentSlot;
 typedef struct KxSlot KxSlot;
@@ -64,6 +66,7 @@ struct KxObject {
 	int ref_count;
 
 	KxSlot *slots;
+	int slots_capacity;
 
 	KxParentSlot parent_slot; // Linked list with parent slots
 	//HashTable *slots;          // Hash table with slots

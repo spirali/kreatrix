@@ -782,10 +782,6 @@ void kxcore_raw_object_return(KxCore *core, KxObject *object)
 
 void kxcore_slot_cache_put(KxCore *core, int size, void *mem)
 {
-	if (size > KXCORE_SLOT_CACHE_CAPACITIES_COUNT) {
-		kxfree(mem);
-		return;
-	}
 	size--;
 	if (core->slot_cache_count[size] == KXCORE_SLOT_CACHE_SIZE) {
 		kxfree(mem);
@@ -796,12 +792,6 @@ void kxcore_slot_cache_put(KxCore *core, int size, void *mem)
 
 void * kxcore_slot_cache_get(KxCore *core, int size)
 {
-	if (size > KXCORE_SLOT_CACHE_CAPACITIES_COUNT) {
-		KxSlot *slots =  kxmalloc( (size+1) * sizeof(KxSlot) );
-		ALLOCTEST(slots);
-		return slots;
-	}
-
 	size--;
 
 	if (core->slot_cache_count[size]) {
@@ -817,12 +807,9 @@ void * kxcore_slot_cache_resize(KxCore *core, int old_size, int new_size, void *
 {
 	void *newmem = kxcore_slot_cache_get(core, new_size);
 	memcpy(newmem, mem, old_size * sizeof(KxSlot));
-	
 	kxcore_slot_cache_put(core, old_size, mem);
-	
 	return newmem;
 }
-
 
 void * kxcore_raw_activation_get(KxCore *core) 
 {
