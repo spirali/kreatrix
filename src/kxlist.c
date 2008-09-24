@@ -137,7 +137,9 @@ kxlist_iterator_next(KxList *self, KxIteratorData *iterator)
 	List *list = KXLIST_DATA(self);
 	if ( ((KxIteratorDataInt *) iterator)->position < list->size)
 	{
-		return list->items[((KxIteratorDataInt *) iterator)->position++];
+		KxObject *obj = list->items[((KxIteratorDataInt *) iterator)->position++];
+		REF_ADD(obj);
+		return obj;
 	} else {
 		return NULL;
 	}

@@ -24,7 +24,6 @@
 
 #include "kxobject_struct.h"
 #include "kxcore.h"
-//#include "kxstack.h"
 
 typedef struct KxObject KxString;
 

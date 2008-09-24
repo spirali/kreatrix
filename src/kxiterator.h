@@ -32,6 +32,7 @@
 typedef struct KxObject KxIterator;
 typedef struct KxIteratorData KxIteratorData;
 typedef struct KxIteratorDataInt KxIteratorDataInt;
+typedef struct KxIteratorDataPtr KxIteratorDataPtr;
 
 struct KxIteratorData {
 	KxObject *object;
@@ -41,6 +42,12 @@ struct KxIteratorDataInt {
 	KxObject *object;
 	int position;
 };
+
+struct KxIteratorDataPtr {
+	KxObject *object;
+	char *ptr;
+};
+
 
 KxIterator *kxiterator_new_prototype(KxCore *core);
 KxObject *kxiterator_create(KxCore *core, KxIteratorData *data);

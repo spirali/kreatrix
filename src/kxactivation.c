@@ -922,7 +922,6 @@ kxactivation_run(KxActivation *self)
 					
 					REF_REMOVE(self->locals[local]);
 					self->locals[local] = each;
-					REF_ADD(each);
 					continue;
 				} else {
 					self->codepointer = codep - 3;
@@ -951,7 +950,6 @@ kxactivation_run(KxActivation *self)
 				if (each) {
 					REF_REMOVE(self->locals[local]);
 					self->locals[local] = each;
-					REF_ADD(each);
 					codep += jump;
 	
 					obj = kxactivation_inner_stack_pop(self);

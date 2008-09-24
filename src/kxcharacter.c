@@ -37,7 +37,12 @@ KxObjectExtension kxcharacter_extension;
 
 static void kxcharacter_add_method_table(KxCharacter *self);
 void kxcharacter_free(KxCharacter *self);
-//static int kxcharacter_compare(KxCharacter *self, KxObject *param);
+
+static void 
+kxcharacter_dump(KxString *self) 
+{
+	printf("'%c'",KXCHARACTER_VALUE(self));
+}
 
 
 void
@@ -45,6 +50,7 @@ kxcharacter_init_extension()
 {
 	kxobjectext_init(&kxcharacter_extension);
 	kxcharacter_extension.type_name = "Character";
+	kxcharacter_extension.dump = kxcharacter_dump;
 	kxcharacter_extension.is_immutable = 1;
 }
 

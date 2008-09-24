@@ -43,12 +43,16 @@
 #include "kxlist.h"
 #include "kxcharacter.h"
 #include "kxmessage.h"
+#include "kxiterator.h"
 
 KxObjectExtension kxstring_extension;
 
 static void kxstring_add_method_table(KxString *self);
 static void kxstring_free(KxString *self);
 static void kxstring_dump(KxString *self);
+static KxIterator * kxstring_iterator_create(KxList *self);
+static KxObject * kxstring_iterator_next(KxList *self, KxIteratorData *iterator);
+
 
 void
 kxstring_init_extension() 
@@ -57,6 +61,8 @@ kxstring_init_extension()
 	kxstring_extension.type_name = "String";
 	kxstring_extension.free = kxstring_free;
 	kxstring_extension.dump = kxstring_dump;
+	kxstring_extension.iterator_create = kxstring_iterator_create;
+	kxstring_extension.iterator_next = kxstring_iterator_next;
 }
 
 static void 
@@ -70,6 +76,31 @@ kxstring_dump(KxString *self)
 {
 	printf("%s",KXSTRING_VALUE(self));
 }
+
+static KxIterator *
+kxstring_iterator_create(KxString *self)
+{
+	KxIteratorDataPtr *data = kxmalloc(sizeof(KxIteratorDataPtr));
+	ALLOCTEST(data);
+	data->object = self;
+	REF_ADD(self);
+	data->ptr = KXSTRING_VALUE(self);
+	return kxiterator_create(KXCORE, (KxIteratorData *) data);
+}
+
+static KxObject *
+kxstring_iterator_next(KxString *self, KxIteratorData *iterator)
+{
+	KxIteratorDataPtr *data = ((KxIteratorDataPtr *) iterator);
+	char c = *(data->ptr++);
+
+	if (c == 0) {
+		return NULL;
+	} else {
+		return KXCHARACTER(c);
+	}
+}
+
 
 KxObject *
 kxstring_new_prototype(KxCore *core) 
