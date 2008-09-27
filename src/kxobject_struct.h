@@ -62,6 +62,11 @@ struct KxObjectProfile {
 	List *child_prototypes;
 };
 
+struct KxObjectData2 {
+	void *ptr1;
+	void *ptr2;
+};
+
 struct KxObject {
 	int ref_count;
 
@@ -77,6 +82,7 @@ struct KxObject {
 		double doubleval;
 		int intval;
 		unsigned char charval;
+		struct KxObjectData2 data2;
 	} data;
 
 	#ifdef KX_INLINE_CACHE

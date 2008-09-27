@@ -54,15 +54,10 @@ kxscopedblock_clone_with(KxScopedBlock *self, KxCodeBlock *codeblock, struct KxA
 {
 	KxObject *object = kxobject_raw_clone(self);
 	
-	KxScopedBlockData *data = kxmalloc(sizeof(KxScopedBlockData));
-	ALLOCTEST(data);
-
 	scope->ref_count++;
-	data->scope = scope;
-	
+	object->data.data2.ptr1 = scope;
 	REF_ADD(codeblock);
-	data->codeblock = codeblock;
-	object->data.ptr = data;
+	object->data.data2.ptr2 = codeblock;
 	return object;
 }
 
@@ -88,57 +83,51 @@ kxscopedblock_new_prototype(KxCore *core) {
 static void
 kxscopedblock_free(KxScopedBlock *self) 
 {
-	KxScopedBlockData *data = self->data.ptr;
-
-	if (!data)
+	KxActivation *scope = self->data.data2.ptr1;
+	if (scope == NULL)
 		return;
 
-	REF_REMOVE(data->codeblock);
-
-	data->scope->ref_count--;
-	if (data->scope->ref_count == 0)  {
-		kxactivation_free(data->scope);
+	scope->ref_count--;
+	if (scope->ref_count == 0)  {
+		kxactivation_free(scope);
 	}
 
-	kxfree(data);
+	KxObject *codeblock = (KxObject *) (self->data.data2.ptr2);
+	REF_REMOVE(codeblock);
+
 }
 
 static void
 kxscopedblock_clean(KxScopedBlock *self)
 {
-	KxScopedBlockData *data = self->data.ptr;
-	if (!data)
-		return;
-	REF_REMOVE(data->codeblock);
-
-	data->scope->ref_count--;
-	if (data->scope->ref_count == 0)  {
-		kxactivation_free(data->scope);
-	}
-	kxfree(data);
-	self->data.ptr = NULL;
+	kxscopedblock_free(self);
+	self->data.data2.ptr1 = NULL;
+	self->data.data2.ptr2 = NULL;
 }
 
 static void
 kxscopedblock_mark(KxScopedBlock *self) 
 {
-	KxScopedBlockData *data = self->data.ptr;
+	KxActivation *scope = KXSCOPEDBLOCK_SCOPE(self);
 
-	if (!data)
+	if (!scope)
 		return;
 
-	kxactivation_mark(data->scope);
-	kxobject_mark(data->codeblock);
+	kxactivation_mark(scope);
+	kxobject_mark(KXSCOPEDBLOCK_CODEBLOCK(self));
 }
 
 KxObject *
 kxscopedblock_run(KxScopedBlock *self, KxMessage *message) 
 {
 	kxstack_push_object(KXSTACK,self);
-	KxScopedBlockData *data = self->data.ptr;
 
-	message->slot_holder = data->scope->slot_holder_of_codeblock;
-	KxObject * retobj =  kxcodeblock_run_scoped(data->codeblock,data->scope, message);
+	KxActivation *scope = KXSCOPEDBLOCK_SCOPE(self);
+
+	message->slot_holder = scope->slot_holder_of_codeblock;
+
+	KxObject *codeblock = KXSCOPEDBLOCK_CODEBLOCK(self);
+	KxObject * retobj =  kxcodeblock_run_scoped(codeblock,scope, message);
 
 	kxstack_pop_object(KXSTACK);
 	return retobj;
@@ -340,8 +329,8 @@ kxscopedblock_ensure(KxObject *self, KxMessage *message)
 static KxObject *
 kxscopedblock_codeblock(KxObject *self, KxMessage *message)
 {
-	KxScopedBlockData *data = self->data.ptr;
-	KXRETURN(data->codeblock);
+	KxObject *scopedblock = KXSCOPEDBLOCK_CODEBLOCK(self);
+	KXRETURN(scopedblock);
 }
 
 static void

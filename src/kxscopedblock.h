@@ -27,19 +27,14 @@
 
 #define IS_KXSCOPEDBLOCK(kxobject) ((kxobject)->extension == &kxscopedblock_extension)
 
-#define KXSCOPEDBLOCK_DATA(kxscopedblock) ((KxScopedBlockData*) ((kxscopedblock)->data.ptr))
-
+#define KXSCOPEDBLOCK_CODEBLOCK(kxobject) ((KxObject *) ((kxobject)->data.data2.ptr2))
+#define KXSCOPEDBLOCK_SCOPE(kxobject) ((KxActivation *) ((kxobject)->data.data2.ptr1))
 
 typedef struct KxObject KxScopedBlock;
 
 typedef struct KxScopedBlockData KxScopedBlockData;
 
 struct KxActivation;
-
-struct KxScopedBlockData {
-	KxCodeBlock *codeblock;
-	struct KxActivation *scope;
-};
 
 void kxscopedblock_init_extension();
 KxObject *kxscopedblock_new_prototype(KxCore *core);
