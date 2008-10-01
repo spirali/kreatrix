@@ -45,6 +45,8 @@
 #include "kxmessage.h"
 #include "kxiterator.h"
 
+#define KXSTRING_SET_STRLEN(kxstring, len) ((kxstring)->data.data2.ptr2 = ((void*) (len)))
+
 KxObjectExtension kxstring_extension;
 
 static void kxstring_add_method_table(KxString *self);
@@ -110,6 +112,7 @@ kxstring_new_prototype(KxCore *core)
 
 	object->extension = &kxstring_extension;
 	object->data.ptr = strdup("");
+	KXSTRING_SET_STRLEN(object, 0);
 
 	kxstring_add_method_table(object);
 
@@ -146,21 +149,18 @@ kxstring_concat(KxString *self, KxMessage *message)
 	char *param = KXSTRING_VALUE(string);
 
 	char *selfstring = KXSTRING_VALUE(self);
-	char newstring[strlen(selfstring)+strlen(param)+1];
-	strcpy(newstring,selfstring);
-	strcat(newstring,param);
+	int strlen1 = KXSTRING_GET_SIZE(self);
+	int strlen2 = KXSTRING_GET_SIZE(string);
+	int strlen = strlen1 + strlen2;
+
+	char *newstring = kxmalloc(strlen + 1);
+	newstring[strlen] = 0;
+
+	memcpy(newstring,selfstring, strlen1);
+	memcpy(newstring + strlen1,param, strlen2);
 	
 	REF_REMOVE(string);
-	return KXSTRING(newstring);
-}
-
-KxString *
-kxstring_clone_with(KxString *self, char *str)
-{
-	KxString *string = kxobject_raw_clone(self);
-	string->data.ptr = strdup(str);
-
-	return string;
+	return kxstring_from_cstring_with_size(KXCORE, newstring, strlen);
 }
 
 // With strdup of value
@@ -170,6 +170,25 @@ kxstring_new_with(KxCore *core, char *str)
 	KxObject *prototype = kxcore_get_basic_prototype(core, KXPROTO_STRING);
 	KxString *string = kxobject_raw_clone(prototype);
 	string->data.ptr = strdup(str);
+	KXSTRING_SET_STRLEN(string, strlen(str));
+
+	return string;
+}
+
+// With strdup of value
+KxString *
+kxstring_new_with_size(KxCore *core, char *str, int size) 
+{
+	KxObject *prototype = kxcore_get_basic_prototype(core, KXPROTO_STRING);
+	KxString *string = kxobject_raw_clone(prototype);
+
+	KXSTRING_SET_STRLEN(string, size);
+
+	size++;
+	char *s = kxmalloc(size);
+	memcpy(s, str, size);
+	string->data.ptr = s;
+
 	return string;
 }
 
@@ -180,14 +199,28 @@ kxstring_from_cstring(KxCore *core, char *str)
 	KxObject *prototype = kxcore_get_basic_prototype(core, KXPROTO_STRING);
 	KxString *string = kxobject_raw_clone(prototype);
 	string->data.ptr = str;
+	KXSTRING_SET_STRLEN(string, strlen(str));
 	return string;
 }
+
+// Without strdup of value
+KxString *
+kxstring_from_cstring_with_size(KxCore *core, char *str, int size) 
+{
+	KxObject *prototype = kxcore_get_basic_prototype(core, KXPROTO_STRING);
+	KxString *string = kxobject_raw_clone(prototype);
+	string->data.ptr = str;
+	KXSTRING_SET_STRLEN(string, size);
+	return string;
+}
+
 
 static KxObject *
 kxstring_copy(KxString *self, KxMessage *message)
 {
 	KxObject *new = kxobject_raw_copy(self);
 	new->data.ptr = strdup(self->data.ptr);
+	KXSTRING_SET_STRLEN(new, KXSTRING_GET_SIZE(self));
 	return new;
 }
 
@@ -217,7 +250,7 @@ kxstring_as_symbol(KxString *self, KxMessage *message)
 static KxObject *
 kxstring_as_bytearray(KxString *self, KxMessage *message)
 {
-	ByteArray *ba = bytearray_new_from_string(self->data.ptr);
+	ByteArray *ba = bytearray_new_from_data(KXSTRING_VALUE(self), KXSTRING_GET_SIZE(self));
 	return KXBYTEARRAY(ba);
 }
 
@@ -227,7 +260,7 @@ kxstring_as_bytearray(KxString *self, KxMessage *message)
 static KxObject *
 kxstring_size(KxString *self, KxMessage *message)
 {
-	 return KXINTEGER(strlen(self->data.ptr));
+	 return KXINTEGER(KXSTRING_GET_SIZE(self));
 }
 
 
@@ -237,7 +270,7 @@ kxstring_size(KxString *self, KxMessage *message)
 static KxObject *
 kxstring_bytes(KxString *self, KxMessage *message)
 {
-	return KXINTEGER(strlen((char*) self->data.ptr));
+	return KXINTEGER(KXSTRING_GET_SIZE(self));
 }
 
 /*KXdoc trimBegin
@@ -260,7 +293,7 @@ KxObject *
 kxstring_trim_end(KxString *self, KxMessage *message)
 {
 	char *str = KXSTRING_VALUE(self);
-	int len = strlen(str);
+	int len = KXSTRING_GET_SIZE(self);
 	int t;
 	for (t=len-1;t>=0;t--) {
 		if (str[t] != ' ' && str[t] != '\t' && str[t] != '\n' && str[t] != '\r') 
@@ -269,7 +302,7 @@ kxstring_trim_end(KxString *self, KxMessage *message)
 	t++;
 	char c = str[t];
 	str[t] = 0;
-	KxString *string =  KXSTRING(str);
+	KxString *string =  KXSTRING_WITH_SIZE(str, t);
 	str[t] = c;
 	return string;
 }
@@ -286,7 +319,7 @@ kxstring_at(KxString *self, KxMessage *message)
 	KXPARAM_TO_LONG(param,0);
 
 	char *str = self->data.ptr;
-	int len = strlen(str);
+	int len = KXSTRING_GET_SIZE(self);
 
 	if (param < 0) {
 		param += len;
@@ -309,10 +342,11 @@ static KxObject *
 kxstring_begins_with(KxString *self, KxMessage *message)
 {
 	KXPARAM_TO_CSTRING(param,0);
+	int l = KXSTRING_GET_SIZE(message->params[0]);
+
 	char *str = self->data.ptr;
-	
-	int l = strlen(param);
-	if (strlen(str) < l) {
+	int sl = KXSTRING_GET_SIZE(self);
+	if (sl < l) {
 		KXRETURN(KXCORE->object_false);
 	}
 	
@@ -328,10 +362,10 @@ static KxObject *
 kxstring_ends_with(KxString *self, KxMessage *message)
 {
 	KXPARAM_TO_CSTRING(param,0);
-	char *str = self->data.ptr;
-	
-	int l = strlen(param);
-	int sl = strlen(str);
+	int l = KXSTRING_GET_SIZE(message->params[0]);
+
+	char *str = KXSTRING_VALUE(self);
+	int sl = KXSTRING_GET_SIZE(self);
 	if (sl < l) {
 		KXRETURN(KXCORE->object_false);
 	}
@@ -356,7 +390,7 @@ kxstring_slice_from_to(KxString *self, KxMessage *message)
 	KXPARAM_TO_LONG(param1, 1);
 
 	char *str = self->data.ptr;
-	int len = strlen(str);
+	int len = KXSTRING_GET_SIZE(self);
 	
 	if (param0 < 0)
 		param0 += len;
@@ -369,12 +403,12 @@ kxstring_slice_from_to(KxString *self, KxMessage *message)
 	}
 	
 	if (param0>=param1) {
-		return KXSTRING("");
+		return KXSTRING_WITH_SIZE("", 0);
 	}
 	
 	char c = str[param1];
 	str[param1] = 0;
-	KxString *s = KXSTRING(str+param0);
+	KxString *s = KXSTRING_WITH_SIZE(str+param0, param1 - param0);
 	str[param1] = c;
 	return s;
 	
@@ -412,8 +446,10 @@ kxstring_find_from(KxString *self, KxMessage *message)
 	KXPARAM_TO_LONG(index, 1);
 
 	char *str = self->data.ptr;
+
+	int len = KXSTRING_GET_SIZE(self);
 	
-	if (index < 0 || index >= strlen(str)) {
+	if (index < 0 || index >= len) {
 		KXRETURN(KXCORE->object_nil);
 	}
 
@@ -466,7 +502,7 @@ kxstring_foreach(KxString *self, KxMessage *message) {
 
 	KxObject *param = message->params[0];
 
-	int len = strlen(string);
+	int len = KXSTRING_GET_SIZE(self);
 
 	if (len == 0) {
 		KXRETURN(KXCORE->object_nil);
@@ -506,7 +542,7 @@ kxstring_as_list(KxString *self, KxMessage *message)
 {
 
 	char *string = self->data.ptr;
-	int len = strlen(string);
+	int len = KXSTRING_GET_SIZE(self);
 
 	List *list = list_new_size(len);
 
@@ -527,7 +563,7 @@ static KxObject *
 kxstring_last(KxString *self, KxMessage *message) 
 {
 	char *str = self->data.ptr;
-	int len = strlen(str);
+	int len = KXSTRING_GET_SIZE(self);
 	if (len <= 0) {
 		KxException *excp = kxexception_new_with_text(KXCORE,"String is empty");
 		KXTHROW(excp);
@@ -543,8 +579,7 @@ static KxObject *
 kxstring_first(KxString *self, KxMessage *message) 
 {
 	char *str = self->data.ptr;
-	int len = strlen(str);
-	if (len <= 0) {
+	if (str[0] == 0) {
 		KxException *excp = kxexception_new_with_text(KXCORE,"String is empty");
 		KXTHROW(excp);
 	}
@@ -593,15 +628,16 @@ static KxObject *
 kxstring_replace_to(KxString *self, KxMessage *message) 
 {
 	KXPARAM_TO_CSTRING(from,0);
-	KXPARAM_TO_CSTRING(to,1);
+	int from_len = KXSTRING_GET_SIZE(message->params[0]);
 
-	int from_len = strlen(from);
-	int to_len = strlen(to);
+	KXPARAM_TO_CSTRING(to,1);
+	int to_len = KXSTRING_GET_SIZE(message->params[1]);
 
 	char *selfstr = KXSTRING_VALUE(self);
-	int len = strlen(selfstr);
+	int len = KXSTRING_GET_SIZE(self);
 
 	int buffer_len = len+to_len+16;
+
 	char *buffer = kxmalloc(buffer_len+1);
 	ALLOCTEST(buffer);
 	int buffer_pos = 0;
@@ -641,7 +677,7 @@ kxstring_replace_to(KxString *self, KxMessage *message)
 			buffer[buffer_pos++] = selfstr[s];
 	}
 	buffer[buffer_pos] = 0;
-	KxString *string = KXSTRING(buffer);
+	KxString *string = KXSTRING_WITH_SIZE(buffer, buffer_pos);
 	kxfree(buffer);
 	return string;
 }
@@ -661,6 +697,10 @@ static KxObject *
 kxstring_eq(KxString *self, KxMessage *message) 
 {
 	if (IS_KXSTRING(message->params[0])) {
+
+		if (KXSTRING_GET_SIZE(self) != KXSTRING_GET_SIZE(message->params[0]))
+			KXRETURN(KXCORE->object_false);
+
 		KXRETURN_BOOLEAN(!strcmp(self->data.ptr, message->params[0]->data.ptr));
 	} else {
 		KXRETURN(KXCORE->object_false);
@@ -671,6 +711,10 @@ static KxObject *
 kxstring_neq(KxString *self, KxMessage *message) 
 {
 	if (IS_KXSTRING(message->params[0])) {
+
+		if (KXSTRING_GET_SIZE(self) != KXSTRING_GET_SIZE(message->params[0]))
+			KXRETURN(KXCORE->object_true);
+
 		KXRETURN_BOOLEAN(strcmp(self->data.ptr, message->params[0]->data.ptr));
 	} else {
 		KXRETURN(KXCORE->object_true);
@@ -827,12 +871,12 @@ kxstring_substitution(KxString *self, KxMessage *message)
 	}
 
 
-	int len = strlen(str);
+	int len = KXSTRING_GET_SIZE(self);
 
 	KxObject *textobj = kxstring_convert_for_substition(type, message->params[0]);
 	KXCHECK(textobj);
 	char *text = KXSTRING_VALUE(textobj);
-	int textlen = strlen(text);
+	int textlen = KXSTRING_GET_SIZE(textobj);
 
 
 	if (count == 1) {

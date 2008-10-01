@@ -38,7 +38,9 @@ typedef struct KxObject KxString;
 	{ str = KXSTRING_VALUE(tmp); } else { kxobject_type_error(tmp, &kxstring_extension, param_id); return NULL; }} 
 
 
-#define KXSTRING(str) kxstring_new_with(KXCORE,str)
+#define KXSTRING(str) kxstring_new_with(KXCORE,(str))
+#define KXSTRING_WITH_SIZE(str, size) kxstring_new_with_size(KXCORE, (str), (size))
+#define KXSTRING_GET_SIZE(kxstring) ((int) (kxstring)->data.data2.ptr2)
 
 
 extern KxObjectExtension kxstring_extension;
@@ -47,13 +49,13 @@ void kxstring_init_extension();
 
 KxObject *kxstring_new_prototype(KxCore *core);
 
-KxString *kxstring_clone_with(KxString *self, char * value);
-
 // Copy string into object
 KxString *kxstring_new_with(KxCore *core, char *value);
+KxString *kxstring_new_with_size(KxCore *core, char *value, int size);
 
 // Use string in object, no coping of value
 KxString *kxstring_from_cstring(KxCore *core, char *value);
+KxString *kxstring_from_cstring_with_size(KxCore *core, char *value, int size);
 
 extern KxObjectExtension kxstring_extension;
 

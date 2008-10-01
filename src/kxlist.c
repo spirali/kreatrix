@@ -650,6 +650,7 @@ kxlist_as_string(KxList *self, KxMessage *message)
 		if (IS_KXSTRING(obj)) {
 			strings[t] = KXSTRING_VALUE(obj);
 			tmp[t] = NULL;
+			len += KXSTRING_GET_SIZE(obj);
 		} else {
 			KxObject *str = kxobject_send_unary_message(obj, KXCORE->dictionary[KXDICT_AS_STRING]);
 
@@ -665,11 +666,11 @@ kxlist_as_string(KxList *self, KxMessage *message)
 			tmp[t] = str;
 			if (IS_KXSTRING(str)) {
 				strings[t] = KXSTRING_VALUE(str);
+				len += KXSTRING_GET_SIZE(str);
 			} else {
 				strings[t] = "";
 			}
 		}
-		len += strlen(strings[t]);
 	};
 
 	char *string = kxmalloc(len+1);
@@ -688,7 +689,7 @@ kxlist_as_string(KxList *self, KxMessage *message)
 		if (tmp[t])
 			REF_REMOVE(tmp[t]);
 	}
-	return kxstring_from_cstring(KXCORE,string);
+	return kxstring_from_cstring_with_size(KXCORE,string, len);
 
 }
 

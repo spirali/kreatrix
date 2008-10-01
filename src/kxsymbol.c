@@ -95,7 +95,7 @@ kxsymbol_dump(KxSymbol *self)
 KxObject *
 kxsymbol_as_string(KxSymbol *self, KxMessage *message)
 {
-	return KXSTRING(self->data.ptr);
+	return KXSTRING(KXSYMBOL_AS_CSTRING(self));
 }
 
 KxObject *kxstring_lt(KxString *self, KxMessage *message);

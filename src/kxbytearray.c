@@ -122,10 +122,12 @@ kxbytearray_as_string(KxByteArray *self, KxMessage *message)
 	if (data->size > 0 && data->array[data->size-1] == 0) {
 		return KXSTRING(data->array);
 	}
-	char str[data->size+1];
+
+	char *str = kxmalloc(data->size + 1);
 	str[data->size] = 0;
 	memcpy(str,data->array, data->size);
-	return KXSTRING(str);
+
+	return kxstring_from_cstring_with_size(KXCORE, str, data->size);
 }
 
 static KxObject *
@@ -170,7 +172,7 @@ kxbytearray_cut_line(KxByteArray *self, KxMessage *message)
 	str[t+1] = 0;
 
 
-	return kxstring_from_cstring(KXCORE,str);
+	return kxstring_from_cstring_with_size(KXCORE,str, t + 1);
 }
 
 static KxObject *
