@@ -328,11 +328,13 @@ kxparser_token_number(KxParser *self, int negative)
 		if (isdigit(kxparser_look_ahead(self, 1))) {
 			tmp[pos++] = '.';
 			chr = NEXT_CHAR;
-			while(isdigit(chr) && pos < IDENTIFIER_SIZE) {
+			while((isdigit(chr) || chr=='-' || chr == 'e' || chr == 'E') && pos < IDENTIFIER_SIZE) {
 				tmp[pos++] = chr;
 				chr = NEXT_CHAR;
 			}
 			tmp[pos] = 0;
+
+			//TODO: Check for errors
 			self->token_value.float_val = atof(tmp);
 			if (negative)
 				self->token_value.float_val *= -1;
