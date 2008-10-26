@@ -22,9 +22,8 @@
 #ifndef __STACK_H
 #define __STACK_H
 
-#define KXSTACK_SIZE 4*512
-#define KXSTACK_ACTIVATIONS_SIZE 512
-#define KXSTACK_MESSAGES_SIZE 1024
+#define KXSTACK_ACTIVATIONS_SIZE 4096
+#define KXSTACK_MESSAGES_SIZE 6000
 
 #include "kxobject_struct.h"
 #include "kxconfig.h"

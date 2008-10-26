@@ -81,10 +81,10 @@ kxstack_push_object(KxStack *self, KxObject *object)
 void
 kxstack_pop_object(KxStack *self) 
 {
-	if (!self->objects_count) {
+	/*if (!self->objects_count) {
 		fprintf(stderr,"Fatal error: kxstack_pop_object: Stack is empty\n");
 		exit(-1);
-	}
+	}*/
 	KxObject *object = self->objects[--self->objects_count];
 	REF_REMOVE(object);
 }
@@ -114,10 +114,10 @@ kxstack_push_activation(KxStack *self, struct KxActivation *activation)
 void
 kxstack_pop_activation(KxStack *self) 
 {
-	if (!self->activations_count) {
+	/*if (!self->activations_count) {
 		fprintf(stderr,"Fatal error: kxstack_pop_activation: Stack is empty\n");
 		abort();
-	}
+	}*/
    self->activations_count--;
 }
 
@@ -235,10 +235,10 @@ void kxstack_push_message (KxStack *self, KxMessage *message)
 
 void kxstack_drop_message (KxStack *self) 
 {
-	if (!self->messages_count) {
+/*	if (!self->messages_count) {
 		fprintf(stderr,"Fatal error: kxstack_pop_message: Stack is empty\n");
 		exit(-1);
-	}
+	}*/
 	--self->messages_count;
 }
 
