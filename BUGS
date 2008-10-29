@@ -3,6 +3,7 @@
 * Bytecode which is created on big endian machine is not compatible 
   with little endian bytecode, and vice versa.
 
-* If you are using .tar.gz package on little endiang machine, 
+* If you are using .tar.gz package on big endiang machine, 
   you must delete src/vminit/kxvminit.c before first running "make".
-  I don't know how to exclude this file from package.
+  I don't know how to exclude this file from package, after
+  make dist
