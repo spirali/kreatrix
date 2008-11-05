@@ -63,6 +63,7 @@
 #include "kxlocalcontext.h"
 #include "kxiterator.h"
 #include "kxobject_profile.h"
+#include "kxassociation.h"
 
 #ifndef KX_MULTI_STATE
 
@@ -188,17 +189,6 @@ kxcore_new()
 	kxcore_add_basic_prototype(core, KXPROTO_SCOPEDBLOCK, kxscopedblock_new_prototype(core));
 	kxcore_add_basic_prototype(core, KXPROTO_EXCEPTION, kxexception_new_prototype(core));
 	kxcore_add_basic_prototype(core, KXPROTO_LIST, kxlist_new_prototype(core));
-	kxcore_add_basic_prototype(core, KXPROTO_FILE, kxfile_new_prototype(core));
-	kxcore_add_basic_prototype(core, KXPROTO_BYTEARRAY, kxbytearray_new_prototype(core));
-	kxcore_add_basic_prototype(core, KXPROTO_CHARACTER, kxcharacter_new_prototype(core));
-	kxcore_add_basic_prototype(core, KXPROTO_DICTIONARY, kxdictionary_new_prototype(core));
-	kxcore_add_basic_prototype(core, KXPROTO_MODULE, kxmodule_new_prototype(core));
-	kxcore_add_basic_prototype(core, KXPROTO_FLOAT, kxfloat_new_prototype(core));
-	kxcore_add_basic_prototype(core, KXPROTO_SET, kxset_new_prototype(core));
-	kxcore_add_basic_prototype(core, KXPROTO_LOCALCONTEXT, kxlocalcontext_new_prototype(core));
-	kxcore_add_basic_prototype(core, KXPROTO_ITERATOR, kxiterator_new_prototype(core));
-
-	kxsymbol_add_method_table(core->basic_prototypes[KXPROTO_SYMBOL]);
 
 	/* True */
 	core->object_true = kxboolean_new_true(core);
@@ -208,6 +198,20 @@ kxcore_new()
 
 	/* Nil */
 	core->object_nil = kxnil_new(core);
+
+	kxcore_add_basic_prototype(core, KXPROTO_FILE, kxfile_new_prototype(core));
+	kxcore_add_basic_prototype(core, KXPROTO_BYTEARRAY, kxbytearray_new_prototype(core));
+	kxcore_add_basic_prototype(core, KXPROTO_CHARACTER, kxcharacter_new_prototype(core));
+	kxcore_add_basic_prototype(core, KXPROTO_DICTIONARY, kxdictionary_new_prototype(core));
+	kxcore_add_basic_prototype(core, KXPROTO_MODULE, kxmodule_new_prototype(core));
+	kxcore_add_basic_prototype(core, KXPROTO_FLOAT, kxfloat_new_prototype(core));
+	kxcore_add_basic_prototype(core, KXPROTO_SET, kxset_new_prototype(core));
+	kxcore_add_basic_prototype(core, KXPROTO_LOCALCONTEXT, kxlocalcontext_new_prototype(core));
+	kxcore_add_basic_prototype(core, KXPROTO_ITERATOR, kxiterator_new_prototype(core));
+	kxcore_add_basic_prototype(core, KXPROTO_ASSOCIATION, kxassociation_new_prototype(core));
+
+	kxsymbol_add_method_table(core->basic_prototypes[KXPROTO_SYMBOL]);
+
 
 	/* stdout */
 	core->object_stdout = kxfile_stdout(core);

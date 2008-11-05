@@ -96,7 +96,9 @@ kreatrix_SOURCES = \
 	kxiterator.c \
 	kxiterator.h \
 	kxobject_profile.h \
-	kxobject_profile.c
+	kxobject_profile.c \
+	kxassociation.c \
+	kxassociation.h
 
 pkginclude_HEADERS=\
 	kxtypes.h \
@@ -141,7 +143,8 @@ pkginclude_HEADERS=\
 	kxlocalcontext.h \
 	kxdecompiler.h \
 	kxiterator.h \
-	kxobject_profile.h
+	kxobject_profile.h \
+	kxassociation.h
 
 EXTRA_DIST=vminit/update.sh
 

@@ -57,6 +57,7 @@
 #include "kxarray2d.h"
 #include "kxlocalcontext.h"
 #include "kxiterator.h"
+#include "kxassociation.h"
 
 int kx_interactive = 0;
 int kx_compile_flag = 0;
@@ -104,6 +105,7 @@ extensions_init()
 	kxarray2d_init_extension();
 	kxlocalcontext_init_extension();
 	kxiterator_init_extension();
+	kxassociation_init_extension();
 }
 
 static char *
