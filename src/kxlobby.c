@@ -117,6 +117,8 @@ KxObject *kxlobby_new(KxCore *core)
 	kxobject_set_slot_no_ref(self,kxcore_get_symbol(core,"ByteArray"), 
 		kxcore_get_basic_prototype(core,KXPROTO_BYTEARRAY));
 
+	kxobject_set_slot_no_ref(self,kxcore_get_symbol(core,"Association"), 
+		kxcore_get_basic_prototype(core,KXPROTO_ASSOCIATION));
 
 	kxobject_set_slot_no_ref(self,kxcore_get_symbol(core,"ScopedBlock"), 
 		kxcore_get_basic_prototype(core,KXPROTO_SCOPEDBLOCK));
@@ -126,7 +128,6 @@ KxObject *kxlobby_new(KxCore *core)
 
 	kxobject_set_slot_no_ref(self,kxcore_get_symbol(core,"LocalContext"), 
 		kxcore_get_basic_prototype(core,KXPROTO_LOCALCONTEXT));
-
 
 
 	kxobject_set_slot_no_ref2(self,kxcore_get_symbol(core,"VM"), kxvm_new(core));

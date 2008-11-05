@@ -33,6 +33,7 @@
 #include "kxobject.h"
 #include "kxexception.h"
 #include "kxlist.h"
+#include "kxassociation.h"
 
 KxObjectExtension kxdictionary_extension;
 
@@ -89,8 +90,8 @@ kxdictionary_mark(KxDictionary *self)
 static KxObject *
 kxdictionary_add(KxDictionary *self, KxMessage *message)
 {
-
-	if (!kxbasedictionary_add(self->data.ptr, message->params[0]))
+	KXPARAM_TO_KXASSOCIATION(assoc, 0);
+	if (!kxbasedictionary_add(self->data.ptr, assoc))
 		return NULL;
 	KXRETURN(self);
 }

@@ -26,6 +26,7 @@
 #include "kxset_utils.h"
 #include "kxmessage.h"
 #include "kxobject.h"
+#include "kxassociation.h"
 
 KxBaseDictionary * 
 kxbasedictionary_new() 
@@ -60,27 +61,19 @@ kxbasedictionary_mark(KxBaseDictionary *self)
 
 static int
 kxassoc_get_hash_and_key(KxObject *self, KxObject **key,  unsigned long *hash) {
-	KxObject *obj = kxobject_send_unary_message(self, KXCORE->dictionary[KXDICT_KEY]);
-	if (obj == NULL)
-		return 0;
-	
+	KxObject *obj = KXASSOCIATION_GET_KEY(self);
+	*key = obj;
 	int r = kxobject_get_hash(obj, hash);
 	if (!r) {
-		REF_REMOVE(obj);
 		return 0;
 	}
-	*key = obj;
 	return 1;
 }
 
 static int
 kxassoc_get_hash(KxObject *self, unsigned long *hash) {
-	KxObject *obj = kxobject_send_unary_message(self, KXCORE->dictionary[KXDICT_KEY]);
-	if (obj == NULL)
-		return 0;
-	
+	KxObject *obj =	KXASSOCIATION_GET_KEY(self);
 	int r = kxobject_get_hash(obj, hash);
-	REF_REMOVE(obj);
 	return r;
 }
 
@@ -93,7 +86,6 @@ kxbasedictionary_scan_for_key(KxBaseDictionary *self, KxObject *key, unsigned lo
 	KxMessage msg;
 	//msg.stack = stack;
 	KxSymbol *msg_eq = KXCORE_FROM(key)->dictionary[KXDICT_EQ];
-	KxSymbol *msg_key = KXCORE_FROM(key)->dictionary[KXDICT_KEY];
 	KxObject *true_obj = KXCORE_FROM(key)->object_true; 
 	
 
@@ -106,12 +98,9 @@ kxbasedictionary_scan_for_key(KxBaseDictionary *self, KxObject *key, unsigned lo
 			return t;
 		}
 
-		KxObject *key2 = kxobject_send_unary_message(array[t], msg_key);
-		if (key2 == NULL) {
-			return -1;
-		}
-	
-
+		KxObject *key2 = KXASSOCIATION_GET_KEY(array[t]);
+		REF_ADD(key2);
+		
 		kxmessage_init(&msg, key, 1, msg_eq);
 		msg.params[0] = key2;
 		KxObject *ret = kxmessage_send(&msg);
@@ -129,11 +118,9 @@ kxbasedictionary_scan_for_key(KxBaseDictionary *self, KxObject *key, unsigned lo
 		if (!array[t]) {
 			return t;
 		}
-		KxObject *key2 = kxobject_send_unary_message(array[t], msg_key);
-		if (key2 == NULL) {
-			return -1;
-		}
 
+		KxObject *key2 = KXASSOCIATION_GET_KEY(array[t]);
+		REF_ADD(key2);
 
 		kxmessage_init(&msg, key, 1, msg_eq);
 		msg.params[0] = key2;
@@ -221,7 +208,6 @@ kxbasedictionary_add(KxBaseDictionary *self, KxObject *object)
 		return 0;
 //	printf("add dict self=%p obj=%p key=%p hash=%li\n",self, object, key, hash);
 	int index = kxbasedictionary_scan_for_key(self, key, hash);
-	REF_REMOVE(key);
 
 	if (index == -1)
 		return 0;
@@ -277,7 +263,6 @@ kxbasedictionary_fix_after_remove(KxBaseDictionary *self, int index)
 
 //		printf("fixafter**\n");
 		int new_index = kxbasedictionary_scan_for_key(self, key, hash);
-		REF_REMOVE(key);
 		if (new_index != index) {
 			KxObject *obj = items[index];
 			items[index] = items[new_index];

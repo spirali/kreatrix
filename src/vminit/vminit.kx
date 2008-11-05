@@ -435,13 +435,15 @@ List do: {
 
 }.
 
-Lobby Association = Object clone do: {
-	type = "Association".
-
+Association do: {
 	asString = { ^key printString,"=>", value printString }.
 
-	key <- nil.
-	value <- nil.
+	copy = { |assoc|
+		assoc << parent clone.
+		assoc key: key.
+		assoc value: value.
+		^assoc.
+	}.
 }.
 
 Dictionary do: {
