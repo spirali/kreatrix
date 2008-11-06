@@ -968,18 +968,25 @@ kxcblock_bytecode_literals_size(KxcBlock *block)
 }
 
 
+int 
+kxcblock_size_of_instructions(KxcBlock *block)
+{
+	int size = 0; // count of instruction
+	int t;
+	for (t=0;t<block->code->size;t++) {
+		size += kxcinstruction_bytecode_size(block->code->items[t]);
+	}
+	return size;
+}
+
 /**
  * Get bytecode's size of code
  */
 static int 
 kxcblock_bytecode_code_size(KxcBlock *block)
 {
-	int size=sizeof(int); // count of instruction
-	int t;
-	for (t=0;t<block->code->size;t++) {
-		size += kxcinstruction_bytecode_size(block->code->items[t]);
-	}
-	return size;
+	int size = sizeof(int); // count of instruction
+	return size + kxcblock_size_of_instructions(block);
 }
 
 static int

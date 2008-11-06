@@ -11,6 +11,26 @@ compilerTest = test TestCase clone do: {
 		""" withSourceFilename: "<test>".
 
 		assert: bytecode run equals: 23.
+	}.
+
+	testBigCycle = { |j z|
+		j << 3.
+		z << 5.
+		0 to: 3 do: [ :i | |k|
+			k << (i + j) * 2.
+			i << i * i.
+			j << (j + ( 2 * k)).
+			j << (3 * i) + ( 2 * k).
+			j << (4 * j) + ( 2 * k).
+			i << (2 * k) + 3.
+			k << (2 * i) + 3.
+			j << (k + j) + 3.
+			i << (2 * j) - (k + 100).
+			k << (2 * j) + (k - 100).
+			j << k + i + 3 + z.
+			z << i + k.
+		].
+		(j == 2452067) assertTrue.
 	}
 }.
 

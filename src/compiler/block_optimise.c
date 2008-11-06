@@ -26,6 +26,8 @@
 
 #include "block_optimise.h"
 
+#define JUMP_LIMIT 122 // Jump is now stored in signed char, so distance of jump is limited
+
 typedef struct KxInstructionReplacingRule KxInstructionReplacingRule;
 typedef void(ReplaceFcn)(
 	KxcBlock *block,
@@ -474,14 +476,22 @@ kxcblock_optimise_replace_instructions(KxcBlock *block)
 					&& !strcmp(message_name, rule->messageName)) 
 			{
 				int delta = closures_count - rule->countOfClosures;
-
+				int jump_sum = 0;
 				for (s = 0; s < rule->countOfClosures;s++) {
-					if (closures[s + delta]->params_count != rule->countOfParameters[s]) {
+					KxcBlock *block = closures[s + delta];
+
+					if (block->params_count != rule->countOfParameters[s]) {
 						break;
 					}
+
+					jump_sum += kxcblock_size_of_instructions(block);
 				}
 
 				if (s != rule->countOfClosures) {
+					break;
+				}
+
+				if (jump_sum >= JUMP_LIMIT) {
 					break;
 				}
 
