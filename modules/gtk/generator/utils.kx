@@ -45,8 +45,9 @@ Replacer = Object clone do: {
 	saveTo: = { :filename | |file|
 		file << File clone name: filename.
 		file openForWriting.
-		file write: (template replaceByDictionary: replaceDictionary).
-		file close.
+		file closeAfter: [ 
+			file write: (template replaceByDictionary: replaceDictionary).
+		].
 	}.
 }.
 
@@ -61,6 +62,7 @@ String replaceAll:to: = { :pattern :target |
 File appendFileWithName: = { :filename |
 	|file|
 	file << (File clone name: filename) openForReading.
-	write: file contentAsString.
-	file close.
+	file closeAfter: [ 
+		write: file contentAsString.
+	].
 }.

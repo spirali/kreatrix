@@ -162,6 +162,10 @@ File do: {
 	/*IOException = Exception clone do: {
 		type = "IOException".
 	}.*/
+
+	closeAfter: = { :aBlock |
+		aBlock ensure: [ close ].
+	}.
 }.
 
 ByteArray do: {

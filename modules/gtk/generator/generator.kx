@@ -139,18 +139,19 @@ Generator = Object clone do: {
 	loadFunctions = { |linenumber file|
 		file << (File clone name: "functions.txt") openForReading.
 		linenumber << 0.
-		file foreachLine: [ :line | |definition|
-			linenumber << linenumber + 1.
-			line << line trim.
-			((line beginsWith: "//") \/ (line == "")) ifFalse: [
-				definition <<  GFuncDefinition clone.
-				definition generator: self.
-				definition fromString: line atLine: linenumber.
-				//functions add: (GFunction cloneWithDefinition: definition generator: self).
-				functions add: (definition createGFunctionGenerator: self).
+		file closeAfter: [ 
+			file foreachLine: [ :line | |definition|
+				linenumber << linenumber + 1.
+				line << line trim.
+				((line beginsWith: "//") \/ (line == "")) ifFalse: [
+					definition <<  GFuncDefinition clone.
+					definition generator: self.
+					definition fromString: line atLine: linenumber.
+					functions add: 
+						(definition createGFunctionGenerator: self).
+				].
 			].
 		].
-		file close.
 	}.
 
 	findType: = { :typeName |
@@ -252,18 +253,17 @@ Generator = Object clone do: {
 		|fileC fileH|
 		fileC << (File clone name: "../kxgtk_wrapper.c") openForWriting.
 		fileH << (File clone name: "../kxgtk_wrapper.h") openForWriting.
+		
+		fileC closeAfter: [ fileH closeAfter: [
 
-		fileC appendFileWithName: "wrapper_head.c".
-		fileH appendFileWithName: "wrapper_head.h".
+			fileC appendFileWithName: "wrapper_head.c".
+			fileH appendFileWithName: "wrapper_head.h".
 
-		allWrappers foreach: [ :class | 
-			("Writing %s" % class name) println.
-			class writeBodyTo: fileC headerTo: fileH ].
-
-		fileC close.
-
-		fileH appendFileWithName: "wrapper_end.h".
-		fileH close.
+			allWrappers foreach: [ :class | 
+				("Writing %s" % class name) println.
+				class writeBodyTo: fileC headerTo: fileH ].
+			fileH appendFileWithName: "wrapper_end.h".
+		]].
 	}.
 
 	create = {
