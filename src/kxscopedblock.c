@@ -295,19 +295,33 @@ kxscopedblock_loop(KxObject *self, KxMessage *message)
 static KxObject *
 kxscopedblock_ensure(KxObject *self, KxMessage *message)
 {
-	KxStack *stack = KXSTACK;
 	KxObject * ret = kxobject_evaluate_block_simple(self);
 
-	KxObject * robj = NULL;
-	KxReturn rstate = RET_OK;
 	if (ret == NULL) {
-		rstate = kxstack_get_return_state(stack);
-		robj = kxstack_get_and_reset_return_object(stack);
+		KxStack *original_stack = kxcore_create_and_switch_to_stack(KXCORE);
+		KxObject *r2 = kxobject_evaluate_block_simple(message->params[0]);
+
+		if (r2) {
+			REF_REMOVE(r2);
+			kxcore_free_actual_and_switch_to_stack(KXCORE, original_stack);
+			return NULL;
+		} else {
+			// TODO: Better solution
+			kxcore_free_actual_and_switch_to_stack(KXCORE, original_stack);
+			return NULL;
+		}
+	} else {
+		KxObject *r2 = kxobject_evaluate_block_simple(message->params[0]);
+		if (r2 == NULL) {
+			REF_REMOVE(ret);
+			return NULL;
+		} else {
+			REF_REMOVE(r2);
+			return ret;
+		}
 	}
 
-	KxObject * ret2 = kxobject_evaluate_block_simple(message->params[0]);
-
-	
+	/*KxObject * ret2 = kxobject_evaluate_block_simple(message->params[0]);
 
 	if (ret2 == NULL) {
 		if (ret) {
@@ -323,7 +337,7 @@ kxscopedblock_ensure(KxObject *self, KxMessage *message)
 		kxstack_set_return_state(stack, rstate);
 		kxstack_set_return_object(stack, robj);
 	}
-	return ret;
+	return ret;*/
 }
 
 static KxObject *

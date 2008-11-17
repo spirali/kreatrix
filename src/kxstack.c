@@ -55,8 +55,10 @@ kxstack_free(KxStack *self)
 		REF_REMOVE(self->return_object);
 	}
 
-	if (self->throw_trace)
+	if (self->throw_trace) {
+		list_free_all(self->throw_trace);
 		list_free(self->throw_trace);
+	}
 
 
 	kxfree(self);
