@@ -86,7 +86,7 @@ struct KxCodeBlockData {
 };
 
 struct KxCodeBlockInlineCache {
-	KxObject *prototype;
+	KxObjectProfile *profile;
 	KxObject *cached_object;
 	KxObject *message_name;
 	KxObject *slot_holder;

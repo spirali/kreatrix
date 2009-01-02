@@ -224,10 +224,7 @@ kxobject_repair_profile_after_parent_change(KxObject *self)
 				kxobject_set_as_singleton(self);
 			}
 			return;
-		case KXOBJECT_SINGLETON:
-			self->profile = self->parent_slot.parent->profile;
-			kx_inline_cache_repair_by_prototype(self);
-			return;
+
 		case KXOBJECT_PROTOTYPE:
 			kxobject_repair_prototype_profile_after_parent_change(self);
 			kx_inline_cache_repair_by_prototype(self);
@@ -235,8 +232,7 @@ kxobject_repair_profile_after_parent_change(KxObject *self)
 	}
 }
 
-void
-kxobject_set_as_prototype(KxObject *self)
+static void kxobject_standalone_profile(KxObject *self)
 {
 	self->profile = kxobject_profile_new_for_child(self->profile, self);
 	
@@ -248,13 +244,23 @@ kxobject_set_as_prototype(KxObject *self)
 		} while(ps);
 	}
 
+}
+
+void
+kxobject_set_as_prototype(KxObject *self)
+{
+	/*if (self->ptype == KXOBJECT_SINGLETON) {
+		printf("from Singleton\n");
+	}*/
+	if (!KXOBJECT_HAS_OWN_PROFILE(self))
+		kxobject_standalone_profile(self);
 	self->ptype = KXOBJECT_PROTOTYPE;
 }
 
 void
 kxobject_set_as_singleton(KxObject *self)
 {
-	self->ptype = KXOBJECT_SINGLETON;
+	kxobject_set_as_prototype(self);
 }
 
 void

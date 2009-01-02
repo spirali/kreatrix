@@ -95,15 +95,30 @@ kxcodeblock_new(KxCore *core) {
 	return codeblock;
 }
 #ifdef KX_INLINE_CACHE
+
 static void
-kxcodeblock_clean_inline_cache(KxCodeBlock *self)
+kxcodeblock_reset_inline_cache(KxCodeBlock *self)
+{
+	KxCodeBlockData *data = KXCODEBLOCK_DATA(self);
+	int t;
+	for (t=0; t<data->inline_cache_size; t++) {
+		KxCodeBlockInlineCache *ic = &data->inline_cache[t];
+		if (ic->profile) {
+			REF_REMOVE(ic->cached_object);
+			REF_REMOVE(ic->slot_holder);
+		}
+		ic->profile	= NULL;
+	}
+}
+
+static void
+kxcodeblock_clean_and_free_inline_cache(KxCodeBlock *self)
 {
 		KxCodeBlockData *data = KXCODEBLOCK_DATA(self);
 		int t;
 		for (t=0; t<data->inline_cache_size; t++) {
 			KxCodeBlockInlineCache *ic = &data->inline_cache[t];
-			if (ic->prototype) {
-				REF_REMOVE(ic->prototype);
+			if (ic->profile) {
 				REF_REMOVE(ic->cached_object);
 				REF_REMOVE(ic->slot_holder);
 			}
@@ -133,7 +148,6 @@ kxcodeblock_clean_inline_cache(KxCodeBlock *self)
 			}
 		}
 
-
 }
 #endif // KX_INLINE_CACHE
 
@@ -160,7 +174,7 @@ kxcodeblock_clean(KxCodeBlock *self) {
 	#ifdef KX_INLINE_CACHE
 	if (data->inline_cache)
 	{
-		kxcodeblock_clean_inline_cache(self);
+		kxcodeblock_clean_and_free_inline_cache(self);
 		data->inline_cache = NULL;
 	}
 	#endif
@@ -217,7 +231,7 @@ kxcodeblock_free(KxCodeBlock *self) {
 	#ifdef KX_INLINE_CACHE
 	if (data->inline_cache)
 	{
-		kxcodeblock_clean_inline_cache(self);
+		kxcodeblock_clean_and_free_inline_cache(self);
 	}
 	#endif
 
@@ -715,8 +729,7 @@ kxcodeblock_mark(KxObject *self)
 		int t;
 		for (t=0; t<data->inline_cache_size; t++) {
 			KxCodeBlockInlineCache *ic = &data->inline_cache[t];
-			if (ic->prototype) {
-				kxobject_mark(ic->prototype);
+			if (ic->profile) {
 				kxobject_mark(ic->cached_object);
 				kxobject_mark(ic->slot_holder);
 			}
@@ -812,6 +825,8 @@ kx_inline_cache_repair_by_prototype(KxObject *prototype)
 	
 	KxObject *obj = core->first_codeblock_with_inline_cache;
 
+	KxObjectProfile *profile = prototype->profile;
+
 	while(obj) {
 		KxCodeBlockData *data = KXCODEBLOCK_DATA(obj);
 		KxCodeBlockInlineCache *ic = data->inline_cache;
@@ -819,9 +834,8 @@ kx_inline_cache_repair_by_prototype(KxObject *prototype)
 		
 		int t;
 		for (t=0; t < size; t++) {
-			if (ic[t].prototype == prototype) {
-				REF_REMOVE(ic[t].prototype);
-				ic[t].prototype = NULL;
+			if (ic[t].profile == profile) {
+				ic[t].profile = NULL;
 				REF_REMOVE(ic[t].cached_object);
 				ic[t].cached_object = NULL;
 				REF_REMOVE(ic[t].slot_holder);
@@ -854,6 +868,8 @@ kx_inline_cache_repair_by_prototype_and_name(KxObject *prototype, KxSymbol *mess
 	
 	KxObject *obj = core->first_codeblock_with_inline_cache;
 
+	KxObjectProfile *profile = prototype->profile;
+
 	while(obj) {
 		KxCodeBlockData *data = KXCODEBLOCK_DATA(obj);
 		KxCodeBlockInlineCache *ic = data->inline_cache;
@@ -861,9 +877,8 @@ kx_inline_cache_repair_by_prototype_and_name(KxObject *prototype, KxSymbol *mess
 		
 		int t;
 		for (t=0; t < size; t++) {
-			if (ic[t].prototype == prototype && ic[t].message_name == message_name) {
-				REF_REMOVE(ic[t].prototype);
-				ic[t].prototype = NULL;
+			if (ic[t].profile == profile && ic[t].message_name == message_name) {
+				ic[t].profile = NULL;
 				REF_REMOVE(ic[t].cached_object);
 				ic[t].cached_object = NULL;
 				REF_REMOVE(ic[t].slot_holder);
@@ -964,6 +979,18 @@ kxcodeblock_insert_inline_cache(KxCodeBlock *self, KxMessage *message)
 	KXRETURN(self);
 }
 
+static KxObject *
+kxcodeblock_reset_inline_cache_method(KxCodeBlock *self, KxMessage *message)
+{
+	#ifdef KX_INLINE_CACHE
+	KxCodeBlockData *data = KXCODEBLOCK_DATA(self);
+	if (data->inline_cache)
+		kxcodeblock_reset_inline_cache(self);
+	#endif
+	KXRETURN(self);
+}
+
+
 static void 
 kxcodeblock_add_method_table(KxCodeBlock *self)
 {
@@ -973,6 +1000,7 @@ kxcodeblock_add_method_table(KxCodeBlock *self)
 		{"locals",0, kxcodeblock_locals },
 		{"messageNames",0, kxcodeblock_message_names },
 		{"insertInlineCache",0, kxcodeblock_insert_inline_cache },
+		{"resetInlineCache",0, kxcodeblock_reset_inline_cache_method },
 		{NULL,0, NULL}
 	};
 	kxobject_add_methods(self, table);

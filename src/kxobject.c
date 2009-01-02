@@ -126,7 +126,7 @@ kxobject_free(KxObject *self)
 	}	
 
 	#ifdef KX_INLINE_CACHE
-	if (self->ptype == KXOBJECT_PROTOTYPE) {
+	if (KXOBJECT_HAS_OWN_PROFILE(self)) {
 		kxobject_profile_free(self->profile);
 		if (self->parent_slot.parent) {
 			kxobject_profile_remove_child_prototype(self->parent_slot.parent->profile, self);
@@ -224,8 +224,6 @@ kxobject_dump(KxObject *self)
 			printf(":i"); break;
 		case KXOBJECT_PROTOTYPE:
 			printf(":p"); break;
-		case KXOBJECT_SINGLETON:
-			printf(":s"); break;
 	}
 	#endif
 
@@ -338,7 +336,7 @@ kxobject_raw_copy(KxObject *self)
 	#ifdef KX_INLINE_CACHE
 	copy->ptype = self->ptype;
 
- 	if (self->ptype == KXOBJECT_PROTOTYPE) {
+ 	if (self->ptype != KXOBJECT_INSTANCE) {
 			copy->profile = kxobject_profile_copy(self->profile);
 			if (copy->parent_slot.parent) {
 				kxobject_profile_add_child_prototype(copy->parent_slot.parent->profile, copy);
@@ -365,7 +363,7 @@ kxobject_set_parent(KxObject *self, KxObject *parent)
 
 	if (self->parent_slot.parent) {
 		#ifdef KX_INLINE_CACHE
-		if (self->ptype == KXOBJECT_PROTOTYPE) {
+		if (KXOBJECT_HAS_OWN_PROFILE(self)) {
 			kxobject_profile_remove_child_prototype(self->parent_slot.parent->profile, self);
 		}
 		#endif
@@ -418,7 +416,7 @@ kxobject_add_parent(KxObject *self, KxObject *parent)
 	prev->next =  slot;
 
 	#ifdef KX_INLINE_CACHE
-	if (self->ptype == KXOBJECT_PROTOTYPE) {
+	if (KXOBJECT_HAS_OWN_PROFILE(self)) {
 		kxobject_profile_add_child_prototype(parent->profile, self);
 	}
 	#endif
@@ -428,7 +426,7 @@ void
 kxobject_remove_parent(KxObject *self, KxObject *parent) 
 {
 	#ifdef KX_INLINE_CACHE
-	if (self->ptype == KXOBJECT_PROTOTYPE) {
+	if (KXOBJECT_HAS_OWN_PROFILE(self)) {
 		kxobject_profile_remove_child_prototype(parent->profile, self);
 	}
 	#endif
@@ -488,7 +486,7 @@ void kxobject_insert_parent(KxObject *self, KxObject *parent)
 
 	if (self->parent_slot.parent) {
 		#ifdef KX_INLINE_CACHE
-		if (self->ptype == KXOBJECT_PROTOTYPE) {
+		if (KXOBJECT_HAS_OWN_PROFILE(self)) {
 			kxobject_profile_remove_child_prototype(self->parent_slot.parent->profile, self);
 		}
 		#endif 
@@ -503,7 +501,9 @@ void kxobject_insert_parent(KxObject *self, KxObject *parent)
 	self->parent_slot.parent = parent;
 
 	#ifdef KX_INLINE_CACHE
-	kxobject_profile_add_child_prototype(parent->profile, self);
+	if (KXOBJECT_HAS_OWN_PROFILE(self)) {
+		kxobject_profile_add_child_prototype(parent->profile, self);
+	}
 	kxobject_repair_profile_after_parent_change(self);
 	#endif
 }

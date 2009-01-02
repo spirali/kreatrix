@@ -368,6 +368,15 @@ testInlineCache = test TestCase clone do: {
 		((A m: B) == "y") assertTrue.
 		((A m: B) == "y") assertTrue.
 		((A m: B) == "y") assertTrue.
+
+		A doSomething = { ^"z" }.
+
+		((A m: B) == "y") assertTrue.
+		((A m: B) == "y") assertTrue.
+		((A m: B) == "y") assertTrue.
+
+		((A m: A) == "z") assertTrue.
+		
 	}.
 }.
 

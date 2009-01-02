@@ -27,6 +27,8 @@
 #ifdef KX_INLINE_CACHE
 #include "kxobject.h"
 
+#define KXOBJECT_HAS_OWN_PROFILE(self) ((self)->ptype != KXOBJECT_INSTANCE)
+
 KxObjectProfile * kxobject_profile_new();
 void kxobject_profile_free(KxObjectProfile *self);
 void kxobject_profile_add_child_prototype(KxObjectProfile *self, KxObject *prototype);
