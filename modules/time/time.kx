@@ -23,6 +23,7 @@
 
 loadCLibrary: "time".
 
+/* TODO: Migrate Time object to TimeValue */
 Time = Object clone do: {
 	type = "Time".
 
@@ -47,6 +48,10 @@ Time = Object clone do: {
 	asSeconds = { ^seconds }.
 
 }.
+
+TimeValue do: {
+	asString = { ^seconds asString, ".", (useconds asString alignRight: 6 pattern: "0") }.
+}
 
 timeOfRun: = { :aBlock | |startTime|
 	startTime << time millisecondClockValue.
