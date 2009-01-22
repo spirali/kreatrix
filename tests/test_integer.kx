@@ -102,6 +102,18 @@ integerTest = test TestCase clone do: {
 		assert: 10 copy equals: 10 copy.
 	}.
 
+	testMinMax = {
+		((10 max: 20) == 20) assertTrue.
+		((20 max: 10) == 20) assertTrue.
+		((10 max: 10) == 10) assertTrue.
+		((-5 max: -6) == -5) assertTrue.
+
+		((10 min: 20) == 10) assertTrue.
+		((20 min: 10) == 10) assertTrue.
+		((10 min: 10) == 10) assertTrue.
+		((-5 min: -6) == -6) assertTrue.
+	}
+
 }.
 
 integerTest run.

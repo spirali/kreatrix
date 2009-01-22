@@ -494,6 +494,28 @@ kxinteger_abs(KxInteger *self, KxMessage *message)
 	KXRETURN(self);
 }
 
+static KxObject *
+kxinteger_max(KxInteger *self, KxMessage *message)
+{
+	KXPARAM_TO_INT(param, 0)
+	KxInt i = KXINTEGER_VALUE(self);
+	if (i < param) {
+		KXRETURN(message->params[0]);
+	} 
+	KXRETURN(self);
+}
+
+static KxObject *
+kxinteger_min(KxInteger *self, KxMessage *message)
+{
+	KXPARAM_TO_INT(param, 0)
+	KxInt i = KXINTEGER_VALUE(self);
+	if (i > param) {
+		KXRETURN(message->params[0]);
+	} 
+	KXRETURN(self);
+}
+
 static void 
 kxinteger_add_method_table(KxInteger *self)
 {
@@ -530,6 +552,8 @@ kxinteger_add_method_table(KxInteger *self)
 		{"negated",0, kxinteger_negated},
 		{"bitNegated",0, kxinteger_bit_negated},
 		{"abs", 0, kxinteger_abs},
+		{"max:", 1, kxinteger_max},
+		{"min:", 1, kxinteger_min},
 		{NULL,0, NULL}
 	};
 	kxobject_add_methods(self, table);

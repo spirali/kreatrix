@@ -79,8 +79,32 @@ stringTest = test TestCase clone do: {
 		assert: y trimEnd equals: "".
 
 		assert: "  f  " trim equals: "f".
-
 	}.
+
+	testTrim2 = { |x y z|
+		x << "aabbca0bcaac".
+		y << "bbbbb0ccccc".
+		z << "aaaaaaaa".
+		
+		((x trimBegin: "a") == "bbca0bcaac") assertTrue.
+		((x trimBegin: "c") == x) assertTrue.
+		((x trimBegin: "") == x) assertTrue.
+		((x trimBegin: "abc") == "0bcaac") assertTrue.
+		(("" trimBegin: "abc") == "") assertTrue.
+
+		((y trimBegin: "bc0") == "") assertTrue.
+		((z trimBegin: "a") == "") assertTrue.
+
+		((x trimEnd: "c") == "aabbca0bcaa") assertTrue.
+		((x trimEnd: "a") == x) assertTrue.
+		((x trimEnd: "") == x) assertTrue.
+		((x trimEnd: "abc") == "aabbca0") assertTrue.
+		(("" trimEnd: "abc") == "") assertTrue.
+
+		((y trimEnd: "bc0") == "") assertTrue.
+		((z trimEnd: "a") == "") assertTrue.
+	}.
+
 
 	testFirstLast = { |a|
 		a << "abcdef".
@@ -157,6 +181,51 @@ stringTest = test TestCase clone do: {
 
 		[ "%%x%%" % "" ] assertException: Exception.
 		
+	}.
+
+	testMultiply = {
+		[ "abc" * -1 ] assertException: Exception.
+		[ "" * -1 ] assertException: Exception.
+
+		(("abc" * 3) == "abcabcabc") assertTrue.
+		(("1" * 10) == ("11111" * 2)) assertTrue.
+		(("A@!Bcdf" * 2) == "A@!BcdfA@!Bcdf") assertTrue.
+		(("A@!Bcdf" * 1) == "A@!Bcdf") assertTrue.
+		(("A@!Bcdf" * 0) == "") assertTrue.
+		(("" * 0) == "") assertTrue.
+		(("123" * 0) == "") assertTrue.
+	}.
+
+	testRepeatToLength = {
+		(("1" repeatToLength: 10) == "1111111111") assertTrue.
+		(("1" repeatToLength: 1) == "1") assertTrue.
+
+		(("" repeatToLength: 0) == "") assertTrue.
+		(("abc" repeatToLength: 0) == "") assertTrue.
+		(("abc" repeatToLength: 1) == "a") assertTrue.
+		(("abc" repeatToLength: 2) == "ab") assertTrue.
+		(("abc" repeatToLength: 3) == "abc") assertTrue.
+		(("abc" repeatToLength: 6) == "abcabc") assertTrue.
+		(("abc" repeatToLength: 10) == "abcabcabca") assertTrue.
+		(("abc" repeatToLength: 11) == "abcabcabcab") assertTrue.
+	}.
+
+	testAlign = {
+		(("abc" alignRight: 10 pattern: "0") == "0000000abc") assertTrue.
+		(("abc" alignRight: 5 pattern: "0") == "00abc") assertTrue.
+		(("abc" alignRight: 1 pattern: "0") == "abc") assertTrue.
+
+		(("abc" alignRight: 7 pattern: "-=") == "-=-=abc") assertTrue.
+		(("abc" alignRight: 6 pattern: "-=") == "-=-abc") assertTrue.
+		(("abc" alignRight: 1 pattern: "-=") == "abc") assertTrue.
+
+		(("abc" alignLeft: 10 pattern: "0") == "abc0000000") assertTrue.
+		(("abc" alignLeft: 5 pattern: "0") == "abc00") assertTrue.
+		(("abc" alignLeft: 1 pattern: "0") == "abc") assertTrue.
+
+		(("abc" alignLeft: 7 pattern: "-=") == "abc-=-=") assertTrue.
+		(("abc" alignLeft: 6 pattern: "-=") == "abc-=-") assertTrue.
+		(("abc" alignLeft: 1 pattern: "-=") == "abc") assertTrue.
 	}.
 }.
 

@@ -282,7 +282,76 @@ kxstring_trim_begin(KxString *self, KxMessage *message)
 {
 	char *str = KXSTRING_VALUE(self);
 	while( *str != 0 && ((*str) == ' ' || (*str) == '\t' || (*str) == '\n' || (*str) == '\r')) { str++; };
+
+	if (str ==  KXSTRING_VALUE(self)) {
+		KXRETURN(self);
+	}
+
 	return KXSTRING(str);
+}
+
+/*KXdoc trimBegin: aString
+  Return copy of receiver without leading chars in aString.
+*/
+static
+KxObject *
+kxstring_trim_begin_(KxString *self, KxMessage *message)
+{
+	KXPARAM_TO_CSTRING(param, 0);
+	char *str = KXSTRING_VALUE(self);
+	while(*str != 0) { 
+		char *c = param;
+		while(*c != 0) {
+			if (*c == *str)
+				break;
+			c++;
+		}
+		if (*c == 0) 
+			break;
+		str++; 
+	};
+
+	if (str ==  KXSTRING_VALUE(self)) {
+		KXRETURN(self);
+	}
+
+	return KXSTRING(str);
+}
+
+
+/*KXdoc trimEnd: aString
+  Returns copy of receiver without trailing chars in aString.
+*/
+static
+KxObject *
+kxstring_trim_end_(KxString *self, KxMessage *message)
+{
+	KXPARAM_TO_CSTRING(param, 0);
+	char *str = KXSTRING_VALUE(self);
+	int len = KXSTRING_GET_SIZE(self);
+	int t;
+	for (t=len-1;t>=0;t--) {
+		char *c = param;
+		while(*c != 0) {
+			if (*c == str[t])
+				break;
+			c++;
+		}
+		if (*c == 0) 
+			break;
+	}
+
+	t++;
+
+	if (t == len) {
+		KXRETURN(self);
+	}
+
+	char c = str[t];
+	str[t] = 0;
+	KxString *string =  KXSTRING_WITH_SIZE(str, t);
+	str[t] = c;
+	return string;
 }
 
 /*KXdoc trimEnd
@@ -299,14 +368,19 @@ kxstring_trim_end(KxString *self, KxMessage *message)
 		if (str[t] != ' ' && str[t] != '\t' && str[t] != '\n' && str[t] != '\r') 
 			break;
 	}
+
 	t++;
+
+	if (t == len) {
+		KXRETURN(self);
+	}
+	
 	char c = str[t];
 	str[t] = 0;
 	KxString *string =  KXSTRING_WITH_SIZE(str, t);
 	str[t] = c;
 	return string;
 }
-
 
 /*KXdoc at: index
   Return character at position of parameter.
@@ -837,7 +911,6 @@ kxstring_convert_for_substition(char type, KxObject *obj)
 	}
 }
 
-
 static KxObject *
 kxstring_substitution(KxString *self, KxMessage *message)
 {
@@ -988,6 +1061,27 @@ kxstring_substitution(KxString *self, KxMessage *message)
 	KXTHROW_EXCEPTION("No substition point in string");*/
 }
 
+static KxObject *
+kxstring_mul(KxObject *self, KxMessage *message)
+{
+	KXPARAM_TO_INT(number, 0);
+	if (number < 0) {
+		KXTHROW_EXCEPTION("Parameter is negative");
+	}
+
+	size_t len = KXSTRING_GET_SIZE(self);
+	size_t new_len = len * number;
+	char *str = kxmalloc(new_len + 1);
+	ALLOCTEST(str);
+	char *orig = KXSTRING_VALUE(self);
+	int t;
+	for (t=0; t < new_len; t++) {
+		str[t] = orig[t % len];
+	}
+	str[new_len] = 0;
+	return kxstring_from_cstring_with_size(KXCORE, str, new_len);
+}
+
 static void 
 kxstring_add_method_table(KxString *self)
 {
@@ -1006,6 +1100,8 @@ kxstring_add_method_table(KxString *self)
 		{"asByteArray",0, kxstring_as_bytearray },
 		{"trimBegin",0, kxstring_trim_begin },
 		{"trimEnd",0, kxstring_trim_end },
+		{"trimBegin:",1, kxstring_trim_begin_ },
+		{"trimEnd:",1, kxstring_trim_end_ },
 		{"size",0, kxstring_size },
 		{"bytes",0, kxstring_bytes },
 		{"at:",1, kxstring_at },
@@ -1026,6 +1122,7 @@ kxstring_add_method_table(KxString *self)
 		{"%", 1, kxstring_substitution},
 		{"dirname",0, kxstring_dirname},
 		{"basename",0, kxstring_basename},
+		{"*",1, kxstring_mul},
 		{NULL,0, NULL}
 	};
 	kxobject_add_methods(self, table);

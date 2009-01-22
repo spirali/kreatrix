@@ -246,6 +246,22 @@ String do: {
 		^(find: aString) isNotNil
 	}.
 
+	repeatToLength: = { :length | |str|
+		(size == 0) ifTrue: [ ^self ].
+		str << self * (length / size).
+		(length mod: size) == 0 ifTrue: [ ^ str ].
+		^ str, (sliceTo: (length mod: size)).
+	}.
+
+	alignRight:pattern: = { :length :aString | 
+		^(aString repeatToLength: (0 max: (length - size))), self.
+	}.
+
+	alignLeft:pattern: = { :length :aString | 
+		^self, (aString repeatToLength: (0 max: (length - size))).
+	}.
+
+
 	isString = true.
 }.
 
