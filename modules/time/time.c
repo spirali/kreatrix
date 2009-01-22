@@ -28,6 +28,7 @@
 #include "kxcore.h"
 #include "kxexception.h"
 #include "kxinteger.h"
+#include "kxtimevalue.h"
 
 static void kxclock_add_method_table(KxObject *self);
 
@@ -35,6 +36,12 @@ static void kxclock_add_method_table(KxObject *self);
 KxObject *
 kxmodule_main(KxModule *self, KxMessage *message)
 {
+	kxtimevalue_extension_init();
+
+	KxObject *timevalue = kxtimevalue_new_prototype(KXCORE);
+	kxcore_add_prototype(KXCORE, timevalue);
+	kxobject_set_slot_no_ref2(self, KXSYMBOL("TimeValue"), timevalue);
+
 	kxclock_add_method_table(self);
 	KXRETURN(self);
 }
@@ -42,7 +49,7 @@ kxmodule_main(KxModule *self, KxMessage *message)
 void
 kxmodule_unload(KxModule *self)
 {
-	
+	kxcore_remove_prototype(KXCORE, &kxtimevalue_extension);
 }
 
 static KxObject *
@@ -56,12 +63,20 @@ kxclock_millisecond_clock_value(KxObject *self, KxMessage *message)
 	return KXINTEGER(tv.tv_sec * 1000 + tv.tv_usec / 1000);
 }
 
+static KxObject *
+kxclock_now(KxObject *self, KxMessage *message)
+{
+	struct timeval tv;
+	gettimeofday(&tv, NULL);
+	return KXTIMEVALUE(&tv);
+}
+
 static void
 kxclock_add_method_table(KxObject *self)
 {
 	KxMethodTable table[] = {
 		{"millisecondClockValue",0,kxclock_millisecond_clock_value},
-
+		{"now",0,kxclock_now},
 		{NULL,0, NULL}
 	};
 	kxobject_add_methods(self, table);

@@ -1,7 +1,9 @@
 time_pkglibdir=${pkglibdir}/time
 time_pkglib_PROGRAMS = time.so
 time_so_SOURCES = \
-	time.c
+	time.c \
+	kxtimevalue.h \
+	kxtimevalue.c
 
 time_so_LDFLAGS = -module
 
