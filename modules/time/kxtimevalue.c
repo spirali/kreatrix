@@ -124,6 +124,22 @@ kxtimevalue_usec(KxTimeValue *self, KxMessage *message)
 	return KXINTEGER(KXTIMEVALUE_VALUE(self)->tv_usec);
 }
 
+static KxObject *
+kxtimevalue_cmp1(KxTimeValue *self, KxMessage *message)
+{
+	KXPARAM_TO_TIMEVAL(tv2, 0);
+	struct timeval *tv1 = KXTIMEVALUE_VALUE(self);
+	KXRETURN_BOOLEAN(timercmp(tv1, tv2, <));
+}
+
+static KxObject *
+kxtimevalue_cmp2(KxTimeValue *self, KxMessage *message)
+{
+	KXPARAM_TO_TIMEVAL(tv2, 0);
+	struct timeval *tv1 = KXTIMEVALUE_VALUE(self);
+	KXRETURN_BOOLEAN(timercmp(tv1, tv2, >));
+}
+
 static void
 kxtimevalue_add_method_table(KxTimeValue *self)
 {
@@ -132,6 +148,8 @@ kxtimevalue_add_method_table(KxTimeValue *self)
 		{"useconds", 0, kxtimevalue_usec},
 		{"+",1, kxtimevalue_add },
 		{"-",1, kxtimevalue_sub },
+		{"<",1, kxtimevalue_cmp1 },
+		{">",1, kxtimevalue_cmp2 },
 		{"clear",0, kxtimevalue_clear },
 		{NULL,0, NULL}
 	};
