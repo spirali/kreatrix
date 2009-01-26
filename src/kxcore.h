@@ -26,6 +26,7 @@
 #include "kxstack.h"
 #include "utils/list.h"
 #include "utils/dictionary.h"
+#include "kxcallback.h"
 
 typedef enum { 
 KXPROTO_SYMBOL, KXPROTO_CFUNCTION, KXPROTO_INTEGER, 
@@ -156,6 +157,9 @@ struct KxCore  {
 	List *mark_functions;
 
 	List *local_import_paths;
+
+	KxCallback *callback_gc_start;
+	KxCallback *callback_gc_end;
 	
 	KxObject *first_codeblock_with_inline_cache;
 	KxObject *last_codeblock_with_inline_cache;

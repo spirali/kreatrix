@@ -29,6 +29,7 @@ extern int kx_verbose;
 void 
 kxgc_collect(KxCore *core) 
 {
+	kxcallback_call(core->callback_gc_start, core);
 
 	kxobject_flag_reset(core->base_object, KXOBJECT_FLAG_GC);
 
@@ -90,6 +91,7 @@ kxgc_collect(KxCore *core)
 		}
 	}
 
+	kxcallback_call(core->callback_gc_end, core);
 }
 
 void

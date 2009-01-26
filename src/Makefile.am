@@ -98,7 +98,9 @@ kreatrix_SOURCES = \
 	kxobject_profile.h \
 	kxobject_profile.c \
 	kxassociation.c \
-	kxassociation.h
+	kxassociation.h \
+	kxcallback.c \
+	kxcallback.h 
 
 pkginclude_HEADERS=\
 	kxtypes.h \
@@ -144,7 +146,8 @@ pkginclude_HEADERS=\
 	kxdecompiler.h \
 	kxiterator.h \
 	kxobject_profile.h \
-	kxassociation.h
+	kxassociation.h \
+	kxcallback.h
 
 EXTRA_DIST=vminit/update.sh
 

@@ -158,6 +158,10 @@ kxcore_new()
 
 	core->object_cache_pos = 0;
 
+	/** Init callbacks */
+	kxcallback_init(&core->callback_gc_start);
+	kxcallback_init(&core->callback_gc_end);
+
 	/** Init char cache */
 	bzero(&core->char_cache, KXCORE_CHAR_CACHE_SIZE * sizeof(KxObject*));
 
@@ -410,6 +414,9 @@ kxcore_free(KxCore *self)
 		for (s=0;s<self->slot_cache_count[t];s++) 
 			kxfree(self->slot_cache[t][s]);
 	}
+
+	kxcallback_free(&self->callback_gc_start);
+	kxcallback_free(&self->callback_gc_end);
 
 	if (kx_verbose || self->objects_count)
 		printf("core->objects_count = %i\n", self->objects_count);
