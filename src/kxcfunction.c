@@ -30,6 +30,7 @@
 KxObjectExtension kxcfunction_extension;
 static KxObject * kxcfunction_activate(KxCFunction *self, KxObject *target, KxMessage *message);
 static void kxcfunction_free(KxCFunction *self);
+static void kxcfunction_mark(KxCFunction *self);
 
 void 
 kxcfunction_init_extenstion()
@@ -38,6 +39,7 @@ kxcfunction_init_extenstion()
 	kxcfunction_extension.type_name = "CFunction";
 	kxcfunction_extension.activate = kxcfunction_activate;
 	kxcfunction_extension.free = kxcfunction_free;
+	kxcfunction_extension.mark = kxcfunction_mark;
 	kxcfunction_extension.is_immutable = 1;
 }
 
@@ -46,7 +48,7 @@ kxcfunction_free(KxCFunction *self)
 {
 	KxCFunctionData *data = self->data.ptr;
 	if (data->objects) {
-		KxSymbol **obj = data->objects;
+		KxObject **obj = data->objects;
 		while (*obj) {
 			REF_REMOVE(*obj);
 			obj++;
@@ -54,6 +56,19 @@ kxcfunction_free(KxCFunction *self)
 		kxfree(data->objects);
 	}
 	kxfree(data);
+}
+
+static void
+kxcfunction_mark(KxCFunction *self) 
+{
+	KxCFunctionData *data = self->data.ptr;
+	if (data->objects) {
+		KxObject **obj = data->objects;
+		while (*obj) {
+			kxobject_mark(*obj);
+			obj++;
+		}
+	}
 }
 
 KxObject *
@@ -166,4 +181,80 @@ kxcfunction_objects_set_array(KxCFunction *self, KxObject **array, int size)
 		objs[t] = array[t];
 	}
 
+}
+
+KxObject * 
+kxcfunction_objects_find_by_extension(KxCFunction *self, KxObjectExtension *extension)
+{
+	KxCFunctionData *data = self->data.ptr;
+
+	if (data->objects == NULL) {
+		return NULL;
+	}
+
+	KxObject **obj = data->objects;
+
+	do {
+		if ((*obj)->extension == extension)
+			return *obj;
+		obj++;
+	} while(*obj);
+
+	return NULL;
+}
+
+void 
+kxcfunction_objects_add_object(KxCFunction *self, KxObject *object)
+{
+	KxCFunctionData *data = self->data.ptr;
+	
+	if (data->objects == NULL) {
+		kxcfunction_objects_set_one(self, object);
+		return;
+	}
+	
+	int size = 2;
+	KxObject **obj = data->objects;
+
+	do {
+		size++;
+		obj++;
+	} while(*obj);
+
+	data->objects = kxrealloc(data->objects, sizeof(KxObject *) * size);
+	ALLOCTEST(data->objects);
+	data->objects[size - 1] = NULL;
+	REF_ADD(object);
+	data->objects[size - 2] = object;
+}
+
+void 
+kxcfunction_objects_remove_object(KxCFunction *self, KxObject *object)
+{
+	KxCFunctionData *data = self->data.ptr;
+	
+	if (data->objects == NULL) {
+		return;
+	}
+
+	if (data->objects[0] == object && data->objects[1] == NULL) {
+		REF_REMOVE(object);
+		kxfree(data->objects);
+		data->objects = NULL;
+		return;
+	}
+
+	KxObject **objs = data->objects;
+
+	do {
+		if ((*objs) == object) {
+			REF_REMOVE(object);
+			do {
+				*objs = *(objs + 1);
+				objs++;
+			} while(*objs);
+			return;
+		}
+		objs++;
+	} while(*objs);
 }

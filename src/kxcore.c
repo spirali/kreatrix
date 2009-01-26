@@ -878,6 +878,24 @@ List * kxcore_list_with_all_objects(KxCore *core)
 	return list;
 }
 
+List * kxcore_list_with_all_objects_with_extension(KxCore *core, KxObjectExtension *extension)
+{
+	KxObject *base_object = core->base_object;
+	KxObject *obj = base_object->gc_next;
+
+	List *list = list_new();
+	if (base_object->extension == extension)	
+		list_append(list, base_object);
+	while(obj != base_object) {
+		if (obj->extension == extension) {
+			REF_ADD(obj);
+			list_append(list, obj);
+		}
+		obj = obj->gc_next;
+	}
+	return list;
+}
+
 KxObject *
 kxcore_get_char(KxCore *self, unsigned char c)
 {

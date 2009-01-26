@@ -108,8 +108,9 @@ void kxcodeblock_insert_inline_cache_instructions(KxCodeBlock *self);
 void kx_inline_cache_repair_by_prototype(KxObject *prototype);
 void kx_inline_cache_repair_by_prototype_and_name(KxObject *prototype, KxSymbol *message_name);
 
-
-//KxObject * kxcodeblock_run_with_direct_target(KxCodeBlock *self, KxObject *target, KxMessage *message);
+KxObject * kxcodeblock_find_literal_by_extension(KxCodeBlock *self, KxObjectExtension *extension);
+void kxcodeblock_add_literal(KxCodeBlock *self, KxObject *obj);
+void kxcodeblock_remove_literal(KxCodeBlock *self, KxObject *obj);
 
 extern KxObjectExtension kxcodeblock_extension;
 

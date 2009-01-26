@@ -11,8 +11,6 @@ AC_PROG_RANLIB
 
 AC_EXEEXT
 
-
-
 AC_CHECK_LIB(dl, dlopen)
 
 AC_CONFIG_HEADERS([kxconfig.h])
@@ -39,6 +37,7 @@ AC_CONFIG_FILES([
 		modules/xml/Makefile
 		modules/gtk/Makefile
 		modules/bytecode/Makefile
+		modules/profiler/Makefile
 		tests/Makefile
 		docs/Makefile
 		docs/examples/Makefile

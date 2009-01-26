@@ -62,6 +62,10 @@ KxObject *kxcfunction_returnself(KxObject *self, KxMessage *message);
 void kxcfunction_objects_set_one(KxCFunction *self, KxSymbol *symbol);
 void kxcfunction_objects_set_array(KxCFunction *self, KxSymbol **array, int size);
 
+KxObject * kxcfunction_objects_find_by_extension(KxCFunction *self, KxObjectExtension *extension);
+void kxcfunction_objects_add_object(KxCFunction *self, KxObject *object);
+void kxcfunction_objects_remove_object(KxCFunction *self, KxObject *object);
+
 extern KxObjectExtension kxcfunction_extension;
 
 #endif

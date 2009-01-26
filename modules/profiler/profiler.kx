@@ -1,0 +1,132 @@
+/*
+   profiler.kx
+   Copyright (C) 2007, 2008  Stanislav Bohm
+
+   This file is part of Kreatrix.
+
+   Kreatrix is free software; you can redistribute it and/or modify it under
+   the terms of the GNU General Public License as published by the Free
+   Software Foundation; either version 2, or (at your option) any later
+   version.
+
+   Kreatrix is distributed in the hope that it will be useful, 
+   but WITHOUT ANY WARRANTY; without even the implied warranty 
+   of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with Kreatrix; see the file COPYING. If not, see 
+   <http://www.gnu.org/licenses/>.
+*/
+	
+
+(isLoaded: #profiler) ifTrue: [ ^getModule: #profiler ].
+registerAs: #profiler.
+
+import: "time".
+
+loadCLibrary: "profiler".
+
+PTracker do: {
+	callingMessagesAsStrings = { |list|
+		list << #().
+		callingMessages foreachPair: [ :a :b | 
+			list add: "%s %s" % b type % a.
+		].
+		^list.
+	}.
+}.
+
+ProfilerStatistics = Object clone do: {
+	type = "ProfilerStatistics".
+	
+	ptrackers <- #().
+	totalTime <- time TimeValue clone.
+	sortedBy <- "unsorted".
+	
+	dump = {
+		("Total time %s" % totalTime) println.
+		ptrackers foreach: [ :each | 
+			">" print.
+			each cumulativeTime print.
+			" " print.
+			each trackedObject print.
+			" " print.
+			each callingMessages foreachPair: [ :a :b | b type print. " " print. a print. " " print. ].
+			"" println.
+		].
+	}.
+
+	writeHtmlToFile: = { :filename | |file|
+		file << (File clone name: filename) openForWriting.
+		file closeAfter: [ _writeHtml: file ].
+	}.
+
+	sortByCount = {
+		ptrackers sort: [ :a :b | a counter > b counter ].
+		sortedBy: "count".
+	}.
+
+	sortByTime = {
+		ptrackers sort: [ :a :b | a time > b time ].
+		sortedBy: "time".
+	}.
+
+	sortByCumulativeTime = {
+		ptrackers sort: [ :a :b | a cumulativeTime > b cumulativeTime ].
+		sortedBy: "cumulative time".
+	}.
+
+	_writeHtml: = { :file | 
+		file writeln: "<html>".
+		file writeln: "<head><title>Kreatrix -- Profiler's output</title></head>".
+		file writeln: "<body>".
+		file writeln: "<h1>Kreatrix -- Profiler's output</h1>".
+		file writeln: "<p>Total time: %s</p>" % totalTime.
+		file writeln: "<p>GC was called %sx (cumulative time: %s)</p>"
+			% profiler gcCounter % profiler gcCumulativeTime.
+		file writeln: "<p>Sorted by: %s</p>" % sortedBy.
+		file writeln: "<table border='1'>".
+		file writeln: "<thead><th>#</th><th>Count</th><th>Time</th><th>Cumulative time</th><th>Place</th></thead>".
+		0 to: ptrackers size do: [ :i | 
+			file write: "<tr><td>%s</td>" % (i + 1).
+			_writeHtmlTableRowTo: file ptracker: (ptrackers at: i).
+			file writeln: "</tr>". 
+		].
+		file writeln: "</table></body></html>".
+	}.
+
+	_writeHtmlTableRowTo:ptracker: = { :file :ptracker |
+		file write: "<td>%s</td>" % ptracker counter.
+		file write: "<td>%s</td>" % ptracker time.
+		file write: "<td>%s</td>" % ptracker cumulativeTime.
+		file write: "<td>(%s) " % ptracker trackedObject type.
+		ptracker callingMessagesAsStrings foreach: [ :each |
+			file write: "%s<br/>" % each. 
+		].
+		file write: "</td>".
+	}.
+
+}.
+
+start = {
+	profiler _startTime = time now.
+	_start.
+}.
+
+stop = { |list stat totalTime|
+	list << _stop.
+	totalTime << time now - profiler _startTime.
+	stat << profiler ProfilerStatistics clone.
+	stat ptrackers: list.
+	stat totalTime: totalTime.
+	^stat.
+}.
+
+profileBlock: = { :aBlock | | stat |
+	profiler start.
+	aBlock ensure: [ 
+		stat << profiler stop. 
+	].
+	^stat
+}.

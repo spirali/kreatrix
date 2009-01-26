@@ -704,6 +704,64 @@ kxcodeblock_message_name_id(KxCodeBlock *self, KxSymbol *message_name)
 	abort();
 }
 
+void 
+kxcodeblock_add_literal(KxCodeBlock *self, KxObject *obj)
+{
+	KxCodeBlockData *data = KXCODEBLOCK_DATA(self);
+	if (data == NULL)
+		return;
+	REF_ADD(obj);
+	int count = data->literals_count + 1;
+	data->literals = kxrealloc(data->literals, count * sizeof(KxObject *));
+	data->literals[data->literals_count] = obj;
+	data->literals_count = count;
+}
+
+void 
+kxcodeblock_remove_literal(KxCodeBlock *self, KxObject *obj)
+{
+	KxCodeBlockData *data = KXCODEBLOCK_DATA(self);
+	if (data == NULL)
+		return;
+	int t;
+	int count = data->literals_count;
+	for (t=0; t < count; t++) {
+		if (data->literals[t] == obj)
+			break;
+	}
+
+	if (t == count)
+		return;
+
+	count--;
+	int s;
+	for (s = t; s < count; s++) {
+		data->literals[s] = data->literals[s + 1];
+	}
+	data->literals_count = count;
+	data->literals = kxrealloc(data->literals, count * sizeof(KxObject *));
+	REF_REMOVE(obj);
+}
+
+/* Used in profiler */
+KxObject * 
+kxcodeblock_find_literal_by_extension(KxCodeBlock *self, KxObjectExtension *extension)
+{
+	KxCodeBlockData *data = KXCODEBLOCK_DATA(self);
+	if (data == NULL)
+		return NULL;
+
+	int t;
+	int count = data->literals_count;
+	for (t=count - 1; t >= 0; --t) {
+		if (data->literals[t]->extension == extension) {
+			return data->literals[t];
+		}
+	}
+	return NULL;
+}
+
+
 static void
 kxcodeblock_mark(KxObject *self) 
 {
