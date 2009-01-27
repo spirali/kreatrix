@@ -15,4 +15,5 @@ EXTRA_DIST=\
 	gtk/gtkbuttons.kx \
 	gtk/gtktextview.kx \
 	gtk/gtktreeview.kx \
-	gtk/gtkcombobox.kx
+	gtk/gtkcombobox.kx \
+	profiler/profiler_demo.kx

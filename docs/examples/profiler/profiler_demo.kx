@@ -1,0 +1,26 @@
+import: "profiler".
+
+doSomething = { |HelloObject|
+	HelloObject << Object clone do: {
+		type = "HelloObject".
+		sayHello = { "Hello world!" println }.
+	}.
+
+	100 repeat: [ HelloObject clone sayHello ].
+}.
+
+runProfiler = { |stat|
+
+	/* Collect statistics */
+	stat << profiler profileBlock: [ 
+		doSomething.	
+	].
+
+	/* Write output */
+	stat sortByCumulativeTime.
+	stat writeHtmlToFile: "output_ctime.html".
+	stat sortByTime.
+	stat writeHtmlToFile: "output_time.html".
+}.
+
+runProfiler.
