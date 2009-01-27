@@ -83,7 +83,7 @@ ProfilerStatistics = Object clone do: {
 		file writeln: "<body>".
 		file writeln: "<h1>Kreatrix -- Profiler's output</h1>".
 		file writeln: "<p>Total time: %s</p>" % totalTime.
-		file writeln: "<p>GC was called %sx (cumulative time: %s (%s%%)</p>"
+		file writeln: "<p>GC was called %sx (cumulative time: %s (%s%%))</p>"
 			% profiler gcCounter % profiler gcCumulativeTime
 			% (_percentOfTotalTime: profiler gcCumulativeTime).
 		file writeln: "<p>Sorted by: %s</p>" % sortedBy.
