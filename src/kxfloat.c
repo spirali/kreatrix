@@ -155,7 +155,7 @@ kxfloat_as_string_precision(KxFloat *self, KxMessage *message)
 {
 	KXPARAM_TO_INT(precision, 0);
 	char tmp[50];
-	snprintf(tmp,50,"%0.*lg",precision, KXFLOAT_VALUE(self));
+	snprintf(tmp,50,"%0.*lf",precision, KXFLOAT_VALUE(self));
 	return KXSTRING(tmp);
 }
 

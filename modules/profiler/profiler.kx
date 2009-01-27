@@ -83,11 +83,13 @@ ProfilerStatistics = Object clone do: {
 		file writeln: "<body>".
 		file writeln: "<h1>Kreatrix -- Profiler's output</h1>".
 		file writeln: "<p>Total time: %s</p>" % totalTime.
-		file writeln: "<p>GC was called %sx (cumulative time: %s)</p>"
-			% profiler gcCounter % profiler gcCumulativeTime.
+		file writeln: "<p>GC was called %sx (cumulative time: %s (%s%%)</p>"
+			% profiler gcCounter % profiler gcCumulativeTime
+			% (_percentOfTotalTime: profiler gcCumulativeTime).
 		file writeln: "<p>Sorted by: %s</p>" % sortedBy.
 		file writeln: "<table border='1'>".
-		file writeln: "<thead><th>#</th><th>Count</th><th>Time</th><th>Cumulative time</th><th>Place</th></thead>".
+		file writeln: 
+		"<thead><th>#</th><th>Count</th><th>Time</th><th>Cumulative time</th><th>Object message</th><th>Place</th></thead>".
 		0 to: ptrackers size do: [ :i | 
 			file write: "<tr><td>%s</td>" % (i + 1).
 			_writeHtmlTableRowTo: file ptracker: (ptrackers at: i).
@@ -97,14 +99,36 @@ ProfilerStatistics = Object clone do: {
 	}.
 
 	_writeHtmlTableRowTo:ptracker: = { :file :ptracker |
+		| time ctime |
+		time << ptracker time.
+		ctime << ptracker cumulativeTime.
 		file write: "<td>%s</td>" % ptracker counter.
-		file write: "<td>%s</td>" % ptracker time.
-		file write: "<td>%s</td>" % ptracker cumulativeTime.
-		file write: "<td>(%s) " % ptracker trackedObject type.
+		file write: "<td>%s (%s%%)</td>" 
+			% time % (_percentOfTotalTime: time).
+		file write: "<td>%s (%s%%)</td>"
+			% ctime % (_percentOfTotalTime: ctime).
+		file write: "<td>".
 		ptracker callingMessagesAsStrings foreach: [ :each |
-			file write: "%s<br/>" % each. 
+			file write: "%s<br/>" % (_escapeString: each). 
 		].
-		file write: "</td>".
+		file write: "</td><td>%s</td>" % (_escapeString: (_getPlace: ptracker trackedObject)).
+	}.
+
+	_percentOfTotalTime: = { :time |
+		^((time asFloat / totalTime asFloat) * 100.0) asStringPrecision: 2
+	}.
+
+	_getPlace: = { :obj |
+		(obj respondsTo: #sourceFilename) ifFalse: [ ^obj type ].
+		((obj respondsTo: #sourceFilenameLineNumber) and: [ obj sourceFilenameLineNumber != 0 ]) 
+			ifTrue: [ ^"%s:%s" % obj sourceFilename % obj sourceFilenameLineNumber ].
+		^obj sourceFilename.
+	}.
+
+	_escapeString: = { :string |
+		string << string replace: "<" to: "&lt;".
+		string << string replace: ">" to: "&gt;".
+		^string.
 	}.
 
 }.

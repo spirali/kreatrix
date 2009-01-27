@@ -1048,6 +1048,25 @@ kxcodeblock_reset_inline_cache_method(KxCodeBlock *self, KxMessage *message)
 	KXRETURN(self);
 }
 
+static KxObject *
+kxcodeblock_source_filename(KxCodeBlock *self, KxMessage *message)
+{
+	KxCodeBlockData *data = KXCODEBLOCK_DATA(self);
+	return KXSTRING(data->source_filename);
+}
+
+static KxObject *
+kxcodeblock_source_filename_ln(KxCodeBlock *self, KxMessage *message)
+{
+	KxCodeBlockData *data = KXCODEBLOCK_DATA(self);
+	int ln;
+	if (data->message_linenumbers == NULL) {
+		ln = 0;
+	} else {
+		ln = data->message_linenumbers[0];
+	}
+	return KXINTEGER(ln);
+}
 
 static void 
 kxcodeblock_add_method_table(KxCodeBlock *self)
@@ -1059,6 +1078,8 @@ kxcodeblock_add_method_table(KxCodeBlock *self)
 		{"messageNames",0, kxcodeblock_message_names },
 		{"insertInlineCache",0, kxcodeblock_insert_inline_cache },
 		{"resetInlineCache",0, kxcodeblock_reset_inline_cache_method },
+		{"sourceFilename", 0, kxcodeblock_source_filename},
+		{"sourceFilenameLineNumber", 0, kxcodeblock_source_filename_ln},
 		{NULL,0, NULL}
 	};
 	kxobject_add_methods(self, table);

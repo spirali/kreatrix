@@ -524,7 +524,7 @@ __IndexPage = __Page clone do: {
 	
 	moduleNames <- #().
 
-	standardModules = #("system" "gtk" "random" "sockets" "cgi" "test" "xml" "pool" "threads" "time" "bytecode") asSet.
+	standardModules = #("system" "gtk" "random" "sockets" "cgi" "test" "xml" "pool" "threads" "time" "bytecode" "profiler") asSet.
 
 	create = { |sec mods stdmods extern|
 		openFile: "index.html".
