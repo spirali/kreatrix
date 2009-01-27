@@ -428,7 +428,6 @@ __SlotCategoriesSection = __SectionContainer clone do: {
 	//		(anObject == Lobby) && (doc text != "") ifTrue: [ doc shortDescription println ].
 
 			assoc << slot asString => doc.
-			assoc freezeSlot: #value.
 
 			cat << doc category.
 			(dict hasKey: cat) ifFalse: [ dict at: cat put: #() ].
