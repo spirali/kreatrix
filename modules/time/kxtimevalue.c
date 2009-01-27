@@ -28,6 +28,7 @@
 
 #include "kxtimevalue.h"
 #include "kxinteger.h"
+#include "kxfloat.h"
 
 KxObjectExtension kxtimevalue_extension;
 
@@ -140,6 +141,15 @@ kxtimevalue_cmp2(KxTimeValue *self, KxMessage *message)
 	KXRETURN_BOOLEAN(timercmp(tv1, tv2, >));
 }
 
+static KxObject *
+kxtimevalue_as_float(KxTimeValue *self, KxMessage *message)
+{
+	struct timeval *tv = KXTIMEVALUE_VALUE(self);
+	float x = (double) tv->tv_sec;
+	x += ((double) tv->tv_usec) / 1000000;
+	return KXFLOAT(x);
+}
+
 static void
 kxtimevalue_add_method_table(KxTimeValue *self)
 {
@@ -151,8 +161,8 @@ kxtimevalue_add_method_table(KxTimeValue *self)
 		{"<",1, kxtimevalue_cmp1 },
 		{">",1, kxtimevalue_cmp2 },
 		{"clear",0, kxtimevalue_clear },
+		{"asFloat",0, kxtimevalue_as_float },
 		{NULL,0, NULL}
 	};
 	kxobject_add_methods(self, table);
 }
-
