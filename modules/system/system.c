@@ -147,7 +147,7 @@ kxsystem_get_status_of_any_child_process(KxObject *self, KxMessage *message)
 {
 	int status;
 	
-	errno = 0;
+ 	errno = 0;
 	int pid = waitpid(-1,&status,WNOHANG);
 
 
@@ -159,8 +159,8 @@ kxsystem_get_status_of_any_child_process(KxObject *self, KxMessage *message)
 	if (pid < 0) {
 		KxException *excp = kxexception_new_with_text(KXCORE,
 			"waitpid failed: %s", strerror(errno));
-		KXTHROW(excp);
-	}
+ 		KXTHROW(excp);
+ 	}
 
 
 	KxPid *kxpid = kxcore_clone_prototype(KXCORE, &kxpid_extension);
@@ -173,6 +173,22 @@ kxsystem_get_status_of_any_child_process(KxObject *self, KxMessage *message)
 	//KXRETURN(kxpid);
 	//kxobject_dump(kxpid);
 	return kxpid;
+}
+
+static KxObject *
+kxsystem_run_command(KxObject *self, KxMessage *message)
+{
+	KXPARAM_TO_CSTRING(param, 0)
+
+	errno = 0;
+	int ret = system(param);
+
+	if (ret < 0) {
+		KxException *excp = kxexception_new_with_text(KXCORE,
+			"system failed: %s", strerror(errno));
+		KXTHROW(excp);
+	}
+	KXRETURN(self);
 }
 
 
@@ -198,6 +214,7 @@ kxsystem_add_method_table(KxObject *self) {
 		{"sleep:",1, kxsystem_sleep },
 		{"usleep:",1, kxsystem_usleep },
 		{"getenv:",1, kxsystem_getenv},
+		{"runCommand:",1, kxsystem_run_command},
 		{"waitForStatusOfAnyChildProcess",0, kxsystem_wait_for_status_of_any_child_process },
 		{"getStatusOfAnyChildProcess",0, kxsystem_get_status_of_any_child_process },
 		{NULL,0, NULL}
