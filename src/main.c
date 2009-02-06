@@ -350,7 +350,7 @@ main(int argc, char **argv)
 		}
 	} else {
 		if (args_pos < argc) {
-		    script_filename = argv[args_pos];
+		    script_filename = argv[args_pos++];
 			if (kx_compile_flag) {
 				if(!compile_and_save(script_filename)) {
 					return -1;
@@ -381,10 +381,10 @@ main(int argc, char **argv)
 	}
 	
 	// Save arguments into list
-	List *list = list_new_size(argc-args_pos-1);
+	List *list = list_new_size(argc-args_pos);
 	int t;
-	for (t=args_pos+1;t<argc;t++) {
-		list->items[t-args_pos-1] = kxstring_new_with(core,argv[t]);
+	for (t=args_pos;t<argc;t++) {
+		list->items[t-args_pos] = kxstring_new_with(core,argv[t]);
 	}
 	kxobject_set_slot_no_ref2(core->lobby,kxcore_get_symbol(core,"args"),kxlist_new_with(core,list));
 
