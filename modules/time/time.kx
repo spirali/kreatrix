@@ -51,7 +51,7 @@ Time = Object clone do: {
 
 TimeValue do: {
 	asString = { ^seconds asString, ".", (useconds asString alignRight: 6 pattern: "0") }.
-}
+}.
 
 timeOfRun: = { :aBlock | |startTime|
 	startTime << time millisecondClockValue.
