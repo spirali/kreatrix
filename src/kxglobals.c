@@ -19,7 +19,7 @@
    <http://www.gnu.org/licenses/>.
 */
 	
-#include <kxconfig.h>
+#include "../kxconfig.h"
 #include <stdio.h>
 #include <stdlib.h>
 

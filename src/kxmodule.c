@@ -24,7 +24,7 @@
 #include <dlfcn.h>
 #include <string.h>
 
-#include <kxconfig.h>
+#include "../kxconfig.h"
 
 #include "kxmodule.h"
 #include "kxobject.h"

@@ -26,7 +26,7 @@
 #include <libgen.h>
 #include <unistd.h>
 #include <ctype.h>
-#include <kxconfig.h>
+#include "../kxconfig.h"
 
 #include "utils/list.h"
 #include "utils/utils.h"

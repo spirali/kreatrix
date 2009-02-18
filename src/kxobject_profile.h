@@ -22,7 +22,7 @@
 #ifndef __KXOBJECT_PROFILE_H
 #define __KXOBJECT_PROFILE_H
 
-#include "kxconfig.h"
+#include "../kxconfig.h"
 
 #ifdef KX_INLINE_CACHE
 #include "kxobject.h"

@@ -24,7 +24,7 @@
 
 #include "kxcodeblock.h"
 #include "kxmessage.h"
-#include "kxconfig.h"
+#include "../kxconfig.h"
 
 /*#define IS_KXACTIVATION(kxobject) ((kxobject)->extension==&kxactivation_extension)
 
