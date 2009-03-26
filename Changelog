@@ -3,6 +3,11 @@ Kreatrix's changelog
 0.12.0
 	+ TypeError added
 	+ TimeValue added
+	+ Added module "profiler"
+	+ Inline cache optimization
+	+ New optimizating instructions
+	+ Float literals can have "e" suffix (for example: 2.32e5)
+	+ Many bug fixes and small improvements
 
 0.11.1
 	+ fixed bug in objects without parentslot
