@@ -1,3 +1,4 @@
+#!/bin/bash
 
 KREATRIX=$1
 SCRIPT=run.kx
