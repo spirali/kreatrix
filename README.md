@@ -16,6 +16,7 @@ Some basic info:
 * Original manual is lost :(
 * [Examples](docs/examples)
 * [Generated docs](docs/html)
+* [VIM syntax highlighting](extra/kx.vim)
 
 ## Author
 
