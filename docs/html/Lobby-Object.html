@@ -1,0 +1,107 @@
+<html>
+<head>
+<link type="text/css" rel="stylesheet" href="docs.css"/>
+<title> Kreatrix -- documentation</title>
+</head>
+<body>
+
+
+| <a href='index.html'>index</a> > <a  href = 'Lobby.html'>Lobby</a> > <a  href = 'Lobby-Object.html'>Object</a> |<hr/>
+<h1>Object</h1>
+ Base object. 
+<h2>Description</h2>
+<p>
+	Parent for all objects.
+</p>
+<h2>Parent</h2>
+<p>
+<ul><li><a  href = 'Lobby.html'>Lobby</a></li>
+</ul>
+</p>
+<h2>Slots</h2>
+<p>
+<h3>Associating</h3>
+<p>
+<table><tr><td><a  href = 'Lobby-Object-=&gt;.html'>=&gt;</a></td><td>  Creates association.</td></tr>
+</table>
+</p>
+<h3>Comparing</h3>
+<p>
+<table><tr><td><a  href = 'Lobby-Object-!=.html'>!=</a></td><td>  Tests not-equivalention </td></tr>
+<tr><td><a  href = 'Lobby-Object-==.html'>==</a></td><td>  Tests equivalention </td></tr>
+<tr><td><a  href = 'Lobby-Object-hash.html'>hash</a></td><td>  </td></tr>
+<tr><td><a  href = 'Lobby-Object-isKindOf..html'>isKindOf:</a></td><td> Test of inheritance. </td></tr>
+<tr><td><a  href = 'Lobby-Object-isSame..html'>isSame:</a></td><td> Identity test.</td></tr>
+</table>
+</p>
+<h3>Output</h3>
+<p>
+<table><tr><td><a  href = 'Lobby-Object-print.html'>print</a></td><td>  Print self as string on stdout </td></tr>
+<tr><td><a  href = 'Lobby-Object-printString.html'>printString</a></td><td>  </td></tr>
+<tr><td><a  href = 'Lobby-Object-println.html'>println</a></td><td>  Send message "print" and print end of line on stdout. </td></tr>
+<tr><td><a  href = 'Lobby-Object-writeTo..html'>writeTo:</a></td><td>  Write receiver into aStream </td></tr>
+</table>
+</p>
+<h3>Parents</h3>
+<p>
+<table><tr><td><a  href = 'Lobby-Object-addParent..html'>addParent:</a></td><td> Add parent to receiver.</td></tr>
+<tr><td><a  href = 'Lobby-Object-insertParent..html'>insertParent:</a></td><td> Add parent at the beginning of receivers's list of parents.</td></tr>
+<tr><td><a  href = 'Lobby-Object-parent.html'>parent</a></td><td> Returns first parent of receiver.</td></tr>
+<tr><td><a  href = 'Lobby-Object-parent..html'>parent:</a></td><td> Set new parent</td></tr>
+<tr><td><a  href = 'Lobby-Object-parents.html'>parents</a></td><td> Returns list with receiver's parents.</td></tr>
+<tr><td><a  href = 'Lobby-Object-removeParent..html'>removeParent:</a></td><td> Remove receiver's parent.</td></tr>
+</table>
+</p>
+<h3>Slots</h3>
+<p>
+<table><tr><td><a  href = 'Lobby-Object-freezeSlot..html'>freezeSlot:</a></td><td> Activable object is no longer evaluated in this slot.</td></tr>
+<tr><td><a  href = 'Lobby-Object-hasSlot..html'>hasSlot:</a></td><td> Answer whether receiver has specific slot.</td></tr>
+<tr><td><a  href = 'Lobby-Object-slot..html'>slot:</a></td><td> Return receiver's slot.</td></tr>
+<tr><td><a  href = 'Lobby-Object-slot.set..html'>slot:set:</a></td><td> Creates new slot in the receiver.</td></tr>
+<tr><td><a  href = 'Lobby-Object-slot.update..html'>slot:update:</a></td><td> Update slot in the receiver.</td></tr>
+<tr><td><a  href = 'Lobby-Object-slots.html'>slots</a></td><td> Returns slot's names of receiver</td></tr>
+<tr><td><a  href = 'Lobby-Object-unfreezeSlot..html'>unfreezeSlot:</a></td><td> Cancel effect of "freezed" slot. </td></tr>
+</table>
+</p>
+<h3>Testing</h3>
+<p>
+<table><tr><td><a  class = 'nodoc' href = 'Lobby-nil-ifNotNil..html'>ifNil:</a></td><td>  </td></tr>
+<tr><td><a  class = 'nodoc' href = 'Lobby-nil-ifNil..html'>ifNotNil:</a></td><td>  </td></tr>
+<tr><td><a  href = 'Lobby-false.html'>isNil</a></td><td>  </td></tr>
+<tr><td><a  href = 'Lobby-true.html'>isNotNil</a></td><td>  </td></tr>
+</table>
+</p>
+<h3>unsorted</h3>
+<p>
+<table><tr><td><a  class = 'nodoc' href = 'Lobby-Object-asString.html'>asString</a></td><td></td></tr>
+<tr><td><a  href = 'Lobby-Object-clone.html'>clone</a></td><td>Returns clone of receiver. </td></tr>
+<tr><td><a  href = 'Lobby-Object-copy.html'>copy</a></td><td>Return shallow copy of receiver. Objects with internal data should redefine this message.</td></tr>
+<tr><td><a  class = 'nodoc' href = 'Lobby-Object-deepCopy.html'>deepCopy</a></td><td></td></tr>
+<tr><td><a  href = 'Lobby-Object-do..html'>do:</a></td><td>Process aMethod in context of receiver.</td></tr>
+<tr><td><a  class = 'nodoc' href = 'Lobby-Object-do.parameters..html'>do:parameters:</a></td><td></td></tr>
+<tr><td><a  class = 'nodoc' href = 'Lobby-Object-do.with..html'>do:with:</a></td><td></td></tr>
+<tr><td><a  class = 'nodoc' href = 'Lobby-Object-dump.html'>dump</a></td><td></td></tr>
+<tr><td><a  class = 'nodoc' href = 'Lobby-Object-dump..html'>dump:</a></td><td></td></tr>
+<tr><td><a  class = 'nodoc' href = 'Lobby-Object-identityHash.html'>identityHash</a></td><td></td></tr>
+<tr><td><a  href = 'Lobby-Object-isActivable.html'>isActivable</a></td><td>Answer whether receiver is activable object.</td></tr>
+<tr><td><a  href = 'Lobby-false.html'>isFloat</a></td><td></td></tr>
+<tr><td><a  href = 'Lobby-false.html'>isInteger</a></td><td></td></tr>
+<tr><td><a  href = 'Lobby-false.html'>isNumber</a></td><td></td></tr>
+<tr><td><a  href = 'Lobby-false.html'>isString</a></td><td></td></tr>
+<tr><td><a  href = 'Lobby-false.html'>isSymbol</a></td><td></td></tr>
+<tr><td><a  href = 'Lobby-Object-perform..html'>perform:</a></td><td>Send unary message.</td></tr>
+<tr><td><a  href = 'Lobby-Object-perform.with..html'>perform:with:</a></td><td>Send message with one parameter.</td></tr>
+<tr><td><a  href = 'Lobby-Object-perform.withList..html'>perform:withList:</a></td><td>Send message with more parameters.</td></tr>
+<tr><td><a  href = 'Lobby-Object-respondsTo..html'>respondsTo:</a></td><td>Test if object is able to receive message.</td></tr>
+<tr><td><a  class = 'nodoc' href = 'Lobby-Object-slot.ifAbsent..html'>slot:ifAbsent:</a></td><td></td></tr>
+<tr><td><a  class = 'nodoc' href = 'Lobby-Object-slot.updater.set..html'>slot:updater:set:</a></td><td></td></tr>
+<tr><td><a  href = 'Lobby-Object-throw..html'>throw:</a></td><td>Throws anObject. </td></tr>
+<tr><td><a  href = 'Lobby-Object-type.html'>type</a></td><td>Returns string contains type of object.</td></tr>
+</table>
+</p>
+
+</p>
+<hr/>| <a href='index.html'>index</a> > <a  href = 'Lobby.html'>Lobby</a> > <a  href = 'Lobby-Object.html'>Object</a> |
+
+
+</body>
